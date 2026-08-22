@@ -1,0 +1,32 @@
+make a amazing website development agency portfolio website.
+Where admin can create different categories and upload products: title, description, thubmnail, link, desscription, images (masonry ui and optional)
+Thesse will be shown to the surface.
+Contact page that saves the data in admin panel and admin can reply those emails from website. Before user submit contact form they need to be otp verified with that mail and Captcha fillup.
+The keys can be set from website AppSettings page, where brandname, logo, icon, social links can alsso be changed.
+Terms conditions & privacy policy page (Rich text editor)
+About us, team, youtube videos, location
+
+Asthetic dark and light theme applied to the both admin and surface webpages.
+And in every pages while uploading a image that can be preview before upload.
+Integrate [Trustpilot Reviews](https://www.trustpilot.com/)
+
+the products or websites section can have option: direct_link (thiss will rediect to the added link when user clicks) or in_app_link (this will show the description, images and details, youtube videos can be added as well here)
+
+In landing page max 15 items (3*5 in lg screen) and view all link, and dedicated webssites page where all workss will be shown, and according to category ressults will alssso be shown.
+
+Add whatssapp messaging from where a visitor can directly send message to whatsapp. On page croll thi will come up in footer. croll to top smooth scrolling in footer ass well.
+Whatssapp number can be saved from admin panel appSettings page.
+
+Changing admin email or passwords needs otp verification ass well.
+
+Make a seeder to seed ssome data.
+Complete the entire system with laravel + inertia + react and tailwind and admin panel in shadcn/ui please.
+For admin use admin data table noot userss please.
+And also admin can see that which item i visited how many times.
+In dashboard admin can see the visitor logs as well.
+And use chart.js to show the data.
+Admin can filter from one date to another as well. Can bulk delete items or visitor logs as well if he wants. Add Swal alert for every action.
+
+the reviews will be swiper and admin can set the trustpilot setup from admin panel as well. he can set footer text as well.
+Make the website fully responsive as well.
+Now complete the website.
