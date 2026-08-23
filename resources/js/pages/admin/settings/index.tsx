@@ -3,6 +3,7 @@ import { router } from '@inertiajs/react';
 import { AdminLayout } from '@/layouts/admin-layout';
 import { AppSettings } from '@/types';
 import { ImageUploader } from '@/components/admin/image-uploader';
+import { WhatsAppIcon } from '@/components/icons/whatsapp-icon';
 import {
     Settings,
     Save,
@@ -10,7 +11,6 @@ import {
     Image as ImageIcon,
     Phone,
     MapPin,
-    MessageCircle,
     Star,
     Share2,
     Play,
@@ -132,7 +132,7 @@ export default function SettingsIndex({ settings }: SettingsIndexProps) {
     const tabs = [
         { id: 'branding', label: 'Branding & Logos', icon: ImageIcon },
         { id: 'contact', label: 'Contact & Location', icon: MapPin },
-        { id: 'whatsapp', label: 'WhatsApp Widget', icon: MessageCircle },
+        { id: 'whatsapp', label: 'WhatsApp Widget', icon: WhatsAppIcon },
         { id: 'trustpilot', label: 'Trustpilot Setup', icon: Star },
         { id: 'social', label: 'Social Media', icon: Share2 },
         { id: 'media', label: 'Media & Videos', icon: Play },

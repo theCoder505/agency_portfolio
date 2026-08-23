@@ -4,6 +4,7 @@ import { SharedData } from '@/types';
 import {
     LayoutDashboard,
     Layers,
+    BookOpen,
     FolderTree,
     MessageSquare,
     Activity,
@@ -56,6 +57,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
 
     const navigation = [
         { label: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
+        { label: 'Blogs & Articles', href: '/admin/blogs', icon: BookOpen },
         { label: 'Portfolios & Products', href: '/admin/portfolios', icon: Layers },
         { label: 'Categories', href: '/admin/categories', icon: FolderTree },
         { label: 'Contact Inquiries', href: '/admin/contacts', icon: MessageSquare },

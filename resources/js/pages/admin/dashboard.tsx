@@ -18,7 +18,8 @@ import {
     Monitor,
     Send,
     ExternalLink,
-    ChevronRight
+    ChevronRight,
+    BookOpen
 } from 'lucide-react';
 
 // Chart.js imports
@@ -54,6 +55,8 @@ interface DashboardProps {
     kpis: {
         total_projects: number;
         total_views: number;
+        total_blogs?: number;
+        total_blog_reads?: number;
         total_contacts: number;
         unread_contacts: number;
         total_visitor_hits: number;
@@ -187,7 +190,7 @@ export default function Dashboard({
                 </div>
 
                 {/* KPI Summary Cards */}
-                <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-4">
                     <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-1">
                         <div className="flex items-center justify-between">
                             <span className="text-[11px] font-bold uppercase text-slate-500">Total Projects</span>
@@ -210,8 +213,28 @@ export default function Dashboard({
 
                     <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-1">
                         <div className="flex items-center justify-between">
+                            <span className="text-[11px] font-bold uppercase text-slate-500">Blog Articles</span>
+                            <BookOpen className="h-4 w-4 text-purple-500" />
+                        </div>
+                        <div className="text-2xl font-black text-purple-600 dark:text-purple-400">
+                            {kpis.total_blogs ?? 0}
+                        </div>
+                    </div>
+
+                    <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-1">
+                        <div className="flex items-center justify-between">
+                            <span className="text-[11px] font-bold uppercase text-slate-500">Total Blog Reads</span>
+                            <Eye className="h-4 w-4 text-emerald-500" />
+                        </div>
+                        <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400">
+                            {(kpis.total_blog_reads ?? 0).toLocaleString()}
+                        </div>
+                    </div>
+
+                    <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-1">
+                        <div className="flex items-center justify-between">
                             <span className="text-[11px] font-bold uppercase text-slate-500">Inquiries</span>
-                            <MessageSquare className="h-4 w-4 text-purple-500" />
+                            <MessageSquare className="h-4 w-4 text-blue-500" />
                         </div>
                         <div className="text-2xl font-black text-slate-900 dark:text-white">
                             {kpis.total_contacts}
@@ -230,10 +253,10 @@ export default function Dashboard({
 
                     <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-1">
                         <div className="flex items-center justify-between">
-                            <span className="text-[11px] font-bold uppercase text-slate-500">Page Views</span>
-                            <Activity className="h-4 w-4 text-emerald-500" />
+                            <span className="text-[11px] font-bold uppercase text-slate-500">Total Page Hits</span>
+                            <Activity className="h-4 w-4 text-teal-500" />
                         </div>
-                        <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400">
+                        <div className="text-2xl font-black text-teal-600 dark:text-teal-400">
                             {kpis.total_visitor_hits.toLocaleString()}
                         </div>
                     </div>

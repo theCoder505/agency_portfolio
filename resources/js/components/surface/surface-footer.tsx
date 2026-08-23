@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import { Mail, Phone, MapPin, ArrowUpRight, Github, Twitter, Linkedin, Facebook, Instagram, Youtube, Star, ShieldCheck, Heart } from 'lucide-react';
+import { WhatsAppIcon } from '@/components/icons/whatsapp-icon';
 import { SharedData } from '@/types';
 
 export const SurfaceFooter: React.FC = () => {
@@ -15,6 +16,10 @@ export const SurfaceFooter: React.FC = () => {
     const trustpilotScore = app_settings?.trustpilot_score || '4.9';
     const trustpilotCount = app_settings?.trustpilot_reviews_count || '140+';
     const trustpilotUrl = app_settings?.trustpilot_url || 'https://www.trustpilot.com';
+    const whatsappNumber = app_settings?.whatsapp_number;
+    const whatsappPrompt = app_settings?.whatsapp_message_prompt || 'Hello CodeVenture Tech! I would like to discuss building a project.';
+    const cleanWhatsapp = whatsappNumber ? whatsappNumber.replace(/[^0-9]/g, '') : '';
+    const whatsappUrl = cleanWhatsapp ? `https://wa.me/${cleanWhatsapp}?text=${encodeURIComponent(whatsappPrompt)}` : '';
 
     return (
         <footer className="relative bg-slate-950 text-slate-400 pt-16 pb-12 border-t border-slate-800/80 overflow-hidden">
@@ -77,6 +82,9 @@ export const SurfaceFooter: React.FC = () => {
                                 <Link href="/works" className="hover:text-white transition-colors">Portfolio & Works</Link>
                             </li>
                             <li>
+                                <Link href="/blogs" className="hover:text-white transition-colors">Blogs & Insights</Link>
+                            </li>
+                            <li>
                                 <Link href="/about" className="hover:text-white transition-colors">About Us & Team</Link>
                             </li>
                             <li>
@@ -132,28 +140,63 @@ export const SurfaceFooter: React.FC = () => {
                                     {phone}
                                 </a>
                             </li>
+                            {whatsappUrl && (
+                                <li className="flex items-center space-x-2.5">
+                                    <WhatsAppIcon className="h-4 w-4 text-emerald-400 shrink-0" />
+                                    <a
+                                        href={whatsappUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-xs text-emerald-400/90 hover:text-emerald-300 transition-colors font-medium flex items-center space-x-1"
+                                    >
+                                        <span>WhatsApp Chat</span>
+                                        <ArrowUpRight className="h-3 w-3" />
+                                    </a>
+                                </li>
+                            )}
                         </ul>
 
                         {/* Social Links */}
-                        <div className="flex items-center space-x-2 mt-5">
+                        <div className="flex flex-wrap items-center gap-2 mt-5">
                             {app_settings?.social_github && (
-                                <a href={app_settings.social_github} target="_blank" rel="noopener noreferrer" className="p-2 rounded-lg bg-slate-900 text-slate-400 hover:text-white hover:bg-slate-800 transition-all">
+                                <a href={app_settings.social_github} target="_blank" rel="noopener noreferrer" aria-label="GitHub" className="p-2 rounded-lg bg-slate-900 text-slate-400 hover:text-white hover:bg-slate-800 transition-all">
                                     <Github className="h-4 w-4" />
                                 </a>
                             )}
                             {app_settings?.social_linkedin && (
-                                <a href={app_settings.social_linkedin} target="_blank" rel="noopener noreferrer" className="p-2 rounded-lg bg-slate-900 text-slate-400 hover:text-white hover:bg-slate-800 transition-all">
+                                <a href={app_settings.social_linkedin} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="p-2 rounded-lg bg-slate-900 text-slate-400 hover:text-white hover:bg-slate-800 transition-all">
                                     <Linkedin className="h-4 w-4" />
                                 </a>
                             )}
                             {app_settings?.social_twitter && (
-                                <a href={app_settings.social_twitter} target="_blank" rel="noopener noreferrer" className="p-2 rounded-lg bg-slate-900 text-slate-400 hover:text-white hover:bg-slate-800 transition-all">
+                                <a href={app_settings.social_twitter} target="_blank" rel="noopener noreferrer" aria-label="Twitter / X" className="p-2 rounded-lg bg-slate-900 text-slate-400 hover:text-white hover:bg-slate-800 transition-all">
                                     <Twitter className="h-4 w-4" />
                                 </a>
                             )}
+                            {app_settings?.social_facebook && (
+                                <a href={app_settings.social_facebook} target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="p-2 rounded-lg bg-slate-900 text-slate-400 hover:text-white hover:bg-slate-800 transition-all">
+                                    <Facebook className="h-4 w-4" />
+                                </a>
+                            )}
+                            {app_settings?.social_instagram && (
+                                <a href={app_settings.social_instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="p-2 rounded-lg bg-slate-900 text-slate-400 hover:text-white hover:bg-slate-800 transition-all">
+                                    <Instagram className="h-4 w-4" />
+                                </a>
+                            )}
                             {app_settings?.social_youtube && (
-                                <a href={app_settings.social_youtube} target="_blank" rel="noopener noreferrer" className="p-2 rounded-lg bg-slate-900 text-slate-400 hover:text-white hover:bg-slate-800 transition-all">
+                                <a href={app_settings.social_youtube} target="_blank" rel="noopener noreferrer" aria-label="YouTube" className="p-2 rounded-lg bg-slate-900 text-slate-400 hover:text-white hover:bg-slate-800 transition-all">
                                     <Youtube className="h-4 w-4" />
+                                </a>
+                            )}
+                            {whatsappUrl && (
+                                <a
+                                    href={whatsappUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    aria-label="WhatsApp"
+                                    className="p-2 rounded-lg bg-slate-900 text-slate-400 hover:text-[#25D366] hover:bg-[#25D366]/10 transition-all"
+                                >
+                                    <WhatsAppIcon className="h-4 w-4" />
                                 </a>
                             )}
                         </div>
@@ -169,9 +212,6 @@ export const SurfaceFooter: React.FC = () => {
                             <Heart className="h-3 w-3 text-red-500 fill-current" />
                             <span>by CodeVenture</span>
                         </span>
-                        <Link href="/admin/login" className="text-slate-600 hover:text-slate-400 transition-colors">
-                            Admin Login
-                        </Link>
                     </div>
                 </div>
             </div>

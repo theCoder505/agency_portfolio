@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { MessageSquare, X } from 'lucide-react';
+import { usePage } from '@inertiajs/react';
+import { X } from 'lucide-react';
+import { WhatsAppIcon } from '@/components/icons/whatsapp-icon';
 import { AppSettings } from '@/types';
 
 interface WhatsAppWidgetProps {
@@ -7,6 +9,7 @@ interface WhatsAppWidgetProps {
 }
 
 export const WhatsAppWidget: React.FC<WhatsAppWidgetProps> = ({ settings }) => {
+    const { url } = usePage();
     const [isVisible, setIsVisible] = useState(false);
     const [isPopupOpen, setIsPopupOpen] = useState(false);
 
@@ -16,16 +19,26 @@ export const WhatsAppWidget: React.FC<WhatsAppWidgetProps> = ({ settings }) => {
 
     useEffect(() => {
         const handleScroll = () => {
-            if (window.scrollY > 250) {
-                setIsVisible(true);
+            const whatWeBuildEl = document.getElementById('what-we-build') || document.getElementById('services-section');
+            const heroEl = document.getElementById('hero-section');
+
+            if (whatWeBuildEl && heroEl) {
+                const rect = whatWeBuildEl.getBoundingClientRect();
+                // Show WhatsApp widget when scrolling to 'What We Build' section
+                setIsVisible(rect.top <= window.innerHeight * 0.75);
             } else {
-                setIsVisible(false);
+                setIsVisible(window.scrollY > 250);
             }
         };
 
-        window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
-    }, []);
+        handleScroll();
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        window.addEventListener('resize', handleScroll, { passive: true });
+        return () => {
+            window.removeEventListener('scroll', handleScroll);
+            window.removeEventListener('resize', handleScroll);
+        };
+    }, [url]);
 
     if (!isEnabled) return null;
 
@@ -45,8 +58,8 @@ export const WhatsAppWidget: React.FC<WhatsAppWidgetProps> = ({ settings }) => {
                     <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
                         <div className="flex items-center space-x-2.5">
                             <div className="relative">
-                                <div className="h-9 w-9 rounded-full bg-emerald-500 flex items-center justify-center text-white font-bold text-sm shadow-md shadow-emerald-500/20">
-                                    CV
+                                <div className="h-9 w-9 rounded-full bg-[#25D366] flex items-center justify-center text-white shadow-md shadow-emerald-500/20">
+                                    <WhatsAppIcon className="h-5 w-5" />
                                 </div>
                                 <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-emerald-400 ring-2 ring-white dark:ring-slate-900"></span>
                             </div>
@@ -57,7 +70,8 @@ export const WhatsAppWidget: React.FC<WhatsAppWidgetProps> = ({ settings }) => {
                         </div>
                         <button
                             onClick={() => setIsPopupOpen(false)}
-                            className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800"
+                            aria-label="Close WhatsApp popup"
+                            className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                         >
                             <X className="h-4 w-4" />
                         </button>
@@ -73,8 +87,9 @@ export const WhatsAppWidget: React.FC<WhatsAppWidgetProps> = ({ settings }) => {
                         href={whatsappUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center justify-center space-x-2 w-full py-2.5 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-semibold shadow-lg shadow-emerald-500/30 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                        className="flex items-center justify-center space-x-2 w-full py-2.5 px-4 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] text-white text-xs font-semibold shadow-lg shadow-emerald-500/30 transition-all hover:scale-[1.02] active:scale-[0.98]"
                     >
+                        <WhatsAppIcon className="h-4 w-4" />
                         <span>Start WhatsApp Chat</span>
                     </a>
                 </div>
@@ -84,21 +99,15 @@ export const WhatsAppWidget: React.FC<WhatsAppWidgetProps> = ({ settings }) => {
             <div className="relative group">
                 <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-500"></span>
+                    <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-[#25D366]"></span>
                 </span>
 
                 <button
                     onClick={() => setIsPopupOpen(!isPopupOpen)}
                     aria-label="WhatsApp Contact"
-                    className="flex items-center justify-center h-14 w-14 rounded-full bg-gradient-to-tr from-emerald-600 to-teal-400 text-white shadow-xl shadow-emerald-500/30 hover:shadow-emerald-500/50 transition-all duration-300 hover:scale-110 active:scale-95"
+                    className="flex items-center justify-center h-14 w-14 rounded-full bg-[#25D366] hover:bg-[#20bd5a] text-white shadow-xl shadow-emerald-500/30 hover:shadow-emerald-500/50 transition-all duration-300 hover:scale-110 active:scale-95"
                 >
-                    <svg
-                        className="h-7 w-7 fill-current"
-                        viewBox="0 0 24 24"
-                        xmlns="http://www.w3.org/2000/svg"
-                    >
-                        <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.669-.699c.969.54 1.771.82 2.791.82 3.181 0 5.767-2.586 5.768-5.766 0-3.18-2.587-5.766-5.768-5.766zm9.969 5.766c0 5.485-4.484 9.969-9.969 9.969-1.724 0-3.342-.451-4.757-1.242l-5.274 1.383 1.408-5.143c-.886-1.463-1.377-3.178-1.377-4.967 0-5.485 4.485-9.969 9.969-9.969 5.485 0 9.969 4.484 9.969 9.969z" />
-                    </svg>
+                    <WhatsAppIcon className="h-7 w-7" />
                 </button>
             </div>
         </div>

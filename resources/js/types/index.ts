@@ -94,6 +94,28 @@ export interface Portfolio {
     updated_at?: string;
 }
 
+export interface Blog {
+    id: number;
+    category_id?: number | null;
+    category?: Category | null;
+    title: string;
+    slug: string;
+    short_description?: string | null;
+    content?: string | null;
+    thumbnail?: string | null;
+    author_name?: string | null;
+    author_role?: string | null;
+    author_avatar?: string | null;
+    tags?: string[] | null;
+    reads_count: number;
+    is_featured: boolean;
+    is_published: boolean;
+    published_at?: string | null;
+    order: number;
+    created_at: string;
+    updated_at?: string;
+}
+
 export interface Contact {
     id: number;
     name: string;

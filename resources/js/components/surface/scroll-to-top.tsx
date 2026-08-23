@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { usePage } from '@inertiajs/react';
 import { ArrowUp } from 'lucide-react';
 
 export const ScrollToTop: React.FC = () => {
+    const { url } = usePage();
     const [isVisible, setIsVisible] = useState(false);
     const [scrollProgress, setScrollProgress] = useState(0);
 
@@ -14,16 +16,26 @@ export const ScrollToTop: React.FC = () => {
                 setScrollProgress((totalScroll / windowHeight) * 100);
             }
 
-            if (totalScroll > 300) {
-                setIsVisible(true);
+            const whatWeBuildEl = document.getElementById('what-we-build') || document.getElementById('services-section');
+            const heroEl = document.getElementById('hero-section');
+
+            if (whatWeBuildEl && heroEl) {
+                const rect = whatWeBuildEl.getBoundingClientRect();
+                // Show scroll to top button when scrolling to 'What We Build' section
+                setIsVisible(rect.top <= window.innerHeight * 0.75);
             } else {
-                setIsVisible(false);
+                setIsVisible(totalScroll > 300);
             }
         };
 
-        window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
-    }, []);
+        handleScroll();
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        window.addEventListener('resize', handleScroll, { passive: true });
+        return () => {
+            window.removeEventListener('scroll', handleScroll);
+            window.removeEventListener('resize', handleScroll);
+        };
+    }, [url]);
 
     const scrollToTop = () => {
         window.scrollTo({

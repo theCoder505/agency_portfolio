@@ -107,7 +107,7 @@ export default function AdminProfile() {
             setIsEmailOtpModalOpen(false);
             setNewEmail('');
             showSuccessAlert('Email Updated!', data.message || 'Administrator email updated successfully.');
-            router.reload({ preserveScroll: true });
+            router.reload();
         } else {
             showErrorAlert('Verification Failed', data.message || 'Invalid or expired OTP code.');
         }

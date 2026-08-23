@@ -28,6 +28,11 @@ class Category extends Model
         return $this->hasMany(Portfolio::class);
     }
 
+    public function blogs()
+    {
+        return $this->hasMany(Blog::class);
+    }
+
     protected static function boot()
     {
         parent::boot();

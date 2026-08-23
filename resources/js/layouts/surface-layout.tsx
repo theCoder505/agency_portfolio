@@ -6,6 +6,7 @@ import { SurfaceFooter } from '@/components/surface/surface-footer';
 import { WhatsAppWidget } from '@/components/surface/whatsapp-widget';
 import { ScrollToTop } from '@/components/surface/scroll-to-top';
 import { showToast, showSuccessAlert, showErrorAlert } from '@/lib/swal';
+import { initAOS, refreshAOS } from '@/lib/aos';
 
 interface SurfaceLayoutProps {
     children: React.ReactNode;
@@ -19,8 +20,25 @@ export const SurfaceLayout: React.FC<SurfaceLayoutProps> = ({
     description = 'High performance web applications, SaaS development, and bespoke digital experiences.',
 }) => {
     const { app_settings, flash } = usePage<SharedData>().props;
+    const { url } = usePage();
     const brandName = app_settings?.brand_name || 'CodeVenture Tech';
     const pageTitle = title ? `${title} | ${brandName}` : `${brandName} - Modern Web Development Agency`;
+
+    useEffect(() => {
+        initAOS({
+            duration: 700,
+            offset: 40,
+            once: true,
+        });
+    }, []);
+
+    useEffect(() => {
+        // Refresh AOS animations on route/content change
+        const timer = setTimeout(() => {
+            refreshAOS();
+        }, 100);
+        return () => clearTimeout(timer);
+    }, [url, children]);
 
     useEffect(() => {
         if (flash?.success) {

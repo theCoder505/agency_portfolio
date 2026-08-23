@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Blog;
 use App\Models\Portfolio;
 use App\Models\VisitorLog;
 use Closure;
@@ -69,6 +70,14 @@ class TrackVisitor
                         if ($portfolio) {
                             $portfolioId = $portfolio->id;
                             $portfolio->increment('views_count');
+                        }
+                    }
+                } elseif ($request->routeIs('blogs.show')) {
+                    $slug = $request->route('slug');
+                    if ($slug) {
+                        $blog = Blog::where('slug', $slug)->first();
+                        if ($blog) {
+                            $blog->increment('reads_count');
                         }
                     }
                 }

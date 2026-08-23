@@ -154,13 +154,15 @@ export default function WorksIndex({ portfolios, categories, filters }: WorksInd
                         </div>
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                            {portfolios.data.map((project) => {
+                            {portfolios.data.map((project, idx) => {
                                 const isDirect = project.item_type === 'direct_link';
                                 const targetUrl = isDirect ? project.direct_url || '#' : `/works/${project.slug}`;
 
                                 return (
                                     <div
                                         key={project.id}
+                                        data-aos="fade-up"
+                                        data-aos-delay={`${(idx % 3) * 100}`}
                                         className="group relative flex flex-col rounded-3xl bg-white dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800/80 shadow-md hover:shadow-2xl hover:border-indigo-500/40 dark:hover:border-indigo-500/40 transition-all duration-300 overflow-hidden"
                                     >
                                         <div className="relative aspect-[16/10] overflow-hidden bg-slate-950">

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\AppSetting;
+use App\Models\Blog;
 use App\Models\Category;
 use App\Models\Portfolio;
 use App\Models\Review;
@@ -31,6 +32,14 @@ class HomeController extends Controller
             ->take(15)
             ->get();
 
+        // Latest 3 published blogs for the landing page showcase
+        $blogs = Blog::with('category')
+            ->where('is_published', true)
+            ->orderBy('is_featured', 'desc')
+            ->orderBy('published_at', 'desc')
+            ->take(3)
+            ->get();
+
         $reviews = Review::where('is_featured', true)
             ->orderBy('rating', 'desc')
             ->orderBy('created_at', 'desc')
@@ -53,6 +62,7 @@ class HomeController extends Controller
         return Inertia::render('surface/home', [
             'categories' => $categories,
             'portfolios' => $portfolios,
+            'blogs' => $blogs,
             'reviews' => $reviews,
             'teamMembers' => $teamMembers,
             'stats' => $stats,

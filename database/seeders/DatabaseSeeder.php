@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             ReviewSeeder::class,
             VisitorLogSeeder::class,
             ContactSeeder::class,
+            BlogSeeder::class,
         ]);
     }
 }

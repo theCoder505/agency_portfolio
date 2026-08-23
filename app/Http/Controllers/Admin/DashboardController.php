@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Blog;
 use App\Models\Contact;
 use App\Models\Portfolio;
 use App\Models\VisitorLog;
@@ -30,6 +31,8 @@ class DashboardController extends Controller
         // 1. KPI Summary Cards
         $totalProjects = Portfolio::count();
         $totalViews = Portfolio::sum('views_count');
+        $totalBlogs = Blog::count();
+        $totalBlogReads = Blog::sum('reads_count');
         $totalContacts = Contact::whereBetween('created_at', [$startDate, $endDate])->count();
         $unreadContacts = Contact::where('is_read', false)->count();
         $totalVisitorHits = VisitorLog::whereBetween('created_at', [$startDate, $endDate])->count();
@@ -104,6 +107,8 @@ class DashboardController extends Controller
             'kpis' => [
                 'total_projects' => $totalProjects,
                 'total_views' => $totalViews,
+                'total_blogs' => $totalBlogs,
+                'total_blog_reads' => $totalBlogReads,
                 'total_contacts' => $totalContacts,
                 'unread_contacts' => $unreadContacts,
                 'total_visitor_hits' => $totalVisitorHits,

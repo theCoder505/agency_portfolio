@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Link, usePage } from '@inertiajs/react';
-import { Category, Portfolio, Review, TeamMember, SharedData } from '@/types';
+import { Blog, Category, Portfolio, Review, TeamMember, SharedData } from '@/types';
 import { SurfaceLayout } from '@/layouts/surface-layout';
+import { SurfaceHero } from '@/components/surface/hero_section';
 import { WorksGrid } from '@/components/surface/works-grid';
 import { TrustpilotCarousel } from '@/components/surface/trustpilot-carousel';
 import { YouTubeModal } from '@/components/surface/youtube-modal';
@@ -21,12 +22,18 @@ import {
     Rocket,
     Users,
     Star,
-    Award
+    Award,
+    BookOpen,
+    Eye,
+    Clock,
+    Calendar,
+    ArrowUpRight
 } from 'lucide-react';
 
 interface HomePageProps {
     categories: Category[];
     portfolios: Portfolio[];
+    blogs?: Blog[];
     reviews: Review[];
     teamMembers: TeamMember[];
     stats: {
@@ -41,6 +48,7 @@ interface HomePageProps {
 export default function Home({
     categories,
     portfolios,
+    blogs = [],
     reviews,
     teamMembers,
     stats,
@@ -94,77 +102,17 @@ export default function Home({
             title="Modern Web Development Agency"
             description="CodeVenture Tech builds high performance SaaS web applications, AI platforms, and bespoke digital experiences for global leaders."
         >
-            {/* HERO SECTION */}
-            <section className="relative pt-12 pb-24 lg:pt-20 lg:pb-32 overflow-hidden">
-                {/* Dynamic Ambient Background Glows */}
-                <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-gradient-to-tr from-indigo-600/20 via-purple-600/15 to-cyan-500/20 rounded-full blur-[140px] pointer-events-none"></div>
-
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-                    <div className="text-center max-w-4xl mx-auto space-y-8">
-                        {/* Top Badge */}
-                        <div className="inline-flex items-center space-x-2 px-4 py-2 rounded-full bg-slate-900/5 dark:bg-slate-900/80 border border-indigo-500/30 text-indigo-600 dark:text-cyan-400 text-xs font-extrabold uppercase tracking-wider shadow-inner">
-                            <Sparkles className="h-4 w-4 text-cyan-400 animate-pulse" />
-                            <span>Premier Web Development & SaaS Engineering Agency</span>
-                        </div>
-
-                        {/* Main Title */}
-                        <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight text-slate-900 dark:text-white leading-[1.1]">
-                            We Build <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 via-purple-500 to-cyan-400">High-Performance</span> Web Platforms That Scale.
-                        </h1>
-
-                        {/* Subtitle */}
-                        <p className="text-lg sm:text-xl text-slate-600 dark:text-slate-300 max-w-2xl mx-auto leading-relaxed">
-                            Transforming complex vision into pristine, ultra-responsive digital software. From multi-tenant SaaS to interactive 3D web applications.
-                        </p>
-
-                        {/* Dual Action CTAs */}
-                        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-                            <Link
-                                href="/works"
-                                className="w-full sm:w-auto inline-flex items-center justify-center space-x-2 px-8 py-4 rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-cyan-500 hover:from-indigo-700 hover:to-cyan-600 text-white font-bold text-sm shadow-xl shadow-indigo-500/25 hover:shadow-indigo-500/40 transition-all hover:scale-105 active:scale-95"
-                            >
-                                <span>Explore Our Works (15+ Case Studies)</span>
-                                <ArrowRight className="h-4 w-4" />
-                            </Link>
-
-                            <button
-                                onClick={() => setIsVideoOpen(true)}
-                                className="w-full sm:w-auto inline-flex items-center justify-center space-x-2.5 px-6 py-4 rounded-2xl bg-white/80 dark:bg-slate-900/80 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-bold text-sm backdrop-blur-md transition-all hover:scale-105 active:scale-95 shadow-sm"
-                            >
-                                <div className="h-7 w-7 rounded-full bg-red-600 flex items-center justify-center text-white shadow-md">
-                                    <Play className="h-3.5 w-3.5 fill-current ml-0.5" />
-                                </div>
-                                <span>Watch Agency Showreel</span>
-                            </button>
-                        </div>
-
-                        {/* Quick Trust Highlights */}
-                        <div className="pt-8 grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-3xl mx-auto">
-                            <div className="p-4 rounded-2xl bg-white/60 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800/80 backdrop-blur-md">
-                                <div className="text-2xl sm:text-3xl font-black text-indigo-600 dark:text-cyan-400">{stats.projects_delivered}+</div>
-                                <div className="text-xs text-slate-500 dark:text-slate-400 font-semibold mt-1">Projects Delivered</div>
-                            </div>
-                            <div className="p-4 rounded-2xl bg-white/60 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800/80 backdrop-blur-md">
-                                <div className="text-2xl sm:text-3xl font-black text-emerald-500">{stats.client_satisfaction}</div>
-                                <div className="text-xs text-slate-500 dark:text-slate-400 font-semibold mt-1">Client Satisfaction</div>
-                            </div>
-                            <div className="p-4 rounded-2xl bg-white/60 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800/80 backdrop-blur-md">
-                                <div className="text-2xl sm:text-3xl font-black text-amber-500">{stats.trustpilot_score} ★</div>
-                                <div className="text-xs text-slate-500 dark:text-slate-400 font-semibold mt-1">Trustpilot Score</div>
-                            </div>
-                            <div className="p-4 rounded-2xl bg-white/60 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800/80 backdrop-blur-md">
-                                <div className="text-2xl sm:text-3xl font-black text-purple-500">{stats.years_experience}</div>
-                                <div className="text-xs text-slate-500 dark:text-slate-400 font-semibold mt-1">Years of Innovation</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
+            {/* INTERACTIVE CANVAS SCROLL HERO SECTION */}
+            <SurfaceHero
+                settings={app_settings}
+                stats={stats}
+                onOpenVideo={() => setIsVideoOpen(true)}
+            />
 
             {/* SERVICES SECTION */}
-            <section className="py-24 bg-slate-50/70 dark:bg-slate-950/40 border-y border-slate-200/80 dark:border-slate-850 relative">
+            <section id="what-we-build" className="py-24 bg-slate-50/70 dark:bg-slate-950/40 relative w-full">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="text-center max-w-2xl mx-auto mb-16">
+                    <div className="text-center max-w-2xl mx-auto mb-16" data-aos="fade-up">
                         <div className="inline-flex items-center space-x-2 px-3 py-1.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-cyan-400 border border-indigo-500/20 text-xs font-bold mb-3">
                             <Layers className="h-3.5 w-3.5" />
                             <span>Core Engineering Capabilities</span>
@@ -183,6 +131,8 @@ export default function Home({
                             return (
                                 <div
                                     key={index}
+                                    data-aos="fade-up"
+                                    data-aos-delay={`${(index % 3) * 100}`}
                                     className="group relative rounded-3xl bg-white dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-800/80 p-8 shadow-sm hover:shadow-xl hover:border-indigo-500/50 transition-all duration-300 hover:-translate-y-1"
                                 >
                                     <div className={`h-12 w-12 rounded-2xl bg-gradient-to-tr ${service.gradient} flex items-center justify-center text-white shadow-lg mb-6 group-hover:scale-110 transition-transform`}>
@@ -214,7 +164,7 @@ export default function Home({
             <section className="py-24 bg-slate-900 text-white relative overflow-hidden">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-                        <div className="space-y-6">
+                        <div className="space-y-6" data-aos="fade-right">
                             <div className="inline-flex items-center space-x-2 px-3 py-1.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 text-xs font-bold">
                                 <Award className="h-4 w-4" />
                                 <span>The CodeVenture Standard</span>
@@ -252,7 +202,7 @@ export default function Home({
                         </div>
 
                         {/* Interactive Code / Architecture Card */}
-                        <div className="rounded-3xl bg-slate-950/90 border border-slate-800 p-6 shadow-2xl space-y-4">
+                        <div className="rounded-3xl bg-slate-950/90 border border-slate-800 p-6 shadow-2xl space-y-4" data-aos="fade-left">
                             <div className="flex items-center justify-between pb-4 border-b border-slate-800">
                                 <div className="flex items-center space-x-2">
                                     <span className="h-3 w-3 rounded-full bg-red-500"></span>
@@ -263,7 +213,7 @@ export default function Home({
                             </div>
 
                             <pre className="font-mono text-xs text-cyan-300 leading-relaxed overflow-x-auto p-2">
-{`// Enterprise Architecture Blueprint
+                                {`// Enterprise Architecture Blueprint
 export async function bootstrapPlatform(config: AppConfig) {
   const stack = {
     backend: 'Laravel 12 (PHP 8.3)',
@@ -285,6 +235,115 @@ export async function bootstrapPlatform(config: AppConfig) {
                     </div>
                 </div>
             </section>
+
+            {/* LATEST INSIGHTS & BLOGS SECTION */}
+            {blogs && blogs.length > 0 && (
+                <section className="py-24 bg-slate-100/60 dark:bg-slate-900/30 border-t border-slate-200/80 dark:border-slate-800/80 relative">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-14" data-aos="fade-up">
+                            <div className="space-y-2">
+                                <div className="inline-flex items-center space-x-2 px-3 py-1.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-cyan-400 border border-indigo-500/20 text-xs font-bold">
+                                    <BookOpen className="h-3.5 w-3.5" />
+                                    <span>Knowledge Hub</span>
+                                </div>
+                                <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-slate-900 dark:text-white">
+                                    Latest Engineering Insights
+                                </h2>
+                                <p className="text-sm text-slate-600 dark:text-slate-400 max-w-xl">
+                                    Deep architectural analyses and production best practices curated by our development team.
+                                </p>
+                            </div>
+
+                            <Link
+                                href="/blogs"
+                                className="inline-flex items-center space-x-1.5 px-4 py-2.5 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-xs font-bold shadow-xs transition-all"
+                            >
+                                <span>Browse All Articles</span>
+                                <ArrowUpRight className="h-4 w-4 text-indigo-600 dark:text-cyan-400" />
+                            </Link>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                            {blogs.map((blog, idx) => (
+                                <article
+                                    key={blog.id}
+                                    data-aos="fade-up"
+                                    data-aos-delay={`${idx * 120}`}
+                                    className="group flex flex-col bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800/80 hover:border-indigo-500/50 shadow-sm hover:shadow-xl hover:shadow-indigo-500/10 transition-all duration-300 overflow-hidden"
+                                >
+                                    <Link
+                                        href={`/blogs/${blog.slug}`}
+                                        className="relative aspect-[16/10] overflow-hidden bg-slate-950 block"
+                                    >
+                                        {blog.thumbnail ? (
+                                            <img
+                                                src={blog.thumbnail}
+                                                alt={blog.title}
+                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                            />
+                                        ) : (
+                                            <div className="w-full h-full bg-gradient-to-tr from-slate-900 to-indigo-950 flex items-center justify-center">
+                                                <BookOpen className="h-10 w-10 text-indigo-400/40" />
+                                            </div>
+                                        )}
+
+                                        {blog.category && (
+                                            <div className="absolute top-3.5 left-3.5 px-3 py-1 rounded-xl bg-slate-950/80 backdrop-blur-md border border-white/10 text-white text-[11px] font-bold tracking-wide">
+                                                {blog.category.name}
+                                            </div>
+                                        )}
+
+                                        <div className="absolute bottom-3.5 right-3.5 inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-slate-950/80 backdrop-blur-md border border-white/10 text-cyan-400 font-mono text-[11px] font-bold">
+                                            <Eye className="h-3 w-3 text-cyan-400" />
+                                            <span>{(blog.reads_count || 0).toLocaleString()}</span>
+                                        </div>
+                                    </Link>
+
+                                    <div className="p-6 flex-grow flex flex-col justify-between space-y-4">
+                                        <div className="space-y-2.5">
+                                            <div className="flex items-center space-x-2 text-xs text-slate-500 dark:text-slate-400">
+                                                <Calendar className="h-3.5 w-3.5" />
+                                                <span>
+                                                    {blog.published_at
+                                                        ? new Date(blog.published_at).toLocaleDateString(undefined, {
+                                                              month: 'short',
+                                                              day: 'numeric',
+                                                              year: 'numeric',
+                                                          })
+                                                        : 'Recently'}
+                                                </span>
+                                            </div>
+
+                                            <Link href={`/blogs/${blog.slug}`}>
+                                                <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-tight leading-snug group-hover:text-indigo-600 dark:group-hover:text-cyan-400 transition-colors line-clamp-2">
+                                                    {blog.title}
+                                                </h3>
+                                            </Link>
+
+                                            <p className="text-xs text-slate-600 dark:text-slate-400 line-clamp-2 leading-relaxed">
+                                                {blog.short_description}
+                                            </p>
+                                        </div>
+
+                                        <div className="pt-4 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
+                                            <span className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                                                {blog.author_name || 'CodeVenture Lead'}
+                                            </span>
+                                            <Link
+                                                href={`/blogs/${blog.slug}`}
+                                                className="inline-flex items-center space-x-1 text-xs font-bold text-indigo-600 dark:text-cyan-400 group-hover:translate-x-1 transition-transform"
+                                            >
+                                                <span>Read</span>
+                                                <ArrowRight className="h-3.5 w-3.5" />
+                                            </Link>
+                                        </div>
+                                    </div>
+                                </article>
+                            ))}
+                        </div>
+                    </div>
+                </section>
+            )}
 
             {/* TRUSTPILOT REVIEWS SWIPER CAROUSEL */}
             <TrustpilotCarousel reviews={reviews} settings={app_settings} />
