@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { Link, router, Head, usePage } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import { SurfaceLayout } from '@/layouts/surface-layout';
-import { Blog, Category, PaginatedData, SharedData } from '@/types';
+import { Blog, Category, PaginatedData } from '@/types';
 import {
     Search,
     BookOpen,
@@ -10,13 +10,8 @@ import {
     Calendar,
     Clock,
     ArrowRight,
-    ArrowUpRight,
-    Tag,
-    User,
-    ChevronRight,
     Flame,
     Compass,
-    Check
 } from 'lucide-react';
 
 interface BlogIndexPageProps {
@@ -36,7 +31,6 @@ export default function BlogIndexPage({
     categories,
     filters,
 }: BlogIndexPageProps) {
-    const { app_settings } = usePage<SharedData>().props;
     const [search, setSearch] = useState(filters.search || '');
     const activeCategory = filters.category || 'all';
     const activeTag = filters.tag || '';
@@ -153,7 +147,7 @@ export default function BlogIndexPage({
                         <div
                             data-aos="fade-up"
                             data-aos-delay="200"
-                            className="mt-10 flex items-center space-x-2 overflow-x-auto pb-2 scrollbar-none"
+                            className="mt-10 flex gap-2 flex-wrap items-center overflow-x-auto pb-2 scrollbar-none"
                         >
                             <button
                                 type="button"

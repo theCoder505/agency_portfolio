@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, router, Head } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import { AdminLayout } from '@/layouts/admin-layout';
 import { Blog, Category, PaginatedData } from '@/types';
 import { DateRangeFilter } from '@/components/admin/date-range-filter';
@@ -11,17 +11,11 @@ import {
     Edit3,
     ExternalLink,
     Eye,
-    Star,
     CheckCircle2,
     Clock,
-    Filter,
     RotateCcw,
-    Sparkles,
-    Calendar,
-    User,
-    Tag
 } from 'lucide-react';
-import { showConfirmDialog, showSuccessAlert, showErrorAlert } from '@/lib/swal';
+import { showConfirmDialog } from '@/lib/swal';
 
 interface BlogIndexProps {
     blogs: PaginatedData<Blog>;

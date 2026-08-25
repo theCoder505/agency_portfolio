@@ -79,11 +79,11 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col md:flex-row transition-colors duration-200">
+        <div className="h-screen h-[100dvh] bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col md:flex-row overflow-hidden transition-colors duration-200">
             <Head title={`${title} - Admin Panel`} />
 
             {/* Mobile Header */}
-            <div className="md:hidden flex items-center justify-between p-4 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
+            <div className="md:hidden flex items-center justify-between p-4 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex-shrink-0 z-30">
                 <Link href="/admin/dashboard" className="flex items-center space-x-2">
                     <div className="h-8 w-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold text-xs">
                         CV
@@ -94,41 +94,60 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
                     <ThemeToggle />
                     <button
                         onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                        className="p-2 rounded-lg border border-slate-200 dark:border-slate-800"
+                        className="p-2 rounded-lg border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                        aria-label="Toggle Navigation Menu"
                     >
                         {isSidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
                     </button>
                 </div>
             </div>
 
-            {/* Admin Sidebar Navigation */}
+            {/* Mobile Backdrop Overlay */}
+            {isSidebarOpen && (
+                <div
+                    onClick={() => setIsSidebarOpen(false)}
+                    className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-40 md:hidden transition-opacity"
+                    aria-hidden="true"
+                />
+            )}
+
+            {/* Admin Sidebar Navigation - Fixed 100vh */}
             <aside
-                className={`fixed inset-y-0 left-0 z-40 w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 transform transition-transform duration-200 md:translate-x-0 md:static flex flex-col justify-between ${
+                className={`fixed inset-y-0 left-0 z-50 w-64 h-screen h-[100dvh] bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col flex-shrink-0 shadow-xl md:shadow-none transition-transform duration-200 ease-in-out md:static md:translate-x-0 ${
                     isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
                 }`}
             >
-                {/* Brand Header */}
-                <div>
-                    <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                        <Link href="/admin/dashboard" className="flex items-center space-x-3 group">
-                            <div className="h-9 w-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-cyan-400 p-[2px]">
-                                <div className="h-full w-full bg-slate-950 rounded-[10px] flex items-center justify-center text-cyan-400 font-bold text-sm">
-                                    CV
-                                </div>
+                {/* Brand Header (Fixed at top of sidebar) */}
+                <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between flex-shrink-0">
+                    <Link href="/admin/dashboard" className="flex items-center space-x-3 group">
+                        <div className="h-9 w-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-cyan-400 p-[2px]">
+                            <div className="h-full w-full bg-slate-950 rounded-[10px] flex items-center justify-center text-cyan-400 font-bold text-sm">
+                                CV
                             </div>
-                            <div>
-                                <h1 className="text-sm font-black tracking-tight text-slate-900 dark:text-white">
-                                    {brandName}
-                                </h1>
-                                <span className="text-[10px] uppercase font-bold text-indigo-600 dark:text-cyan-400">
-                                    Admin Workspace
-                                </span>
-                            </div>
-                        </Link>
-                    </div>
+                        </div>
+                        <div>
+                            <h1 className="text-sm font-black tracking-tight text-slate-900 dark:text-white">
+                                {brandName}
+                            </h1>
+                            <span className="text-[10px] uppercase font-bold text-indigo-600 dark:text-cyan-400">
+                                Admin Workspace
+                            </span>
+                        </div>
+                    </Link>
 
-                    {/* Nav Links */}
-                    <nav className="p-3 space-y-1">
+                    {/* Mobile Close Button inside sidebar header */}
+                    <button
+                        onClick={() => setIsSidebarOpen(false)}
+                        className="md:hidden p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                        aria-label="Close Sidebar"
+                    >
+                        <X className="h-4 w-4" />
+                    </button>
+                </div>
+
+                {/* Nav Links (Scrolls inside the sidebar if needed) */}
+                <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-3 space-y-1 custom-sidebar-scroll">
+                    <nav className="space-y-1">
                         {navigation.map((item) => {
                             const IconComp = item.icon;
                             const active = isActive(item.href);
@@ -151,13 +170,13 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
                     </nav>
                 </div>
 
-                {/* Bottom User Profile & Live Link */}
-                <div className="p-4 border-t border-slate-100 dark:border-slate-800 space-y-3">
+                {/* Bottom User Profile & Live Link (Fixed at bottom of sidebar) */}
+                <div className="p-4 border-t border-slate-100 dark:border-slate-800 space-y-3 flex-shrink-0 bg-white dark:bg-slate-900">
                     <a
                         href="/"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center justify-between px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-indigo-600 transition-colors"
+                        className="flex items-center justify-between px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-cyan-400 transition-colors"
                     >
                         <span className="flex items-center space-x-2">
                             <ExternalLink className="h-3.5 w-3.5" />
@@ -167,29 +186,29 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
                     </a>
 
                     <div className="flex items-center justify-between pt-1">
-                        <Link href="/admin/profile" className="flex items-center space-x-2.5 group">
+                        <Link href="/admin/profile" className="flex items-center space-x-2.5 group min-w-0">
                             {admin?.avatar ? (
                                 <img
                                     src={admin.avatar}
                                     alt={admin.name}
-                                    className="h-8 w-8 rounded-full object-cover ring-2 ring-indigo-500/20"
+                                    className="h-8 w-8 rounded-full object-cover ring-2 ring-indigo-500/20 flex-shrink-0"
                                 />
                             ) : (
-                                <div className="h-8 w-8 rounded-full bg-indigo-600 flex items-center justify-center text-white text-xs font-bold">
+                                <div className="h-8 w-8 rounded-full bg-indigo-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
                                     {admin?.name?.charAt(0) || 'A'}
                                 </div>
                             )}
-                            <div className="text-left">
-                                <div className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 transition-colors">
+                            <div className="text-left min-w-0 truncate">
+                                <div className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-cyan-400 transition-colors truncate">
                                     {admin?.name || 'Admin'}
                                 </div>
-                                <div className="text-[10px] text-slate-400">Super Administrator</div>
+                                <div className="text-[10px] text-slate-400 truncate">Super Administrator</div>
                             </div>
                         </Link>
 
                         <button
                             onClick={handleLogout}
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors"
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors flex-shrink-0"
                             title="Sign Out"
                         >
                             <LogOut className="h-4 w-4" />
@@ -199,9 +218,9 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
             </aside>
 
             {/* Main Content Area */}
-            <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+            <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
                 {/* Desktop Header */}
-                <header className="hidden md:flex items-center justify-between px-8 py-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800">
+                <header className="hidden md:flex items-center justify-between px-8 py-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800 flex-shrink-0 z-10">
                     {/* Breadcrumbs */}
                     <div className="flex items-center space-x-2 text-xs text-slate-500 font-medium">
                         <Link href="/admin/dashboard" className="hover:text-slate-900 dark:hover:text-white">
@@ -234,8 +253,8 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
                     </div>
                 </header>
 
-                {/* Page Body Content */}
-                <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
+                {/* Page Body Content - Scrolls independently */}
+                <main className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 lg:p-8">
                     {children}
                 </main>
             </div>

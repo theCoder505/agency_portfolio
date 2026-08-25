@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, usePage } from '@inertiajs/react';
-import { Menu, X, ArrowUpRight, Sparkles, Layers, Code, ShieldCheck, Mail } from 'lucide-react';
+import { Menu, X, ArrowUpRight, Sparkles, Code, ShieldCheck } from 'lucide-react';
 import { SharedData } from '@/types';
 import { ThemeToggle } from './theme-toggle';
 
@@ -13,7 +13,6 @@ export const SurfaceHeader: React.FC = () => {
 
     const brandName = app_settings?.brand_name || 'CodeVenture Tech';
     const logoUrl = app_settings?.logo;
-    const logoDarkUrl = app_settings?.logo_dark || logoUrl;
 
     useEffect(() => {
         const handleScroll = () => {
@@ -106,10 +105,10 @@ export const SurfaceHeader: React.FC = () => {
 
                     {/* Desktop Navigation Links */}
                     <nav
-                        className={`hidden md:flex items-center space-x-1 p-1.5 rounded-full border backdrop-blur-md transition-all duration-300 ${
+                        className={`hidden md:flex items-center space-x-1 p-1.5 rounded-full border transition-all duration-300 ${
                             isHeroMode
-                                ? 'bg-slate-900/60 border-slate-700/60 text-slate-300'
-                                : 'bg-slate-100/70 dark:bg-slate-900/70 border-slate-200/80 dark:border-slate-800/80'
+                                ? 'border-slate-700/60 text-slate-300'
+                                : 'dark:bg-slate-900/70 border-slate-200/80 dark:border-slate-800/80'
                         }`}
                     >
                         {navLinks.map((link) => {

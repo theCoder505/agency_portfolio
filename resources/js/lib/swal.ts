@@ -97,3 +97,20 @@ export const confirmAction = async ({
 
     return result.isConfirmed;
 };
+
+export const showConfirmDialog = async (
+    title: string = 'Are you sure?',
+    text: string = 'This action cannot be undone.',
+    confirmButtonText: string = 'Yes, proceed',
+    icon: 'warning' | 'info' | 'question' | 'error' = 'warning',
+    confirmButtonColor: string = '#ef4444'
+): Promise<boolean> => {
+    return confirmAction({
+        title,
+        text,
+        confirmButtonText,
+        icon,
+        confirmButtonColor,
+    });
+};
+
