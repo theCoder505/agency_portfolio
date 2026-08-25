@@ -417,4 +417,17 @@ button{
     background-color: rgba(148, 163, 184, 0.7);
 }
 
+/* Checker/dot pattern for logo & icon transparent asset previews */
+.bg-transparent-pattern {
+    background-color: #f8fafc;
+    background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+    background-size: 16px 16px;
+}
+
+.dark .bg-transparent-pattern {
+    background-color: #090d16;
+    background-image: radial-gradient(#1e293b 1.5px, transparent 1.5px);
+    background-size: 16px 16px;
+}
+
 

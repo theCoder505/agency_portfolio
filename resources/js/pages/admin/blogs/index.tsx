@@ -30,11 +30,11 @@ interface BlogIndexProps {
 }
 
 export default function BlogIndex({ blogs, categories, filters }: BlogIndexProps) {
-    const [search, setSearch] = useState(filters.search || '');
-    const [categoryId, setCategoryId] = useState(filters.category_id || 'all');
-    const [status, setStatus] = useState(filters.status || 'all');
-    const [fromDate, setFromDate] = useState(filters.from_date || '');
-    const [toDate, setToDate] = useState(filters.to_date || '');
+    const [search, setSearch] = useState(filters?.search ?? '');
+    const [categoryId, setCategoryId] = useState(filters?.category_id ?? 'all');
+    const [status, setStatus] = useState(filters?.status ?? 'all');
+    const [fromDate, setFromDate] = useState(filters?.from_date ?? '');
+    const [toDate, setToDate] = useState(filters?.to_date ?? '');
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
     const handleFilter = (e?: React.FormEvent) => {
@@ -176,7 +176,7 @@ export default function BlogIndex({ blogs, categories, filters }: BlogIndexProps
                             <input
                                 type="text"
                                 placeholder="Search by title, author, or keywords..."
-                                value={search}
+                                value={search ?? ''}
                                 onChange={(e) => setSearch(e.target.value)}
                                 className="w-full pl-9 pr-4 py-2 text-sm bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
                             />
@@ -185,15 +185,15 @@ export default function BlogIndex({ blogs, categories, filters }: BlogIndexProps
                         {/* Category Filter */}
                         <div className="lg:col-span-3">
                             <select
-                                value={categoryId}
+                                value={categoryId ?? 'all'}
                                 onChange={(e) => setCategoryId(e.target.value)}
                                 className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
                             >
                                 <option value="all">All Categories</option>
                                 {categories.map((c) => (
-                                    <option key={c.id} value={c.id}>
-                                        {c.name}
-                                    </option>
+                                     <option key={c.id} value={c.id}>
+                                         {c.name}
+                                     </option>
                                 ))}
                             </select>
                         </div>
@@ -201,7 +201,7 @@ export default function BlogIndex({ blogs, categories, filters }: BlogIndexProps
                         {/* Status Filter */}
                         <div className="lg:col-span-2">
                             <select
-                                value={status}
+                                value={status ?? 'all'}
                                 onChange={(e) => setStatus(e.target.value)}
                                 className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
                             >
@@ -234,8 +234,8 @@ export default function BlogIndex({ blogs, categories, filters }: BlogIndexProps
                     {/* Date Range Picker */}
                     <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
                         <DateRangeFilter
-                            fromDate={fromDate}
-                            toDate={toDate}
+                            fromDate={fromDate ?? ''}
+                            toDate={toDate ?? ''}
                             onChange={handleDateChange}
                         />
                     </div>

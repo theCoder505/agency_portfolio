@@ -32,12 +32,12 @@ class HomeController extends Controller
             ->take(15)
             ->get();
 
-        // Latest 3 published blogs for the landing page showcase
+        // Latest 12 published blogs for the landing page showcase
         $blogs = Blog::with('category')
             ->where('is_published', true)
             ->orderBy('is_featured', 'desc')
             ->orderBy('published_at', 'desc')
-            ->take(3)
+            ->take(12)
             ->get();
 
         $reviews = Review::where('is_featured', true)

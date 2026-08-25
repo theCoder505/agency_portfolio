@@ -223,30 +223,44 @@ export default function SettingsIndex({ settings }: SettingsIndexProps) {
                                         </div>
                                     </div>
 
-                                    {/* Logo Uploaders with Live Previews */}
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2">
+                                    {/* Logo & Icon Uploaders with Full-Size Previews */}
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
                                         <ImageUploader
-                                            label="Brand Header Logo (Light Mode) with Live Preview"
+                                            label="Brand Header Logo (Light Mode)"
                                             multiple={false}
                                             existingImages={existingLogo}
-                                            onChange={(file) => setLogoFile(file instanceof File ? file : null)}
+                                            onChange={(file, existing) => {
+                                                setLogoFile(file instanceof File ? file : null);
+                                                if (existing && existing.length === 0) setExistingLogo(null);
+                                            }}
+                                            helperText="Transparent PNG or SVG."
+                                            heightClass="h-44 sm:h-52"
                                         />
 
                                         <ImageUploader
-                                            label="Brand Header Logo (Dark Mode) with Live Preview"
+                                            label="Brand Header Logo (Dark Mode)"
                                             multiple={false}
                                             existingImages={existingLogoDark}
-                                            onChange={(file) => setLogoDarkFile(file instanceof File ? file : null)}
+                                            onChange={(file, existing) => {
+                                                setLogoDarkFile(file instanceof File ? file : null);
+                                                if (existing && existing.length === 0) setExistingLogoDark(null);
+                                            }}
+                                            helperText="Light/white logo for dark mode."
+                                            heightClass="h-44 sm:h-52"
+                                        />
+
+                                        <ImageUploader
+                                            label="Website Favicon Icon"
+                                            multiple={false}
+                                            existingImages={existingFavicon}
+                                            onChange={(file, existing) => {
+                                                setFaviconFile(file instanceof File ? file : null);
+                                                if (existing && existing.length === 0) setExistingFavicon(null);
+                                            }}
+                                            helperText="Square PNG, SVG or ICO icon."
+                                            heightClass="h-44 sm:h-52"
                                         />
                                     </div>
-
-                                    <ImageUploader
-                                        label="Website Favicon Icon with Live Preview"
-                                        multiple={false}
-                                        existingImages={existingFavicon}
-                                        onChange={(file) => setFaviconFile(file instanceof File ? file : null)}
-                                        helperText="Square PNG, SVG or ICO icon format."
-                                    />
 
                                     <div className="space-y-1.5 pt-2">
                                         <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Footer Text</label>

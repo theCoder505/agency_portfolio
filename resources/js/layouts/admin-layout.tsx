@@ -80,17 +80,39 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
 
     return (
         <div className="h-screen h-[100dvh] bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col md:flex-row overflow-hidden transition-colors duration-200">
-            <Head title={`${title} - Admin Panel`} />
+            <Head>
+                <title>{`${title} - Admin Panel | ${brandName}`}</title>
+                {app_settings?.favicon ? (
+                    <link rel="icon" href={app_settings.favicon} />
+                ) : (
+                    <link rel="icon" href="/favicon.ico" />
+                )}
+                {app_settings?.favicon && (
+                    <link rel="shortcut icon" href={app_settings.favicon} />
+                )}
+            </Head>
 
             {/* Mobile Header */}
             <div className="md:hidden flex items-center justify-between p-4 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex-shrink-0 z-30">
-                <Link href="/admin/dashboard" className="flex items-center space-x-2">
-                    <div className="h-8 w-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold text-xs">
-                        CV
-                    </div>
-                    <span className="font-bold text-sm tracking-tight">{brandName}</span>
+                <Link href="/admin/dashboard" className="flex items-center space-x-2.5 min-w-0">
+                    {app_settings?.favicon ? (
+                        <div className="h-8 w-8 rounded-lg bg-slate-100 dark:bg-slate-800 p-1.5 flex items-center justify-center overflow-hidden flex-shrink-0 border border-slate-200 dark:border-slate-700 shadow-xs">
+                            <img
+                                src={app_settings.favicon}
+                                alt={brandName}
+                                className="h-full w-full object-contain"
+                            />
+                        </div>
+                    ) : (
+                        <div className="h-8 w-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
+                            {brandName.substring(0, 2).toUpperCase() || 'CV'}
+                        </div>
+                    )}
+                    <span className="font-bold text-sm tracking-tight truncate text-slate-900 dark:text-white">
+                        {brandName}
+                    </span>
                 </Link>
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2 flex-shrink-0">
                     <ThemeToggle />
                     <button
                         onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -119,17 +141,27 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
             >
                 {/* Brand Header (Fixed at top of sidebar) */}
                 <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between flex-shrink-0">
-                    <Link href="/admin/dashboard" className="flex items-center space-x-3 group">
-                        <div className="h-9 w-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-cyan-400 p-[2px]">
-                            <div className="h-full w-full bg-slate-950 rounded-[10px] flex items-center justify-center text-cyan-400 font-bold text-sm">
-                                CV
+                    <Link href="/admin/dashboard" className="flex items-center space-x-3 group min-w-0">
+                        {app_settings?.favicon ? (
+                            <div className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-slate-800 p-2 flex items-center justify-center overflow-hidden flex-shrink-0 border border-slate-200 dark:border-slate-700 shadow-xs group-hover:border-indigo-500/50 transition-colors">
+                                <img
+                                    src={app_settings.favicon}
+                                    alt={brandName}
+                                    className="h-full w-full object-contain transition-transform group-hover:scale-105"
+                                />
                             </div>
-                        </div>
-                        <div>
-                            <h1 className="text-sm font-black tracking-tight text-slate-900 dark:text-white">
+                        ) : (
+                            <div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-cyan-400 p-[2px] flex-shrink-0 shadow-sm group-hover:shadow-indigo-500/20 transition-all">
+                                <div className="h-full w-full bg-slate-950 rounded-[10px] flex items-center justify-center text-cyan-400 font-bold text-sm">
+                                    {brandName.substring(0, 2).toUpperCase() || 'CV'}
+                                </div>
+                            </div>
+                        )}
+                        <div className="min-w-0">
+                            <h1 className="text-sm font-black tracking-tight text-slate-900 dark:text-white truncate">
                                 {brandName}
                             </h1>
-                            <span className="text-[10px] uppercase font-bold text-indigo-600 dark:text-cyan-400">
+                            <span className="text-[10px] uppercase font-bold text-indigo-600 dark:text-cyan-400 block truncate">
                                 Admin Workspace
                             </span>
                         </div>

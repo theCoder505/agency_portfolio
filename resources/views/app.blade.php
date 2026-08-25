@@ -4,6 +4,14 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
+        @php
+            $appSettings = \App\Models\AppSetting::getAllGrouped();
+            $favicon = !empty($appSettings['favicon']) ? $appSettings['favicon'] : '/favicon.ico';
+        @endphp
+
+        <link rel="icon" href="{{ $favicon }}">
+        <link rel="shortcut icon" href="{{ $favicon }}">
+
         <title inertia>{{ config('app.name', 'Laravel') }}</title>
 
         <link rel="preconnect" href="https://fonts.bunny.net">

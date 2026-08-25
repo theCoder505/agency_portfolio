@@ -33,9 +33,9 @@ interface PortfolioIndexProps {
 
 export default function PortfolioIndex({ portfolios, categories, filters }: PortfolioIndexProps) {
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
-    const [search, setSearch] = useState(filters.search || '');
-    const [categoryId, setCategoryId] = useState(filters.category_id || 'all');
-    const [itemType, setItemType] = useState(filters.item_type || 'all');
+    const [search, setSearch] = useState(filters?.search ?? '');
+    const [categoryId, setCategoryId] = useState(filters?.category_id ?? 'all');
+    const [itemType, setItemType] = useState(filters?.item_type ?? 'all');
 
     const handleFilterChange = (newCat: string, newType: string, newSearch: string, from?: string, to?: string) => {
         router.get(
@@ -43,9 +43,9 @@ export default function PortfolioIndex({ portfolios, categories, filters }: Port
             {
                 category_id: newCat,
                 item_type: newType,
-                search: newSearch,
-                from_date: from || filters.from_date,
-                to_date: to || filters.to_date,
+                search: newSearch || undefined,
+                from_date: from || undefined,
+                to_date: to || undefined,
             },
             { preserveState: true, preserveScroll: true }
         );
@@ -148,7 +148,7 @@ export default function PortfolioIndex({ portfolios, categories, filters }: Port
                             <Search className="absolute left-3 h-4 w-4 text-slate-400" />
                             <input
                                 type="text"
-                                value={search}
+                                value={search ?? ''}
                                 onChange={(e) => setSearch(e.target.value)}
                                 placeholder="Search projects..."
                                 className="w-full pl-9 pr-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500"
@@ -158,7 +158,7 @@ export default function PortfolioIndex({ portfolios, categories, filters }: Port
                         {/* Category & Type Selectors */}
                         <div className="flex flex-wrap items-center gap-3">
                             <select
-                                value={categoryId}
+                                value={categoryId ?? 'all'}
                                 onChange={(e) => {
                                     setCategoryId(e.target.value);
                                     handleFilterChange(e.target.value, itemType, search);
@@ -174,7 +174,7 @@ export default function PortfolioIndex({ portfolios, categories, filters }: Port
                             </select>
 
                             <select
-                                value={itemType}
+                                value={itemType ?? 'all'}
                                 onChange={(e) => {
                                     setItemType(e.target.value);
                                     handleFilterChange(categoryId, e.target.value, search);
@@ -188,8 +188,8 @@ export default function PortfolioIndex({ portfolios, categories, filters }: Port
 
                             {/* Date Filter */}
                             <DateRangeFilter
-                                fromDate={filters.from_date}
-                                toDate={filters.to_date}
+                                fromDate={filters?.from_date ?? ''}
+                                toDate={filters?.to_date ?? ''}
                                 onApply={(f, t) => handleFilterChange(categoryId, itemType, search, f, t)}
                                 onClear={() => handleFilterChange(categoryId, itemType, search, '', '')}
                             />

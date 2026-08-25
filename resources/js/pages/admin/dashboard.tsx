@@ -182,8 +182,8 @@ export default function Dashboard({
                     </div>
 
                     <DateRangeFilter
-                        fromDate={filters.from_date}
-                        toDate={filters.to_date}
+                        fromDate={filters?.from_date ?? ''}
+                        toDate={filters?.to_date ?? ''}
                         onApply={handleDateFilterApply}
                         onClear={() => handleDateFilterApply('', '')}
                     />

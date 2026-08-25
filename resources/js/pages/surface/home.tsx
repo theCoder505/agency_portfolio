@@ -236,39 +236,41 @@ export async function bootstrapPlatform(config: AppConfig) {
                 </div>
             </section>
 
-            {/* LATEST INSIGHTS & BLOGS SECTION */}
+            {/* LATEST INSIGHTS & BLOGS SECTION - 12 ARTICLES SHOWCASE */}
             {blogs && blogs.length > 0 && (
                 <section className="py-24 bg-slate-100/60 dark:bg-slate-900/30 border-t border-slate-200/80 dark:border-slate-800/80 relative">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-14" data-aos="fade-up">
+                        {/* Section Header */}
+                        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-12" data-aos="fade-up">
                             <div className="space-y-2">
                                 <div className="inline-flex items-center space-x-2 px-3 py-1.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-cyan-400 border border-indigo-500/20 text-xs font-bold">
                                     <BookOpen className="h-3.5 w-3.5" />
                                     <span>Knowledge Hub</span>
                                 </div>
                                 <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-slate-900 dark:text-white">
-                                    Latest Engineering Insights
+                                    Latest Engineering Insights & Articles
                                 </h2>
-                                <p className="text-sm text-slate-600 dark:text-slate-400 max-w-xl">
-                                    Deep architectural analyses and production best practices curated by our development team.
+                                <p className="text-sm text-slate-600 dark:text-slate-400 max-w-2xl">
+                                    Deep architectural analyses, production benchmarks, and software engineering best practices from our architects.
                                 </p>
                             </div>
 
                             <Link
                                 href="/blogs"
-                                className="inline-flex items-center space-x-1.5 px-4 py-2.5 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-xs font-bold shadow-xs transition-all"
+                                className="inline-flex items-center space-x-2 px-5 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-lg shadow-indigo-500/20 hover:shadow-xl hover:shadow-indigo-500/30 transition-all self-start sm:self-auto group"
                             >
                                 <span>Browse All Articles</span>
-                                <ArrowUpRight className="h-4 w-4 text-indigo-600 dark:text-cyan-400" />
+                                <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                             </Link>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        {/* 12-Item Responsive Grid */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                             {blogs.map((blog, idx) => (
                                 <article
                                     key={blog.id}
                                     data-aos="fade-up"
-                                    data-aos-delay={`${idx * 120}`}
+                                    data-aos-delay={`${(idx % 4) * 80}`}
                                     className="group flex flex-col bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800/80 hover:border-indigo-500/50 shadow-sm hover:shadow-xl hover:shadow-indigo-500/10 transition-all duration-300 overflow-hidden"
                                 >
                                     <Link
@@ -288,21 +290,21 @@ export async function bootstrapPlatform(config: AppConfig) {
                                         )}
 
                                         {blog.category && (
-                                            <div className="absolute top-3.5 left-3.5 px-3 py-1 rounded-xl bg-slate-950/80 backdrop-blur-md border border-white/10 text-white text-[11px] font-bold tracking-wide">
+                                            <div className="absolute top-3 left-3 px-2.5 py-1 rounded-lg bg-slate-950/80 backdrop-blur-md border border-white/10 text-white text-[10px] font-bold tracking-wide">
                                                 {blog.category.name}
                                             </div>
                                         )}
 
-                                        <div className="absolute bottom-3.5 right-3.5 inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-slate-950/80 backdrop-blur-md border border-white/10 text-cyan-400 font-mono text-[11px] font-bold">
-                                            <Eye className="h-3 w-3 text-cyan-400" />
+                                        <div className="absolute bottom-3 right-3 inline-flex items-center space-x-1 px-2 py-0.5 rounded-md bg-slate-950/80 backdrop-blur-md border border-white/10 text-cyan-400 font-mono text-[10px] font-bold">
+                                            <Eye className="h-2.5 w-2.5 text-cyan-400" />
                                             <span>{(blog.reads_count || 0).toLocaleString()}</span>
                                         </div>
                                     </Link>
 
-                                    <div className="p-6 flex-grow flex flex-col justify-between space-y-4">
-                                        <div className="space-y-2.5">
-                                            <div className="flex items-center space-x-2 text-xs text-slate-500 dark:text-slate-400">
-                                                <Calendar className="h-3.5 w-3.5" />
+                                    <div className="p-5 flex-grow flex flex-col justify-between space-y-3">
+                                        <div className="space-y-2">
+                                            <div className="flex items-center space-x-2 text-[11px] text-slate-500 dark:text-slate-400">
+                                                <Calendar className="h-3 w-3" />
                                                 <span>
                                                     {blog.published_at
                                                         ? new Date(blog.published_at).toLocaleDateString(undefined, {
@@ -315,7 +317,7 @@ export async function bootstrapPlatform(config: AppConfig) {
                                             </div>
 
                                             <Link href={`/blogs/${blog.slug}`}>
-                                                <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-tight leading-snug group-hover:text-indigo-600 dark:group-hover:text-cyan-400 transition-colors line-clamp-2">
+                                                <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white tracking-tight leading-snug group-hover:text-indigo-600 dark:group-hover:text-cyan-400 transition-colors line-clamp-2">
                                                     {blog.title}
                                                 </h3>
                                             </Link>
@@ -325,8 +327,8 @@ export async function bootstrapPlatform(config: AppConfig) {
                                             </p>
                                         </div>
 
-                                        <div className="pt-4 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
-                                            <span className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                                        <div className="pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
+                                            <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 truncate max-w-[130px]">
                                                 {blog.author_name || 'CodeVenture Lead'}
                                             </span>
                                             <Link
@@ -340,6 +342,26 @@ export async function bootstrapPlatform(config: AppConfig) {
                                     </div>
                                 </article>
                             ))}
+                        </div>
+
+                        {/* Bottom CTA Banner with All Blogs Link */}
+                        <div className="mt-12 p-6 sm:p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left" data-aos="fade-up">
+                            <div className="space-y-1">
+                                <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
+                                    Want to explore more architectural guides & tutorials?
+                                </h3>
+                                <p className="text-xs text-slate-500 dark:text-slate-400">
+                                    Explore topics on React 19, AI Agents, Cloud DevOps, Distributed Databases, and UI Choreography.
+                                </p>
+                            </div>
+
+                            <Link
+                                href="/blogs"
+                                className="inline-flex items-center space-x-2 px-6 py-3 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs font-bold hover:bg-indigo-600 dark:hover:bg-cyan-400 dark:hover:text-slate-950 transition-all shadow-md flex-shrink-0"
+                            >
+                                <span>View All Blog Articles</span>
+                                <ArrowRight className="h-4 w-4" />
+                            </Link>
                         </div>
                     </div>
                 </section>

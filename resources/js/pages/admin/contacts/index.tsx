@@ -29,8 +29,8 @@ interface ContactIndexProps {
 
 export default function ContactIndex({ contacts, filters }: ContactIndexProps) {
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
-    const [search, setSearch] = useState(filters.search || '');
-    const [status, setStatus] = useState(filters.status || 'all');
+    const [search, setSearch] = useState(filters?.search ?? '');
+    const [status, setStatus] = useState(filters?.status ?? 'all');
     const [replyingContact, setReplyingContact] = useState<Contact | null>(null);
 
     const handleFilterChange = (newStatus: string, newSearch: string, from?: string, to?: string) => {
@@ -38,9 +38,9 @@ export default function ContactIndex({ contacts, filters }: ContactIndexProps) {
             '/admin/contacts',
             {
                 status: newStatus,
-                search: newSearch,
-                from_date: from || filters.from_date,
-                to_date: to || filters.to_date,
+                search: newSearch || undefined,
+                from_date: from || undefined,
+                to_date: to || undefined,
             },
             { preserveState: true, preserveScroll: true }
         );
@@ -134,7 +134,7 @@ export default function ContactIndex({ contacts, filters }: ContactIndexProps) {
                             <Search className="absolute left-3 h-4 w-4 text-slate-400" />
                             <input
                                 type="text"
-                                value={search}
+                                value={search ?? ''}
                                 onChange={(e) => setSearch(e.target.value)}
                                 placeholder="Search by name, email, subject..."
                                 className="w-full pl-9 pr-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500"
@@ -143,7 +143,7 @@ export default function ContactIndex({ contacts, filters }: ContactIndexProps) {
 
                         <div className="flex flex-wrap items-center gap-3">
                             <select
-                                value={status}
+                                value={status ?? 'all'}
                                 onChange={(e) => {
                                     setStatus(e.target.value);
                                     handleFilterChange(e.target.value, search);
@@ -157,8 +157,8 @@ export default function ContactIndex({ contacts, filters }: ContactIndexProps) {
                             </select>
 
                             <DateRangeFilter
-                                fromDate={filters.from_date}
-                                toDate={filters.to_date}
+                                fromDate={filters?.from_date ?? ''}
+                                toDate={filters?.to_date ?? ''}
                                 onApply={(f, t) => handleFilterChange(status, search, f, t)}
                                 onClear={() => handleFilterChange(status, search, '', '')}
                             />

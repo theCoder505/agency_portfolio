@@ -81,26 +81,6 @@ export const SurfaceHeader: React.FC = () => {
                                 </div>
                             </div>
                         )}
-                        <div className="flex flex-col">
-                            <span
-                                className={`text-lg font-black tracking-tight transition-colors ${
-                                    isHeroMode
-                                        ? 'text-white group-hover:text-cyan-400'
-                                        : 'text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-cyan-400'
-                                }`}
-                            >
-                                {brandName}
-                            </span>
-                            <span
-                                className={`text-[10px] uppercase font-bold tracking-widest transition-colors ${
-                                    isHeroMode
-                                        ? 'text-slate-300'
-                                        : 'text-slate-600 dark:text-slate-300'
-                                }`}
-                            >
-                                Digital Agency
-                            </span>
-                        </div>
                     </Link>
 
                     {/* Desktop Navigation Links */}

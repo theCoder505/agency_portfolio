@@ -30,9 +30,9 @@ interface VisitorLogIndexProps {
 
 export default function VisitorLogIndex({ logs, filters }: VisitorLogIndexProps) {
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
-    const [search, setSearch] = useState(filters.search || '');
-    const [device, setDevice] = useState(filters.device || 'all');
-    const [browser, setBrowser] = useState(filters.browser || 'all');
+    const [search, setSearch] = useState(filters?.search ?? '');
+    const [device, setDevice] = useState(filters?.device ?? 'all');
+    const [browser, setBrowser] = useState(filters?.browser ?? 'all');
 
     const handleFilterChange = (newDevice: string, newBrowser: string, newSearch: string, from?: string, to?: string) => {
         router.get(
@@ -40,9 +40,9 @@ export default function VisitorLogIndex({ logs, filters }: VisitorLogIndexProps)
             {
                 device: newDevice,
                 browser: newBrowser,
-                search: newSearch,
-                from_date: from || filters.from_date,
-                to_date: to || filters.to_date,
+                search: newSearch || undefined,
+                from_date: from || undefined,
+                to_date: to || undefined,
             },
             { preserveState: true, preserveScroll: true }
         );
@@ -151,7 +151,7 @@ export default function VisitorLogIndex({ logs, filters }: VisitorLogIndexProps)
                             <Search className="absolute left-3 h-4 w-4 text-slate-400" />
                             <input
                                 type="text"
-                                value={search}
+                                value={search ?? ''}
                                 onChange={(e) => setSearch(e.target.value)}
                                 placeholder="Search by IP, URL, or referer..."
                                 className="w-full pl-9 pr-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500"
@@ -160,7 +160,7 @@ export default function VisitorLogIndex({ logs, filters }: VisitorLogIndexProps)
 
                         <div className="flex flex-wrap items-center gap-3">
                             <select
-                                value={device}
+                                value={device ?? 'all'}
                                 onChange={(e) => {
                                     setDevice(e.target.value);
                                     handleFilterChange(e.target.value, browser, search);
@@ -174,7 +174,7 @@ export default function VisitorLogIndex({ logs, filters }: VisitorLogIndexProps)
                             </select>
 
                             <select
-                                value={browser}
+                                value={browser ?? 'all'}
                                 onChange={(e) => {
                                     setBrowser(e.target.value);
                                     handleFilterChange(device, e.target.value, search);
@@ -189,8 +189,8 @@ export default function VisitorLogIndex({ logs, filters }: VisitorLogIndexProps)
                             </select>
 
                             <DateRangeFilter
-                                fromDate={filters.from_date}
-                                toDate={filters.to_date}
+                                fromDate={filters?.from_date ?? ''}
+                                toDate={filters?.to_date ?? ''}
                                 onApply={(f, t) => handleFilterChange(device, browser, search, f, t)}
                                 onClear={() => handleFilterChange(device, browser, search, '', '')}
                             />

@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Calendar, Filter, X } from 'lucide-react';
 
 interface DateRangeFilterProps {
-    fromDate?: string;
-    toDate?: string;
-    onApply: (from: string, to: string) => void;
+    fromDate?: string | null;
+    toDate?: string | null;
+    onApply?: (from: string, to: string) => void;
+    onChange?: (from: string, to: string) => void;
     onClear?: () => void;
 }
 
@@ -12,20 +13,34 @@ export const DateRangeFilter: React.FC<DateRangeFilterProps> = ({
     fromDate = '',
     toDate = '',
     onApply,
+    onChange,
     onClear,
 }) => {
-    const [from, setFrom] = useState(fromDate);
-    const [to, setTo] = useState(toDate);
+    const [from, setFrom] = useState(fromDate ?? '');
+    const [to, setTo] = useState(toDate ?? '');
 
-    const handleApply = (e: React.FormEvent) => {
-        e.preventDefault();
-        onApply(from, to);
+    useEffect(() => {
+        setFrom(fromDate ?? '');
+    }, [fromDate]);
+
+    useEffect(() => {
+        setTo(toDate ?? '');
+    }, [toDate]);
+
+    const handleApply = (e?: React.FormEvent) => {
+        if (e) e.preventDefault();
+        const cleanFrom = from ?? '';
+        const cleanTo = to ?? '';
+        if (onApply) onApply(cleanFrom, cleanTo);
+        if (onChange) onChange(cleanFrom, cleanTo);
     };
 
     const handleReset = () => {
         setFrom('');
         setTo('');
         if (onClear) onClear();
+        if (onChange) onChange('', '');
+        if (onApply) onApply('', '');
     };
 
     const hasFilter = Boolean(from || to);
@@ -37,8 +52,12 @@ export const DateRangeFilter: React.FC<DateRangeFilterProps> = ({
                 <span className="text-slate-500 font-medium">From:</span>
                 <input
                     type="date"
-                    value={from}
-                    onChange={(e) => setFrom(e.target.value)}
+                    value={from ?? ''}
+                    onChange={(e) => {
+                        const val = e.target.value ?? '';
+                        setFrom(val);
+                        if (onChange) onChange(val, to ?? '');
+                    }}
                     className="bg-transparent text-slate-900 dark:text-white text-xs font-semibold focus:outline-none"
                 />
             </div>
@@ -48,8 +67,12 @@ export const DateRangeFilter: React.FC<DateRangeFilterProps> = ({
                 <span className="text-slate-500 font-medium">To:</span>
                 <input
                     type="date"
-                    value={to}
-                    onChange={(e) => setTo(e.target.value)}
+                    value={to ?? ''}
+                    onChange={(e) => {
+                        const val = e.target.value ?? '';
+                        setTo(val);
+                        if (onChange) onChange(from ?? '', val);
+                    }}
                     className="bg-transparent text-slate-900 dark:text-white text-xs font-semibold focus:outline-none"
                 />
             </div>
@@ -75,3 +98,4 @@ export const DateRangeFilter: React.FC<DateRangeFilterProps> = ({
         </form>
     );
 };
+
