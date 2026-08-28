@@ -114,6 +114,31 @@ class SaasProductSeeder extends Seeder
                 'is_featured' => false,
                 'is_active' => true,
             ],
+            [
+                'name' => 'NexusPOS & Multi-Outlet Cloud Engine',
+                'slug' => 'nexuspos-multi-outlet-engine',
+                'tagline' => 'High-speed cloud POS billing, barcode scanner sync, and retail chain analytics',
+                'description' => 'Ultra-fast retail and restaurant point-of-sale platform. Supports offline sales mode, thermal bluetooth receipt printing, kitchen order tickets, staff shift audits, and live revenue telemetry across branches.',
+                'icon' => 'Layers',
+                'badge' => 'Retail Specialist',
+                'monthly_price' => 2499.00,
+                'half_yearly_price' => 13499.00,
+                'yearly_price' => 24999.00,
+                'has_monthly' => true,
+                'has_half_yearly' => true,
+                'has_yearly' => true,
+                'features' => [
+                    'Lightning Fast Barcode Scan & Offline Mode Billing',
+                    'Thermal Receipt & Bluetooth Printer Integration (ESC/POS)',
+                    'Multi-Outlet Centralized Inventory Synchronization',
+                    'Customer Loyalty Cash-Back & Discount Coupon Engine',
+                    'Staff Shift Cash Drawer Reconciliations & Audit Trails',
+                    'Real-Time Sales Telemetry on iOS & Android Mobile App',
+                ],
+                'order' => 5,
+                'is_featured' => true,
+                'is_active' => true,
+            ],
         ];
 
         foreach ($products as $p) {

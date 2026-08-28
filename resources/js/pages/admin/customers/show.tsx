@@ -20,20 +20,23 @@ import {
 
 interface CustomerShowProps {
     customer: User;
-    subscriptions: SaasSubscription[];
-    invoices: SubscriptionInvoice[];
-    currencySymbol: string;
+    subscriptions?: SaasSubscription[];
+    invoices?: SubscriptionInvoice[];
+    currencySymbol?: string;
 }
 
 export default function CustomerShow({
     customer,
-    subscriptions,
-    invoices,
-    currencySymbol,
+    subscriptions = [],
+    invoices = [],
+    currencySymbol = '৳',
 }: CustomerShowProps) {
-    const totalSpent = invoices
+    const customerSubs = (subscriptions && subscriptions.length > 0) ? subscriptions : (customer?.subscriptions || []);
+    const customerInvs = (invoices && invoices.length > 0) ? invoices : (customer?.invoices || []);
+
+    const totalSpent = customerInvs
         .filter(inv => inv.status === 'paid')
-        .reduce((sum, inv) => sum + Number(inv.amount), 0);
+        .reduce((sum, inv) => sum + Number(inv.amount || 0), 0);
 
     return (
         <AdminLayout
@@ -135,11 +138,11 @@ export default function CustomerShow({
                         <div className="space-y-2 pt-4 border-t border-slate-100 dark:border-slate-800 text-xs">
                             <div className="flex justify-between">
                                 <span className="text-slate-400">Total Subscriptions:</span>
-                                <span className="font-bold">{subscriptions.length}</span>
+                                <span className="font-bold">{customerSubs.length}</span>
                             </div>
                             <div className="flex justify-between">
                                 <span className="text-slate-400">Total Invoices:</span>
-                                <span className="font-bold">{invoices.length}</span>
+                                <span className="font-bold">{customerInvs.length}</span>
                             </div>
                         </div>
                     </div>
@@ -151,12 +154,12 @@ export default function CustomerShow({
                         <div className="flex items-center space-x-2">
                             <Layers className="h-4 w-4 text-indigo-600 dark:text-cyan-400" />
                             <h2 className="text-sm font-bold text-slate-900 dark:text-white">
-                                Subscriptions & Cloud Deployments ({subscriptions.length})
+                                Subscriptions & Cloud Deployments ({customerSubs.length})
                             </h2>
                         </div>
                     </div>
 
-                    {subscriptions.length === 0 ? (
+                    {customerSubs.length === 0 ? (
                         <div className="text-xs text-slate-400 py-4 text-center">No subscriptions assigned to this customer yet.</div>
                     ) : (
                         <div className="overflow-x-auto">
@@ -173,7 +176,7 @@ export default function CustomerShow({
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                                    {subscriptions.map((sub) => (
+                                    {customerSubs.map((sub) => (
                                         <tr key={sub.id}>
                                             <td className="py-3 font-mono font-bold text-indigo-600 dark:text-cyan-400">{sub.order_number}</td>
                                             <td className="py-3 font-semibold text-slate-900 dark:text-white">{sub.product?.name}</td>
@@ -215,11 +218,11 @@ export default function CustomerShow({
                     <div className="flex items-center space-x-2">
                         <Receipt className="h-4 w-4 text-indigo-600 dark:text-cyan-400" />
                         <h2 className="text-sm font-bold text-slate-900 dark:text-white">
-                            Invoices & Payment Receipts ({invoices.length})
+                            Invoices & Payment Receipts ({customerInvs.length})
                         </h2>
                     </div>
 
-                    {invoices.length === 0 ? (
+                    {customerInvs.length === 0 ? (
                         <div className="text-xs text-slate-400 py-4 text-center">No invoices recorded for this customer.</div>
                     ) : (
                         <div className="overflow-x-auto">
@@ -236,7 +239,7 @@ export default function CustomerShow({
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                                    {invoices.map((inv) => (
+                                    {customerInvs.map((inv) => (
                                         <tr key={inv.id}>
                                             <td className="py-3 font-mono font-bold text-indigo-600 dark:text-cyan-400">{inv.invoice_number}</td>
                                             <td className="py-3 capitalize">{inv.type}</td>

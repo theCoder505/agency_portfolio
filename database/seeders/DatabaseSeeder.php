@@ -22,6 +22,7 @@ class DatabaseSeeder extends Seeder
             ContactSeeder::class,
             BlogSeeder::class,
             SaasProductSeeder::class,
+            CustomerSubscriptionSeeder::class,
         ]);
     }
 }

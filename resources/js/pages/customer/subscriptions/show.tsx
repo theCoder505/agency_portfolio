@@ -37,9 +37,16 @@ interface SubscriptionShowProps {
 
 export default function SubscriptionShow({
     subscription,
-    paymentSettings,
+    paymentSettings = {
+        currency_symbol: '৳',
+        currency_code: 'BDT',
+        bkash_number: '01712-345678',
+        bkash_instructions: '',
+        nagad_number: '01812-345678',
+        nagad_instructions: '',
+    },
 }: SubscriptionShowProps) {
-    const currency = paymentSettings.currency_symbol || '৳';
+    const currency = paymentSettings?.currency_symbol || '৳';
     const [isRenewModalOpen, setIsRenewModalOpen] = useState(false);
     const [copiedLabel, setCopiedLabel] = useState<string | null>(null);
     const [showCredentials, setShowCredentials] = useState(true);

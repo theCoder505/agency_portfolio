@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\AppSetting;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -87,25 +88,30 @@ class CustomerController extends Controller
     /**
      * Display customer details, active packages, and invoice history.
      */
-    public function show(User $customer): Response
+    public function show($customer): Response
     {
-        $customer->load([
+        $user = $customer instanceof User ? $customer : User::findOrFail($customer);
+        $user->load([
             'subscriptions.product',
             'invoices.subscription.product',
         ]);
 
         return Inertia::render('admin/customers/show', [
-            'customer' => $customer,
+            'customer' => $user,
+            'subscriptions' => $user->subscriptions ?? [],
+            'invoices' => $user->invoices ?? [],
+            'currencySymbol' => AppSetting::get('currency_symbol', '৳'),
         ]);
     }
 
     /**
      * Show form for editing customer profile.
      */
-    public function edit(User $customer): Response
+    public function edit($customer): Response
     {
+        $user = $customer instanceof User ? $customer : User::findOrFail($customer);
         return Inertia::render('admin/customers/form', [
-            'customer' => $customer,
+            'customer' => $user,
             'isEdit' => true,
         ]);
     }
@@ -113,11 +119,13 @@ class CustomerController extends Controller
     /**
      * Update customer profile.
      */
-    public function update(Request $request, User $customer): RedirectResponse
+    public function update(Request $request, $customer): RedirectResponse
     {
+        $user = $customer instanceof User ? $customer : User::findOrFail($customer);
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users,email,' . $customer->id,
+            'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
             'phone' => 'nullable|string|max:30',
             'company_name' => 'nullable|string|max:255',
             'address' => 'nullable|string|max:500',
@@ -132,7 +140,7 @@ class CustomerController extends Controller
             unset($validated['password']);
         }
 
-        $customer->update($validated);
+        $user->update($validated);
 
         return redirect()->route('admin.customers.index')
             ->with('success', 'Customer details updated successfully!');
@@ -141,9 +149,10 @@ class CustomerController extends Controller
     /**
      * Remove customer account.
      */
-    public function destroy(User $customer): RedirectResponse
+    public function destroy($customer): RedirectResponse
     {
-        $customer->delete();
+        $user = $customer instanceof User ? $customer : User::findOrFail($customer);
+        $user->delete();
 
         return redirect()->route('admin.customers.index')
             ->with('success', 'Customer account deleted successfully!');

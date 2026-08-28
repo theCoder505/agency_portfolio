@@ -33,10 +33,17 @@ interface InvoicesIndexProps {
 
 export default function InvoicesIndex({
     invoices,
-    filters,
-    brandSettings,
+    filters = { status: 'all' },
+    brandSettings = {
+        brand_name: 'CodeVenture Tech',
+        contact_email: 'hello@codeventure.tech',
+        contact_phone: '+1 (555) 234-5678',
+        address_line1: '',
+        address_line2: '',
+        currency_symbol: '৳',
+    },
 }: InvoicesIndexProps) {
-    const currency = brandSettings.currency_symbol || '৳';
+    const currency = brandSettings?.currency_symbol || '৳';
     const [selectedInvoice, setSelectedInvoice] = useState<SubscriptionInvoice | null>(null);
 
     const handleFilter = (status: string) => {
