@@ -7,6 +7,7 @@ use App\Models\Blog;
 use App\Models\Category;
 use App\Models\Portfolio;
 use App\Models\Review;
+use App\Models\SaasProduct;
 use App\Models\TeamMember;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -40,6 +41,13 @@ class HomeController extends Controller
             ->take(12)
             ->get();
 
+        // Featured SaaS products for the landing page
+        $saasProducts = SaasProduct::where('is_active', true)
+            ->orderBy('is_featured', 'desc')
+            ->orderBy('order')
+            ->take(4)
+            ->get();
+
         $reviews = Review::where('is_featured', true)
             ->orderBy('rating', 'desc')
             ->orderBy('created_at', 'desc')
@@ -63,6 +71,7 @@ class HomeController extends Controller
             'categories' => $categories,
             'portfolios' => $portfolios,
             'blogs' => $blogs,
+            'saasProducts' => $saasProducts,
             'reviews' => $reviews,
             'teamMembers' => $teamMembers,
             'stats' => $stats,

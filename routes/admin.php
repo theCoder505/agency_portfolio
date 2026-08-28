@@ -4,11 +4,14 @@ use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\BlogController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\ContactController;
+use App\Http\Controllers\Admin\CustomerController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\PortfolioController;
 use App\Http\Controllers\Admin\ProfileController;
 use App\Http\Controllers\Admin\ReviewController;
+use App\Http\Controllers\Admin\SaasProductController;
 use App\Http\Controllers\Admin\SettingController;
+use App\Http\Controllers\Admin\SubscriptionController;
 use App\Http\Controllers\Admin\TeamController;
 use App\Http\Controllers\Admin\VisitorLogController;
 use Illuminate\Support\Facades\Route;
@@ -25,6 +28,24 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/', [DashboardController::class, 'index'])->name('index');
         Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
         Route::post('logout', [AuthController::class, 'logout'])->name('logout');
+
+        // SaaS Products Management
+        Route::post('saas-products/bulk-delete', [SaasProductController::class, 'bulkDelete'])->name('saas-products.bulk-delete');
+        Route::resource('saas-products', SaasProductController::class)->except(['show']);
+
+        // Orders & Subscriptions Management
+        Route::get('subscriptions', [SubscriptionController::class, 'index'])->name('subscriptions.index');
+        Route::get('subscriptions/create', [SubscriptionController::class, 'create'])->name('subscriptions.create');
+        Route::post('subscriptions', [SubscriptionController::class, 'store'])->name('subscriptions.store');
+        Route::get('subscriptions/{id}', [SubscriptionController::class, 'show'])->name('subscriptions.show');
+        Route::get('subscriptions/{id}/edit', [SubscriptionController::class, 'edit'])->name('subscriptions.edit');
+        Route::put('subscriptions/{id}', [SubscriptionController::class, 'update'])->name('subscriptions.update');
+        Route::post('subscriptions/{id}/approve', [SubscriptionController::class, 'approve'])->name('subscriptions.approve');
+        Route::post('subscriptions/{id}/reject', [SubscriptionController::class, 'reject'])->name('subscriptions.reject');
+        Route::delete('subscriptions/{id}', [SubscriptionController::class, 'destroy'])->name('subscriptions.destroy');
+
+        // Registered Customers Management
+        Route::resource('customers', CustomerController::class);
 
         // Blogs & Articles Management
         Route::post('blogs/bulk-delete', [BlogController::class, 'bulkDelete'])->name('blogs.bulk-delete');

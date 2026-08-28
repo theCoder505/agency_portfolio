@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             VisitorLogSeeder::class,
             ContactSeeder::class,
             BlogSeeder::class,
+            SaasProductSeeder::class,
         ]);
     }
 }

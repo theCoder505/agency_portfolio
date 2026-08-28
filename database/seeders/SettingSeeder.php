@@ -51,6 +51,16 @@ class SettingSeeder extends Seeder
             // Media
             ['key' => 'featured_youtube_video', 'value' => 'https://www.youtube.com/watch?v=LXb3EKWsInQ', 'group' => 'media'],
 
+            // Payment Gateways & Manual Instructions
+            ['key' => 'currency_symbol', 'value' => '৳', 'group' => 'payment'],
+            ['key' => 'currency_code', 'value' => 'BDT', 'group' => 'payment'],
+            ['key' => 'bkash_number', 'value' => '01712-345678 (Personal / Send Money)', 'group' => 'payment'],
+            ['key' => 'bkash_instructions', 'value' => '1. Open bKash App or dial *247#.\n2. Select "Send Money" to the number above.\n3. Enter the exact package amount.\n4. Save the Transaction ID (TrxID) and submit here along with your bKash phone number.', 'group' => 'payment'],
+            ['key' => 'bkash_enabled', 'value' => '1', 'group' => 'payment'],
+            ['key' => 'nagad_number', 'value' => '01812-345678 (Personal / Send Money)', 'group' => 'payment'],
+            ['key' => 'nagad_instructions', 'value' => '1. Open Nagad App or dial *167#.\n2. Select "Send Money" to the number above.\n3. Enter the exact package amount.\n4. Copy the Transaction ID (TrxID) and enter it below with your Nagad number.', 'group' => 'payment'],
+            ['key' => 'nagad_enabled', 'value' => '1', 'group' => 'payment'],
+
             // Legal Pages
             [
                 'key' => 'terms_and_conditions',

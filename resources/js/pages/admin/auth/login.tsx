@@ -1,13 +1,21 @@
 import React, { useState } from 'react';
 import { useForm, Head, Link } from '@inertiajs/react';
-import { Lock, Mail, ShieldCheck, ArrowRight, Sparkles, KeyRound } from 'lucide-react';
+import { Lock, Mail, ShieldCheck, ArrowRight, Eye, EyeOff } from 'lucide-react';
 import { ThemeToggle } from '@/components/surface/theme-toggle';
 
+type AdminLoginForm = {
+    email: string;
+    password: string;
+    remember: boolean;
+};
+
 export default function AdminLogin() {
-    const { data, setData, post, processing, errors } = useForm({
-        email: 'admin@codeventure.tech',
-        password: 'password',
-        remember: true,
+    const [showPassword, setShowPassword] = useState(false);
+
+    const { data, setData, post, processing, errors } = useForm<AdminLoginForm>({
+        email: '',
+        password: '',
+        remember: false,
     });
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -15,13 +23,6 @@ export default function AdminLogin() {
         post('/admin/login');
     };
 
-    const fillDemo = () => {
-        setData({
-            email: 'admin@codeventure.tech',
-            password: 'password',
-            remember: true,
-        });
-    };
 
     return (
         <div className="min-h-screen flex flex-col justify-center items-center bg-slate-950 text-slate-100 p-4 relative overflow-hidden">
@@ -69,7 +70,7 @@ export default function AdminLogin() {
                                     required
                                     value={data.email}
                                     onChange={(e) => setData('email', e.target.value)}
-                                    placeholder="admin@codeventure.tech"
+                                    placeholder="admin@gmail.com"
                                     className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-800 bg-slate-950 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                                 />
                             </div>
@@ -84,13 +85,25 @@ export default function AdminLogin() {
                             <div className="relative">
                                 <Lock className="absolute left-3.5 top-3 h-4 w-4 text-slate-500" />
                                 <input
-                                    type="password"
+                                    type={showPassword ? 'text' : 'password'}
                                     required
                                     value={data.password}
                                     onChange={(e) => setData('password', e.target.value)}
                                     placeholder="••••••••"
-                                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-800 bg-slate-950 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-800 bg-slate-950 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                                 />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-3.5 top-3 text-slate-500 hover:text-slate-300 transition-colors focus:outline-none"
+                                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                                >
+                                    {showPassword ? (
+                                        <EyeOff className="h-4 w-4" />
+                                    ) : (
+                                        <Eye className="h-4 w-4" />
+                                    )}
+                                </button>
                             </div>
                             {errors.password && (
                                 <p className="text-[11px] text-red-400 font-medium">{errors.password}</p>
@@ -120,18 +133,6 @@ export default function AdminLogin() {
                             <ArrowRight className="h-4 w-4" />
                         </button>
                     </form>
-
-                    {/* Quick Demo Credentials Autofill */}
-                    <div className="pt-3 border-t border-slate-800 text-center">
-                        <button
-                            type="button"
-                            onClick={fillDemo}
-                            className="inline-flex items-center space-x-1.5 text-xs text-cyan-400 hover:text-cyan-300 font-semibold"
-                        >
-                            <Sparkles className="h-3.5 w-3.5" />
-                            <span>Click to fill seeded credentials</span>
-                        </button>
-                    </div>
                 </div>
             </div>
         </div>

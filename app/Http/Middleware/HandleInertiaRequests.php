@@ -38,6 +38,22 @@ class HandleInertiaRequests extends Middleware
     {
         $appSettings = AppSetting::getAllGrouped();
 
+        $pendingSubscriptionsCount = 0;
+        $customerActiveSubscriptionsCount = 0;
+
+        try {
+            if ($request->user('admin')) {
+                $pendingSubscriptionsCount = \App\Models\SaasSubscription::where('status', 'pending')->count();
+            }
+            if ($request->user()) {
+                $customerActiveSubscriptionsCount = \App\Models\SaasSubscription::where('user_id', $request->user()->id)
+                    ->where('status', 'active')
+                    ->count();
+            }
+        } catch (\Throwable $e) {
+            // tables not migrated yet
+        }
+
         return array_merge(parent::share($request), [
             'name' => $appSettings['brand_name'] ?? config('app.name', 'CodeVenture Tech'),
             'app_settings' => $appSettings,
@@ -45,6 +61,8 @@ class HandleInertiaRequests extends Middleware
                 'user' => $request->user(),
                 'admin' => $request->user('admin'),
             ],
+            'pending_subscriptions_count' => $pendingSubscriptionsCount,
+            'customer_active_subscriptions_count' => $customerActiveSubscriptionsCount,
             'flash' => [
                 'success' => session('success'),
                 'error' => session('error'),

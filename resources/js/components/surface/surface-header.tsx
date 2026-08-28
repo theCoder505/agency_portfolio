@@ -43,6 +43,7 @@ export const SurfaceHeader: React.FC = () => {
 
     const navLinks = [
         { label: 'Home', href: '/' },
+        { label: 'SaaS Products', href: '/saas-products' },
         { label: 'Our Works', href: '/works' },
         { label: 'Blogs', href: '/blogs' },
         { label: 'About Us', href: '/about' },
@@ -97,7 +98,7 @@ export const SurfaceHeader: React.FC = () => {
                                 <Link
                                     key={link.href}
                                     href={link.href}
-                                    className={`px-4 py-1.5 text-xs font-semibold rounded-full transition-all duration-200 ${
+                                    className={`px-3.5 py-1.5 text-xs font-semibold rounded-full transition-all duration-200 ${
                                         active
                                             ? isHeroMode
                                                 ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-500/30'
@@ -125,18 +126,38 @@ export const SurfaceHeader: React.FC = () => {
                                 <ShieldCheck className="h-4 w-4 text-emerald-400 dark:text-emerald-600" />
                                 <span>Admin Panel</span>
                             </Link>
-                        ) : (
+                        ) : auth?.user ? (
                             <Link
-                                href="/contact"
-                                className="relative group inline-flex items-center justify-center p-[2px] rounded-xl overflow-hidden font-bold text-xs"
+                                href="/customer/dashboard"
+                                className="flex items-center space-x-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-indigo-600 to-cyan-500 text-white hover:opacity-95 transition-all shadow-md"
                             >
-                                <span className="absolute inset-0 bg-gradient-to-r from-indigo-500 via-purple-500 to-cyan-400 group-hover:from-indigo-600 group-hover:to-cyan-500 transition-all"></span>
-                                <span className="relative flex items-center space-x-1.5 px-4 py-2 rounded-[10px] bg-slate-950 text-white transition-all group-hover:bg-opacity-90">
-                                    <Sparkles className="h-3.5 w-3.5 text-cyan-300" />
-                                    <span>Let's Talk</span>
-                                    <ArrowUpRight className="h-3.5 w-3.5 text-cyan-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-                                </span>
+                                <Sparkles className="h-3.5 w-3.5 text-cyan-300" />
+                                <span>Customer Portal</span>
                             </Link>
+                        ) : (
+                            <div className="flex items-center space-x-2">
+                                <Link
+                                    href="/login"
+                                    className={`px-3 py-2 text-xs font-bold rounded-xl transition-all ${
+                                        isHeroMode
+                                            ? 'text-slate-300 hover:text-white hover:bg-white/10'
+                                            : 'text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-cyan-400'
+                                    }`}
+                                >
+                                    Login
+                                </Link>
+                                <Link
+                                    href="/saas-products"
+                                    className="relative group inline-flex items-center justify-center p-[2px] rounded-xl overflow-hidden font-bold text-xs"
+                                >
+                                    <span className="absolute inset-0 bg-gradient-to-r from-indigo-500 via-purple-500 to-cyan-400 group-hover:from-indigo-600 group-hover:to-cyan-500 transition-all"></span>
+                                    <span className="relative flex items-center space-x-1.5 px-4 py-2 rounded-[10px] bg-slate-950 text-white transition-all group-hover:bg-opacity-90">
+                                        <Sparkles className="h-3.5 w-3.5 text-cyan-300" />
+                                        <span>Deploy SaaS</span>
+                                        <ArrowUpRight className="h-3.5 w-3.5 text-cyan-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                                    </span>
+                                </Link>
+                            </div>
                         )}
                     </div>
 
@@ -189,15 +210,33 @@ export const SurfaceHeader: React.FC = () => {
                                 <ShieldCheck className="h-4 w-4 text-emerald-500" />
                                 <span>Go to Admin Panel</span>
                             </Link>
-                        ) : (
+                        ) : auth?.user ? (
                             <Link
-                                href="/contact"
+                                href="/customer/dashboard"
                                 onClick={() => setIsMobileMenuOpen(false)}
                                 className="flex items-center justify-center space-x-2 w-full py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-500 text-white text-xs font-bold shadow-lg"
                             >
-                                <span>Get a Free Consultation</span>
-                                <ArrowUpRight className="h-4 w-4" />
+                                <Sparkles className="h-4 w-4" />
+                                <span>Go to Customer Portal</span>
                             </Link>
+                        ) : (
+                            <div className="flex flex-col space-y-2">
+                                <Link
+                                    href="/login"
+                                    onClick={() => setIsMobileMenuOpen(false)}
+                                    className="flex items-center justify-center space-x-2 w-full py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 text-xs font-bold"
+                                >
+                                    <span>Customer Login</span>
+                                </Link>
+                                <Link
+                                    href="/saas-products"
+                                    onClick={() => setIsMobileMenuOpen(false)}
+                                    className="flex items-center justify-center space-x-2 w-full py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-500 text-white text-xs font-bold shadow-lg"
+                                >
+                                    <span>Explore SaaS Products</span>
+                                    <ArrowUpRight className="h-4 w-4" />
+                                </Link>
+                            </div>
                         )}
                     </div>
                 </div>

@@ -14,8 +14,17 @@ export interface User {
     id: number;
     name: string;
     email: string;
-    avatar?: string;
+    phone?: string | null;
+    company_name?: string | null;
+    address?: string | null;
+    avatar?: string | null;
+    status: 'active' | 'suspended';
+    admin_notes?: string | null;
     email_verified_at: string | null;
+    subscriptions_count?: number;
+    invoices_count?: number;
+    subscriptions?: SaasSubscription[];
+    invoices?: SubscriptionInvoice[];
     created_at: string;
     updated_at: string;
     [key: string]: unknown;
@@ -53,6 +62,14 @@ export interface AppSettings {
     trustpilot_score?: string;
     trustpilot_reviews_count?: string;
     featured_youtube_video?: string;
+    currency_symbol?: string;
+    currency_code?: string;
+    bkash_number?: string;
+    bkash_instructions?: string;
+    bkash_enabled?: string | boolean;
+    nagad_number?: string;
+    nagad_instructions?: string;
+    nagad_enabled?: string | boolean;
     terms_and_conditions?: string;
     privacy_policy?: string;
     [key: string]: string | undefined | boolean;
@@ -112,6 +129,90 @@ export interface Blog {
     is_published: boolean;
     published_at?: string | null;
     order: number;
+    created_at: string;
+    updated_at?: string;
+}
+
+export interface SaasProduct {
+    id: number;
+    name: string;
+    slug: string;
+    tagline?: string | null;
+    description?: string | null;
+    icon?: string | null;
+    badge?: string | null;
+    monthly_price: number;
+    half_yearly_price: number;
+    yearly_price: number;
+    has_monthly: boolean;
+    has_half_yearly: boolean;
+    has_yearly: boolean;
+    features: string[] | null;
+    order: number;
+    is_featured: boolean;
+    is_active: boolean;
+    subscriptions_count?: number;
+    created_at?: string;
+    updated_at?: string;
+}
+
+export interface SaasSubscription {
+    id: number;
+    order_number: string;
+    user_id: number;
+    user?: User | null;
+    saas_product_id: number;
+    product?: SaasProduct | null;
+    billing_cycle: 'monthly' | 'half_yearly' | 'yearly';
+    amount: number;
+    currency: string;
+    status: 'pending' | 'active' | 'expired' | 'rejected' | 'cancelled';
+    payment_method: string;
+    sender_number?: string | null;
+    transaction_id?: string | null;
+    payment_notes?: string | null;
+    domain?: string | null;
+    subdomain?: string | null;
+    admin_notes?: string | null;
+    starts_at?: string | null;
+    expires_at?: string | null;
+    approved_at?: string | null;
+    approved_by?: number | null;
+    approver?: Admin | null;
+    rejection_reason?: string | null;
+    last_renewed_at?: string | null;
+    days_remaining: number;
+    is_active_now: boolean;
+    is_expired_now: boolean;
+    status_badge: {
+        label: string;
+        color: string;
+    };
+    invoices?: SubscriptionInvoice[];
+    created_at: string;
+    updated_at?: string;
+}
+
+export interface SubscriptionInvoice {
+    id: number;
+    invoice_number: string;
+    subscription_id: number;
+    subscription?: SaasSubscription | null;
+    user_id: number;
+    user?: User | null;
+    billing_cycle: 'monthly' | 'half_yearly' | 'yearly';
+    amount: number;
+    currency: string;
+    payment_method: string;
+    sender_number?: string | null;
+    transaction_id?: string | null;
+    type: 'initial' | 'renewal';
+    status: 'pending' | 'paid' | 'rejected';
+    period_start?: string | null;
+    period_end?: string | null;
+    paid_at?: string | null;
+    notes?: string | null;
+    rejection_reason?: string | null;
     created_at: string;
     updated_at?: string;
 }
@@ -190,6 +291,8 @@ export interface SharedData {
     name: string;
     app_settings: AppSettings;
     auth: Auth;
+    pending_subscriptions_count?: number;
+    customer_active_subscriptions_count?: number;
     flash: FlashMessages;
     [key: string]: unknown;
 }

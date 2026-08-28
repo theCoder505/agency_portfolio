@@ -15,7 +15,8 @@ import {
     Share2,
     Play,
     FileText,
-    Check
+    Check,
+    CreditCard
 } from 'lucide-react';
 import { showToast, showSuccessAlert } from '@/lib/swal';
 
@@ -24,7 +25,7 @@ interface SettingsIndexProps {
 }
 
 export default function SettingsIndex({ settings }: SettingsIndexProps) {
-    const [activeTab, setActiveTab] = useState<'branding' | 'contact' | 'whatsapp' | 'trustpilot' | 'social' | 'media' | 'legal'>('branding');
+    const [activeTab, setActiveTab] = useState<'branding' | 'contact' | 'payments' | 'whatsapp' | 'trustpilot' | 'social' | 'media' | 'legal'>('branding');
 
     // Branding State
     const [brandName, setBrandName] = useState(settings?.brand_name || 'CodeVenture Tech');
@@ -47,6 +48,14 @@ export default function SettingsIndex({ settings }: SettingsIndexProps) {
     const [addressLine1, setAddressLine1] = useState(settings?.address_line1 || '');
     const [addressLine2, setAddressLine2] = useState(settings?.address_line2 || '');
     const [googleMapEmbedUrl, setGoogleMapEmbedUrl] = useState(settings?.google_map_embed_url || '');
+
+    // Payment & SaaS Billing State
+    const [currencySymbol, setCurrencySymbol] = useState(settings?.currency_symbol || '৳');
+    const [currencyCode, setCurrencyCode] = useState(settings?.currency_code || 'BDT');
+    const [bkashNumber, setBkashNumber] = useState(settings?.bkash_number || '01712-345678');
+    const [bkashInstructions, setBkashInstructions] = useState(settings?.bkash_instructions || 'Go to bKash App > Send Money > Enter our Personal Number > Put Order Number in Reference > Enter PIN');
+    const [nagadNumber, setNagadNumber] = useState(settings?.nagad_number || '01812-345678');
+    const [nagadInstructions, setNagadInstructions] = useState(settings?.nagad_instructions || 'Go to Nagad App > Send Money > Enter our Personal Number > Put Order Number in Reference > Enter PIN');
 
     // WhatsApp State
     const [whatsappNumber, setWhatsappNumber] = useState(settings?.whatsapp_number || '+15552345678');
@@ -99,6 +108,14 @@ export default function SettingsIndex({ settings }: SettingsIndexProps) {
         formData.append('address_line2', addressLine2);
         formData.append('google_map_embed_url', googleMapEmbedUrl);
 
+        // Payments
+        formData.append('currency_symbol', currencySymbol);
+        formData.append('currency_code', currencyCode);
+        formData.append('bkash_number', bkashNumber);
+        formData.append('bkash_instructions', bkashInstructions);
+        formData.append('nagad_number', nagadNumber);
+        formData.append('nagad_instructions', nagadInstructions);
+
         // WhatsApp
         formData.append('whatsapp_number', whatsappNumber);
         formData.append('whatsapp_message_prompt', whatsappPrompt);
@@ -131,6 +148,7 @@ export default function SettingsIndex({ settings }: SettingsIndexProps) {
 
     const tabs = [
         { id: 'branding', label: 'Branding & Logos', icon: ImageIcon },
+        { id: 'payments', label: 'bKash & Nagad Payments', icon: CreditCard },
         { id: 'contact', label: 'Contact & Location', icon: MapPin },
         { id: 'whatsapp', label: 'WhatsApp Widget', icon: WhatsAppIcon },
         { id: 'trustpilot', label: 'Trustpilot Setup', icon: Star },
@@ -280,6 +298,118 @@ export default function SettingsIndex({ settings }: SettingsIndexProps) {
                                             onChange={(e) => setCopyrightText(e.target.value)}
                                             className="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-xs font-medium"
                                         />
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* TAB: BKASH, NAGAD & SAAS PAYMENT SETTINGS */}
+                            {activeTab === 'payments' && (
+                                <div className="space-y-6 animate-in fade-in">
+                                    <h3 className="text-base font-bold text-slate-900 dark:text-white pb-3 border-b border-slate-100 dark:border-slate-800">
+                                        bKash, Nagad & SaaS Billing Gateway Configuration
+                                    </h3>
+
+                                    {/* Currency Settings */}
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div className="space-y-1.5">
+                                            <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                                                Currency Symbol
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={currencySymbol}
+                                                onChange={(e) => setCurrencySymbol(e.target.value)}
+                                                placeholder="৳ or $ or €"
+                                                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-xs font-bold font-mono"
+                                            />
+                                        </div>
+
+                                        <div className="space-y-1.5">
+                                            <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                                                Currency Code (ISO)
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={currencyCode}
+                                                onChange={(e) => setCurrencyCode(e.target.value.toUpperCase())}
+                                                placeholder="BDT or USD"
+                                                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-xs font-bold font-mono uppercase"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* bKash Configuration */}
+                                    <div className="p-5 rounded-2xl bg-pink-50/50 dark:bg-pink-950/20 border border-pink-200/60 dark:border-pink-900/40 space-y-4">
+                                        <div className="flex items-center space-x-2">
+                                            <div className="h-6 w-6 rounded-lg bg-pink-600 text-white flex items-center justify-center text-[10px] font-black">
+                                                bK
+                                            </div>
+                                            <h4 className="text-xs font-bold text-pink-700 dark:text-pink-300 uppercase tracking-wider">
+                                                bKash Personal / Merchant Payment Details
+                                            </h4>
+                                        </div>
+
+                                        <div className="space-y-1.5">
+                                            <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                                                bKash Receiver Mobile Number
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={bkashNumber}
+                                                onChange={(e) => setBkashNumber(e.target.value)}
+                                                placeholder="01712-345678"
+                                                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-xs font-mono font-bold"
+                                            />
+                                        </div>
+
+                                        <div className="space-y-1.5">
+                                            <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                                                bKash Step-by-Step Payment Instructions for Customers
+                                            </label>
+                                            <textarea
+                                                rows={3}
+                                                value={bkashInstructions}
+                                                onChange={(e) => setBkashInstructions(e.target.value)}
+                                                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-xs leading-relaxed"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* Nagad Configuration */}
+                                    <div className="p-5 rounded-2xl bg-orange-50/50 dark:bg-orange-950/20 border border-orange-200/60 dark:border-orange-900/40 space-y-4">
+                                        <div className="flex items-center space-x-2">
+                                            <div className="h-6 w-6 rounded-lg bg-orange-600 text-white flex items-center justify-center text-[10px] font-black">
+                                                NG
+                                            </div>
+                                            <h4 className="text-xs font-bold text-orange-700 dark:text-orange-300 uppercase tracking-wider">
+                                                Nagad Personal / Merchant Payment Details
+                                            </h4>
+                                        </div>
+
+                                        <div className="space-y-1.5">
+                                            <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                                                Nagad Receiver Mobile Number
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={nagadNumber}
+                                                onChange={(e) => setNagadNumber(e.target.value)}
+                                                placeholder="01812-345678"
+                                                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-xs font-mono font-bold"
+                                            />
+                                        </div>
+
+                                        <div className="space-y-1.5">
+                                            <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                                                Nagad Step-by-Step Payment Instructions for Customers
+                                            </label>
+                                            <textarea
+                                                rows={3}
+                                                value={nagadInstructions}
+                                                onChange={(e) => setNagadInstructions(e.target.value)}
+                                                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-xs leading-relaxed"
+                                            />
+                                        </div>
                                     </div>
                                 </div>
                             )}

@@ -1,48 +1,41 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, usePage, router, Head } from '@inertiajs/react';
 import { SharedData } from '@/types';
 import {
     LayoutDashboard,
     Layers,
-    BookOpen,
-    FolderTree,
-    MessageSquare,
-    Activity,
-    Settings,
-    Users,
-    Star,
-    Shield,
+    Receipt,
+    User,
     LogOut,
     ExternalLink,
     Menu,
     X,
-    Sun,
-    Moon,
-    Code,
     Sparkles,
-    UserCheck,
-    CreditCard,
-    Package
+    ShieldCheck,
+    Globe,
+    ShoppingBag,
+    Headphones,
+    CheckCircle2
 } from 'lucide-react';
 import { ThemeToggle } from '@/components/surface/theme-toggle';
 import { showToast, showSuccessAlert, showErrorAlert } from '@/lib/swal';
 
-interface AdminLayoutProps {
+interface CustomerLayoutProps {
     children: React.ReactNode;
     title?: string;
     breadcrumbs?: { title: string; href?: string }[];
 }
 
-export const AdminLayout: React.FC<AdminLayoutProps> = ({
+export const CustomerLayout: React.FC<CustomerLayoutProps> = ({
     children,
-    title = 'Admin Panel',
+    title = 'Customer Portal',
     breadcrumbs = [],
 }) => {
-    const { auth, app_settings, flash, pending_subscriptions_count } = usePage<SharedData>().props;
+    const { auth, app_settings, flash, customer_active_subscriptions_count } = usePage<SharedData>().props;
     const { url } = usePage();
-    const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-    const admin = auth?.admin;
+    const user = auth?.user;
     const brandName = app_settings?.brand_name || 'CodeVenture Tech';
 
     useEffect(() => {
@@ -58,138 +51,97 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
     }, [flash]);
 
     const navigation = [
-        { label: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
-        { 
-            label: 'Orders & Subscriptions', 
-            href: '/admin/subscriptions', 
-            icon: CreditCard,
-            badge: pending_subscriptions_count,
-            badgeColor: 'bg-amber-500 text-slate-950 font-bold'
-        },
-        { label: 'SaaS Products', href: '/admin/saas-products', icon: Package },
-        { label: 'Customers', href: '/admin/customers', icon: UserCheck },
-        { label: 'Portfolios & Projects', href: '/admin/portfolios', icon: Layers },
-        { label: 'Blogs & Articles', href: '/admin/blogs', icon: BookOpen },
-        { label: 'Categories', href: '/admin/categories', icon: FolderTree },
-        { label: 'Contact Inquiries', href: '/admin/contacts', icon: MessageSquare },
-        { label: 'Visitor Analytics', href: '/admin/visitor-logs', icon: Activity },
-        { label: 'Team Members', href: '/admin/team', icon: Users },
-        { label: 'Reviews & Trustpilot', href: '/admin/reviews', icon: Star },
-        { label: 'App Settings', href: '/admin/settings', icon: Settings },
-        { label: 'Profile & Security (OTP)', href: '/admin/profile', icon: Shield },
+        { label: 'My Workspace', href: '/customer/dashboard', icon: LayoutDashboard },
+        { label: 'My Subscriptions', href: '/customer/subscriptions', icon: Layers, badge: customer_active_subscriptions_count },
+        { label: 'Payment Invoices', href: '/customer/invoices', icon: Receipt },
+        { label: 'Account Profile', href: '/customer/profile', icon: User },
     ];
 
     const isActive = (href: string) => {
-        if (href === '/admin/dashboard') return url === '/admin' || url === '/admin/dashboard';
+        if (href === '/customer/dashboard') return url === '/customer/dashboard' || url === '/customer';
         return url.startsWith(href);
     };
 
     const handleLogout = (e: React.FormEvent) => {
         e.preventDefault();
-        router.post('/admin/logout');
+        router.post('/logout');
     };
 
     return (
         <div className="h-screen h-[100dvh] bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col md:flex-row overflow-hidden transition-colors duration-200">
             <Head>
-                <title>{`${title} - Admin Panel | ${brandName}`}</title>
-                {app_settings?.favicon ? (
-                    <link rel="icon" href={app_settings.favicon} />
-                ) : (
-                    <link rel="icon" href="/favicon.ico" />
-                )}
-                {app_settings?.favicon && (
-                    <link rel="shortcut icon" href={app_settings.favicon} />
-                )}
+                <title>{`${title} - Customer Portal | ${brandName}`}</title>
+                {app_settings?.favicon && <link rel="icon" href={app_settings.favicon} />}
             </Head>
 
-            {/* Mobile Header */}
+            {/* Mobile Top Header */}
             <div className="md:hidden flex items-center justify-between p-4 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex-shrink-0 z-30">
-                <Link href="/admin/dashboard" className="flex items-center space-x-2.5 min-w-0">
-                    {app_settings?.favicon ? (
-                        <div className="h-8 w-8 rounded-lg bg-slate-100 dark:bg-slate-800 p-1.5 flex items-center justify-center overflow-hidden flex-shrink-0 border border-slate-200 dark:border-slate-700 shadow-xs">
-                            <img
-                                src={app_settings.favicon}
-                                alt={brandName}
-                                className="h-full w-full object-contain"
-                            />
-                        </div>
-                    ) : (
-                        <div className="h-8 w-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
-                            {brandName.substring(0, 2).toUpperCase() || 'CV'}
-                        </div>
-                    )}
-                    <span className="font-bold text-sm tracking-tight truncate text-slate-900 dark:text-white">
-                        {brandName}
-                    </span>
+                <Link href="/customer/dashboard" className="flex items-center space-x-2.5 min-w-0">
+                    <div className="h-8 w-8 rounded-lg bg-gradient-to-tr from-indigo-600 to-cyan-500 flex items-center justify-center text-white font-bold text-xs">
+                        <Sparkles className="h-4 w-4" />
+                    </div>
+                    <div className="min-w-0">
+                        <span className="font-bold text-sm tracking-tight truncate text-slate-900 dark:text-white block">
+                            {brandName}
+                        </span>
+                        <span className="text-[10px] uppercase font-bold text-indigo-600 dark:text-cyan-400 block -mt-0.5">
+                            Customer Portal
+                        </span>
+                    </div>
                 </Link>
-                <div className="flex items-center space-x-2 flex-shrink-0">
+                <div className="flex items-center space-x-2">
                     <ThemeToggle />
                     <button
                         onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                        className="p-2 rounded-lg border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                        aria-label="Toggle Navigation Menu"
+                        className="p-2 rounded-lg border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
                     >
                         {isSidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
                     </button>
                 </div>
             </div>
 
-            {/* Mobile Backdrop Overlay */}
+            {/* Mobile Backdrop */}
             {isSidebarOpen && (
                 <div
                     onClick={() => setIsSidebarOpen(false)}
                     className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-40 md:hidden transition-opacity"
-                    aria-hidden="true"
                 />
             )}
 
-            {/* Admin Sidebar Navigation - Fixed 100vh */}
+            {/* Fixed Sidebar */}
             <aside
                 className={`fixed inset-y-0 left-0 z-50 w-64 h-screen h-[100dvh] bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col flex-shrink-0 shadow-xl md:shadow-none transition-transform duration-200 ease-in-out md:static md:translate-x-0 ${
                     isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
                 }`}
             >
-                {/* Brand Header (Fixed at top of sidebar) */}
+                {/* Brand Header */}
                 <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between flex-shrink-0">
-                    <Link href="/admin/dashboard" className="flex items-center space-x-3 group min-w-0">
-                        {app_settings?.favicon ? (
-                            <div className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-slate-800 p-2 flex items-center justify-center overflow-hidden flex-shrink-0 border border-slate-200 dark:border-slate-700 shadow-xs group-hover:border-indigo-500/50 transition-colors">
-                                <img
-                                    src={app_settings.favicon}
-                                    alt={brandName}
-                                    className="h-full w-full object-contain transition-transform group-hover:scale-105"
-                                />
+                    <Link href="/customer/dashboard" className="flex items-center space-x-3 group min-w-0">
+                        <div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-cyan-400 p-[2px] shadow-sm">
+                            <div className="h-full w-full bg-slate-950 rounded-[10px] flex items-center justify-center text-cyan-300">
+                                <Sparkles className="h-5 w-5" />
                             </div>
-                        ) : (
-                            <div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-cyan-400 p-[2px] flex-shrink-0 shadow-sm group-hover:shadow-indigo-500/20 transition-all">
-                                <div className="h-full w-full bg-slate-950 rounded-[10px] flex items-center justify-center text-cyan-400 font-bold text-sm">
-                                    {brandName.substring(0, 2).toUpperCase() || 'CV'}
-                                </div>
-                            </div>
-                        )}
+                        </div>
                         <div className="min-w-0">
                             <h1 className="text-sm font-black tracking-tight text-slate-900 dark:text-white truncate">
                                 {brandName}
                             </h1>
                             <span className="text-[10px] uppercase font-bold text-indigo-600 dark:text-cyan-400 block truncate">
-                                Admin Workspace
+                                Customer Workspace
                             </span>
                         </div>
                     </Link>
 
-                    {/* Mobile Close Button inside sidebar header */}
                     <button
                         onClick={() => setIsSidebarOpen(false)}
-                        className="md:hidden p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                        aria-label="Close Sidebar"
+                        className="md:hidden p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
                     >
                         <X className="h-4 w-4" />
                     </button>
                 </div>
 
-                {/* Nav Links (Scrolls inside the sidebar if needed) */}
-                <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-3 space-y-1 custom-sidebar-scroll">
+                {/* Nav Links */}
+                <div className="flex-1 min-h-0 overflow-y-auto p-3 space-y-1">
                     <nav className="space-y-1">
                         {navigation.map((item) => {
                             const IconComp = item.icon;
@@ -210,8 +162,8 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
                                         <span>{item.label}</span>
                                     </div>
                                     {typeof item.badge === 'number' && item.badge > 0 && (
-                                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
-                                            item.badgeColor || (active ? 'bg-white text-indigo-600' : 'bg-amber-500 text-slate-950')
+                                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                            active ? 'bg-white text-indigo-600' : 'bg-indigo-500/10 text-indigo-600 dark:text-cyan-400'
                                         }`}>
                                             {item.badge}
                                         </span>
@@ -220,9 +172,20 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
                             );
                         })}
                     </nav>
+
+                    {/* Deploy New SaaS Plan Link */}
+                    <div className="pt-4 mt-4 border-t border-slate-100 dark:border-slate-800">
+                        <Link
+                            href="/saas-products"
+                            className="flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs font-bold text-indigo-600 dark:text-cyan-400 bg-indigo-50/70 dark:bg-indigo-950/40 hover:bg-indigo-100 dark:hover:bg-indigo-950/70 transition-all border border-indigo-200/60 dark:border-indigo-800/50"
+                        >
+                            <ShoppingBag className="h-4 w-4" />
+                            <span>Browse SaaS Catalog</span>
+                        </Link>
+                    </div>
                 </div>
 
-                {/* Bottom User Profile & Live Link (Fixed at bottom of sidebar) */}
+                {/* Bottom User Profile & Live Link */}
                 <div className="p-4 border-t border-slate-100 dark:border-slate-800 space-y-3 flex-shrink-0 bg-white dark:bg-slate-900">
                     <a
                         href="/"
@@ -232,35 +195,27 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
                     >
                         <span className="flex items-center space-x-2">
                             <ExternalLink className="h-3.5 w-3.5" />
-                            <span>View Live Website</span>
+                            <span>Visit Public Site</span>
                         </span>
                         <span className="text-[10px] text-slate-400">↗</span>
                     </a>
 
                     <div className="flex items-center justify-between pt-1">
-                        <Link href="/admin/profile" className="flex items-center space-x-2.5 group min-w-0">
-                            {admin?.avatar ? (
-                                <img
-                                    src={admin.avatar}
-                                    alt={admin.name}
-                                    className="h-8 w-8 rounded-full object-cover ring-2 ring-indigo-500/20 flex-shrink-0"
-                                />
-                            ) : (
-                                <div className="h-8 w-8 rounded-full bg-indigo-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                                    {admin?.name?.charAt(0) || 'A'}
-                                </div>
-                            )}
+                        <Link href="/customer/profile" className="flex items-center space-x-2.5 group min-w-0">
+                            <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-indigo-600 to-cyan-500 flex items-center justify-center text-white text-xs font-bold shrink-0 shadow-xs">
+                                {user?.name?.charAt(0) || 'U'}
+                            </div>
                             <div className="text-left min-w-0 truncate">
                                 <div className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-cyan-400 transition-colors truncate">
-                                    {admin?.name || 'Admin'}
+                                    {user?.name || 'Customer'}
                                 </div>
-                                <div className="text-[10px] text-slate-400 truncate">Super Administrator</div>
+                                <div className="text-[10px] text-slate-400 truncate">{user?.email}</div>
                             </div>
                         </Link>
 
                         <button
                             onClick={handleLogout}
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors flex-shrink-0"
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors shrink-0"
                             title="Sign Out"
                         >
                             <LogOut className="h-4 w-4" />
@@ -273,10 +228,9 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
             <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
                 {/* Desktop Header */}
                 <header className="hidden md:flex items-center justify-between px-8 py-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800 flex-shrink-0 z-10">
-                    {/* Breadcrumbs */}
                     <div className="flex items-center space-x-2 text-xs text-slate-500 font-medium">
-                        <Link href="/admin/dashboard" className="hover:text-slate-900 dark:hover:text-white">
-                            Admin
+                        <Link href="/customer/dashboard" className="hover:text-slate-900 dark:hover:text-white">
+                            Portal
                         </Link>
                         {breadcrumbs.map((b, i) => (
                             <React.Fragment key={i}>
@@ -292,20 +246,19 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
                         ))}
                     </div>
 
-                    {/* Actions */}
                     <div className="flex items-center space-x-3">
                         <ThemeToggle />
                         <Link
-                            href="/admin/portfolios/create"
+                            href="/saas-products"
                             className="inline-flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-sm transition-all"
                         >
-                            <Layers className="h-3.5 w-3.5" />
-                            <span>Add New Project</span>
+                            <ShoppingBag className="h-3.5 w-3.5" />
+                            <span>Subscribe New SaaS</span>
                         </Link>
                     </div>
                 </header>
 
-                {/* Page Body Content - Scrolls independently */}
+                {/* Page Body Content */}
                 <main className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 lg:p-8">
                     {children}
                 </main>

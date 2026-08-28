@@ -6,6 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Blog;
 use App\Models\Contact;
 use App\Models\Portfolio;
+use App\Models\SaasProduct;
+use App\Models\SaasSubscription;
+use App\Models\User;
 use App\Models\VisitorLog;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -39,6 +42,12 @@ class DashboardController extends Controller
         $uniqueVisitors = VisitorLog::whereBetween('created_at', [$startDate, $endDate])
             ->distinct('ip_address')
             ->count('ip_address');
+
+        // SaaS Metrics
+        $totalSaasProducts = SaasProduct::count();
+        $totalCustomers = User::count();
+        $pendingSubscriptions = SaasSubscription::where('status', 'pending')->count();
+        $activeSubscriptions = SaasSubscription::where('status', 'active')->count();
 
         // 2. Chart.js Data: Daily Traffic Line Chart
         $dailyLogs = VisitorLog::select(
@@ -113,6 +122,10 @@ class DashboardController extends Controller
                 'unread_contacts' => $unreadContacts,
                 'total_visitor_hits' => $totalVisitorHits,
                 'unique_visitors' => $uniqueVisitors,
+                'total_saas_products' => $totalSaasProducts,
+                'total_customers' => $totalCustomers,
+                'pending_subscriptions' => $pendingSubscriptions,
+                'active_subscriptions' => $activeSubscriptions,
             ],
             'filters' => [
                 'from_date' => $startDate->format('Y-m-d'),

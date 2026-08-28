@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, usePage } from '@inertiajs/react';
-import { Blog, Category, Portfolio, Review, TeamMember, SharedData } from '@/types';
+import { Blog, Category, Portfolio, Review, SaasProduct, TeamMember, SharedData } from '@/types';
 import { SurfaceLayout } from '@/layouts/surface-layout';
 import { SurfaceHero } from '@/components/surface/hero_section';
 import { WorksGrid } from '@/components/surface/works-grid';
@@ -34,6 +34,7 @@ interface HomePageProps {
     categories: Category[];
     portfolios: Portfolio[];
     blogs?: Blog[];
+    saasProducts?: SaasProduct[];
     reviews: Review[];
     teamMembers: TeamMember[];
     stats: {
@@ -49,6 +50,7 @@ export default function Home({
     categories,
     portfolios,
     blogs = [],
+    saasProducts = [],
     reviews,
     teamMembers,
     stats,
@@ -57,6 +59,7 @@ export default function Home({
     const [isVideoOpen, setIsVideoOpen] = useState(false);
 
     const featuredVideo = app_settings?.featured_youtube_video || 'https://www.youtube.com/watch?v=LXb3EKWsInQ';
+    const currency = app_settings?.currency_symbol || '৳';
 
     const services = [
         {
@@ -150,6 +153,97 @@ export default function Home({
                     </div>
                 </div>
             </section>
+
+            {/* FEATURED SAAS PRODUCTS SHOWCASE SECTION */}
+            {saasProducts && saasProducts.length > 0 && (
+                <section className="py-24 bg-white dark:bg-slate-900/60 border-y border-slate-200/80 dark:border-slate-800/80 relative">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-16" data-aos="fade-up">
+                            <div className="space-y-2">
+                                <div className="inline-flex items-center space-x-2 px-3 py-1.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-cyan-400 border border-indigo-500/20 text-xs font-bold">
+                                    <Sparkles className="h-3.5 w-3.5" />
+                                    <span>Turnkey SaaS Subscriptions</span>
+                                </div>
+                                <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-slate-900 dark:text-white">
+                                    Enterprise SaaS Products Ready to Deploy
+                                </h2>
+                                <p className="text-sm text-slate-600 dark:text-slate-400 max-w-2xl">
+                                    Pre-engineered cloud platforms ready for instant launch with custom domain mapping, dedicated databases, and bKash/Nagad billing.
+                                </p>
+                            </div>
+
+                            <Link
+                                href="/saas-products"
+                                className="inline-flex items-center space-x-2 px-5 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-lg shadow-indigo-500/20 hover:shadow-xl transition-all self-start sm:self-auto group"
+                            >
+                                <span>View All SaaS Plans</span>
+                                <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                            </Link>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                            {saasProducts.map((product, pIdx) => (
+                                <div
+                                    key={product.id}
+                                    data-aos="fade-up"
+                                    data-aos-delay={`${(pIdx % 4) * 100}`}
+                                    className={`relative flex flex-col justify-between rounded-3xl p-6 border transition-all duration-300 ${
+                                        product.is_featured
+                                            ? 'bg-slate-950 text-white border-indigo-500/80 shadow-xl shadow-indigo-500/15'
+                                            : 'bg-white dark:bg-slate-900 border-slate-200/80 dark:border-slate-800 text-slate-900 dark:text-white shadow-sm hover:shadow-lg hover:border-indigo-500/40'
+                                    }`}
+                                >
+                                    {product.badge && (
+                                        <div className="absolute -top-3 left-6 px-3 py-0.5 rounded-full bg-gradient-to-r from-indigo-500 to-cyan-400 text-slate-950 font-black text-[10px] uppercase shadow-sm">
+                                            {product.badge}
+                                        </div>
+                                    )}
+
+                                    <div>
+                                        <div className="flex items-center justify-between mb-4">
+                                            <div className="h-10 w-10 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-cyan-400 flex items-center justify-center font-bold">
+                                                <Layers className="h-5 w-5" />
+                                            </div>
+                                            <span className="text-xs font-black text-indigo-600 dark:text-cyan-400">
+                                                {currency}{product.monthly_price.toLocaleString()}<span className="text-[10px] text-slate-400 font-normal">/mo</span>
+                                            </span>
+                                        </div>
+
+                                        <h3 className="text-base font-bold tracking-tight mb-1">
+                                            {product.name}
+                                        </h3>
+
+                                        <p className={`text-xs line-clamp-2 leading-relaxed mb-4 ${
+                                            product.is_featured ? 'text-slate-300' : 'text-slate-500 dark:text-slate-400'
+                                        }`}>
+                                            {product.tagline || product.description}
+                                        </p>
+
+                                        {Array.isArray(product.features) && (
+                                            <div className="space-y-1.5 mb-6">
+                                                {product.features.slice(0, 3).map((feat, fI) => (
+                                                    <div key={fI} className="flex items-center space-x-2 text-[11px]">
+                                                        <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+                                                        <span className="truncate">{feat}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <Link
+                                        href={`/checkout/${product.slug}?billing_cycle=monthly`}
+                                        className="w-full py-2.5 rounded-xl bg-slate-100 hover:bg-indigo-600 hover:text-white dark:bg-slate-800 dark:hover:bg-indigo-600 text-xs font-bold text-center transition-all mt-auto flex items-center justify-center space-x-1.5"
+                                    >
+                                        <span>Order & Deploy</span>
+                                        <ArrowRight className="h-3.5 w-3.5" />
+                                    </Link>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </section>
+            )}
 
             {/* WORKS / PRODUCTS SHOWCASE (3x5 Grid, Max 15 Items) */}
             <WorksGrid

@@ -61,6 +61,10 @@ interface DashboardProps {
         unread_contacts: number;
         total_visitor_hits: number;
         unique_visitors: number;
+        total_saas_products?: number;
+        total_customers?: number;
+        pending_subscriptions?: number;
+        active_subscriptions?: number;
     };
     filters: {
         from_date: string;
@@ -270,6 +274,60 @@ export default function Dashboard({
                             {kpis.unique_visitors.toLocaleString()}
                         </div>
                     </div>
+                </div>
+
+                {/* SaaS & Customer Portal Highlights */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <Link
+                        href="/admin/subscriptions?status=pending"
+                        className="p-5 rounded-2xl bg-gradient-to-r from-amber-500/15 via-amber-500/5 to-transparent border border-amber-500/30 hover:border-amber-500/60 transition-all flex items-center justify-between group"
+                    >
+                        <div>
+                            <div className="text-[11px] font-bold uppercase text-amber-600 dark:text-amber-400">
+                                Pending TrxID Verifications
+                            </div>
+                            <div className="text-2xl font-black text-slate-900 dark:text-white mt-1">
+                                {kpis.pending_subscriptions ?? 0} Orders
+                            </div>
+                        </div>
+                        <div className="h-10 w-10 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold group-hover:scale-105 transition-transform">
+                            <ChevronRight className="h-5 w-5" />
+                        </div>
+                    </Link>
+
+                    <Link
+                        href="/admin/subscriptions?status=active"
+                        className="p-5 rounded-2xl bg-gradient-to-r from-emerald-500/15 via-emerald-500/5 to-transparent border border-emerald-500/30 hover:border-emerald-500/60 transition-all flex items-center justify-between group"
+                    >
+                        <div>
+                            <div className="text-[11px] font-bold uppercase text-emerald-600 dark:text-emerald-400">
+                                Active SaaS Deployments
+                            </div>
+                            <div className="text-2xl font-black text-slate-900 dark:text-white mt-1">
+                                {kpis.active_subscriptions ?? 0} Live
+                            </div>
+                        </div>
+                        <div className="h-10 w-10 rounded-xl bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold group-hover:scale-105 transition-transform">
+                            <ChevronRight className="h-5 w-5" />
+                        </div>
+                    </Link>
+
+                    <Link
+                        href="/admin/customers"
+                        className="p-5 rounded-2xl bg-gradient-to-r from-indigo-500/15 via-indigo-500/5 to-transparent border border-indigo-500/30 hover:border-indigo-500/60 transition-all flex items-center justify-between group"
+                    >
+                        <div>
+                            <div className="text-[11px] font-bold uppercase text-indigo-600 dark:text-indigo-400">
+                                Registered Customers
+                            </div>
+                            <div className="text-2xl font-black text-slate-900 dark:text-white mt-1">
+                                {kpis.total_customers ?? 0} Accounts
+                            </div>
+                        </div>
+                        <div className="h-10 w-10 rounded-xl bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold group-hover:scale-105 transition-transform">
+                            <ChevronRight className="h-5 w-5" />
+                        </div>
+                    </Link>
                 </div>
 
                 {/* Main Charts Section */}

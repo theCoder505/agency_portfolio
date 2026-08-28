@@ -28,6 +28,31 @@ Route::post('/contact/send-otp', [ContactController::class, 'sendOtp'])->name('c
 Route::post('/contact/verify-otp', [ContactController::class, 'verifyOtp'])->name('contact.verify-otp');
 Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
 
+// SaaS Products & Ordering Flow
+Route::get('/saas-products', [\App\Http\Controllers\SaasProductController::class, 'index'])->name('saas.index');
+Route::get('/pricing', function () {
+    return redirect()->route('saas.index');
+})->name('pricing');
+Route::get('/checkout/{slug}', [\App\Http\Controllers\SaasProductController::class, 'checkout'])->name('checkout.show');
+Route::post('/checkout', [\App\Http\Controllers\SaasProductController::class, 'processCheckout'])->name('checkout.process');
+
+// Customer Portal (Guarded by web auth)
+Route::middleware('auth:web')->prefix('customer')->name('customer.')->group(function () {
+    Route::get('/dashboard', [\App\Http\Controllers\Customer\DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/subscriptions', [\App\Http\Controllers\Customer\SubscriptionController::class, 'index'])->name('subscriptions.index');
+    Route::get('/subscriptions/{id}', [\App\Http\Controllers\Customer\SubscriptionController::class, 'show'])->name('subscriptions.show');
+    Route::post('/subscriptions/{id}/renew', [\App\Http\Controllers\Customer\SubscriptionController::class, 'renew'])->name('subscriptions.renew');
+    Route::get('/invoices', [\App\Http\Controllers\Customer\InvoiceController::class, 'index'])->name('invoices.index');
+    Route::get('/profile', [\App\Http\Controllers\Customer\ProfileController::class, 'index'])->name('profile.index');
+    Route::put('/profile', [\App\Http\Controllers\Customer\ProfileController::class, 'update'])->name('profile.update');
+    Route::put('/profile/password', [\App\Http\Controllers\Customer\ProfileController::class, 'updatePassword'])->name('profile.password');
+});
+
+// Standard dashboard redirect
+Route::get('/dashboard', function () {
+    return redirect()->route('customer.dashboard');
+})->middleware('auth:web')->name('dashboard');
+
 // Legal Pages
 Route::get('/terms-and-conditions', [LegalController::class, 'terms'])->name('legal.terms');
 Route::get('/privacy-policy', [LegalController::class, 'privacy'])->name('legal.privacy');
@@ -49,4 +74,10 @@ Route::get('/clear', function () {
     Artisan::call('view:clear');
     Artisan::call('storage:link');
     return "Cleared!";
+});
+
+Route::get('/migrate', function () {
+    Artisan::call('migrate', ['--force' => true]);
+    Artisan::call('db:seed', ['--force' => true]);
+    return "Migrations & Seeds Executed Successfully!";
 });

@@ -21,6 +21,12 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'phone',
+        'company_name',
+        'address',
+        'avatar',
+        'status',
+        'admin_notes',
     ];
 
     /**
@@ -44,5 +50,15 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function subscriptions()
+    {
+        return $this->hasMany(SaasSubscription::class)->orderBy('created_at', 'desc');
+    }
+
+    public function invoices()
+    {
+        return $this->hasMany(SubscriptionInvoice::class)->orderBy('created_at', 'desc');
     }
 }

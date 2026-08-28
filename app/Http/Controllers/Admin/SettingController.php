@@ -58,6 +58,8 @@ class SettingController extends Controller
                 $group = 'whatsapp';
             } elseif (str_starts_with($key, 'trustpilot_')) {
                 $group = 'trustpilot';
+            } elseif (str_starts_with($key, 'bkash_') || str_starts_with($key, 'nagad_') || in_array($key, ['currency_symbol', 'currency_code'])) {
+                $group = 'payment';
             } elseif (in_array($key, ['terms_and_conditions', 'privacy_policy'])) {
                 $group = 'legal';
             } elseif (in_array($key, ['contact_email', 'contact_phone', 'address_line1', 'address_line2', 'google_map_embed_url'])) {
