@@ -107,6 +107,11 @@ export default function SubscriptionShow({
                                     <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
                                         {subscription.product?.name}
                                     </h1>
+                                    {subscription.package_tier && (
+                                        <span className="px-2.5 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-300 text-xs font-black uppercase border border-indigo-200/60 dark:border-indigo-800">
+                                            {subscription.package_tier} Tier
+                                        </span>
+                                    )}
                                     <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
                                         subscription.status === 'active'
                                             ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
@@ -118,7 +123,7 @@ export default function SubscriptionShow({
                                     </span>
                                 </div>
                                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                                    Order Number: <strong className="font-mono text-slate-800 dark:text-slate-200">{subscription.order_number}</strong> • Placed on {new Date(subscription.created_at).toLocaleDateString()}
+                                    Order Number: <strong className="font-mono text-slate-800 dark:text-slate-200">{subscription.order_number}</strong> • Placed on {new Date(subscription.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                                 </p>
                             </div>
                         </div>

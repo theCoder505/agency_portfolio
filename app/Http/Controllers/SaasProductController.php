@@ -46,7 +46,41 @@ class SaasProductController extends Controller
     }
 
     /**
-     * Show Checkout Page for a specific SaaS Product.
+     * Display full product details with Basic, Standard, and Premium packages.
+     */
+    public function show(Request $request, string $slug): Response
+    {
+        $product = SaasProduct::where('slug', $slug)
+            ->where('is_active', true)
+            ->firstOrFail();
+
+        $relatedProducts = SaasProduct::where('is_active', true)
+            ->where('id', '!=', $product->id)
+            ->orderBy('is_featured', 'desc')
+            ->orderBy('order')
+            ->take(3)
+            ->get();
+
+        $appSettings = AppSetting::getAllGrouped();
+
+        return Inertia::render('surface/saas-products/show', [
+            'product' => $product,
+            'relatedProducts' => $relatedProducts,
+            'paymentSettings' => [
+                'currency_symbol' => $appSettings['currency_symbol'] ?? '৳',
+                'currency_code' => $appSettings['currency_code'] ?? 'BDT',
+                'bkash_number' => $appSettings['bkash_number'] ?? '01712-345678',
+                'bkash_instructions' => $appSettings['bkash_instructions'] ?? '',
+                'bkash_enabled' => ($appSettings['bkash_enabled'] ?? '1') == '1',
+                'nagad_number' => $appSettings['nagad_number'] ?? '01812-345678',
+                'nagad_instructions' => $appSettings['nagad_instructions'] ?? '',
+                'nagad_enabled' => ($appSettings['nagad_enabled'] ?? '1') == '1',
+            ],
+        ]);
+    }
+
+    /**
+     * Show Checkout Page for a specific SaaS Product & Package Tier.
      */
     public function checkout(Request $request, string $slug): Response|RedirectResponse
     {
@@ -59,11 +93,17 @@ class SaasProductController extends Controller
             $cycle = 'monthly';
         }
 
+        $tier = $request->query('tier', 'standard');
+        if (!in_array($tier, ['basic', 'standard', 'premium'])) {
+            $tier = 'standard';
+        }
+
         $appSettings = AppSetting::getAllGrouped();
 
         return Inertia::render('surface/checkout', [
             'product' => $product,
             'selectedCycle' => $cycle,
+            'selectedTier' => $tier,
             'paymentSettings' => [
                 'currency_symbol' => $appSettings['currency_symbol'] ?? '৳',
                 'currency_code' => $appSettings['currency_code'] ?? 'BDT',
@@ -84,6 +124,7 @@ class SaasProductController extends Controller
     {
         $request->validate([
             'saas_product_id' => 'required|exists:saas_products,id',
+            'package_tier' => 'required|in:basic,standard,premium',
             'billing_cycle' => 'required|in:monthly,half_yearly,yearly',
             'payment_method' => 'required|in:bkash,nagad,rocket,manual_bank',
             'sender_number' => 'required|string|max:30',
@@ -131,7 +172,7 @@ class SaasProductController extends Controller
         }
 
         $product = SaasProduct::findOrFail($request->saas_product_id);
-        $amount = $product->getPriceForCycle($request->billing_cycle);
+        $amount = $product->getPriceForCycle($request->billing_cycle, $request->package_tier);
         $appSettings = AppSetting::getAllGrouped();
         $currency = $appSettings['currency_code'] ?? 'BDT';
 
@@ -139,6 +180,7 @@ class SaasProductController extends Controller
         $subscription = SaasSubscription::create([
             'user_id' => $user->id,
             'saas_product_id' => $product->id,
+            'package_tier' => $request->package_tier,
             'billing_cycle' => $request->billing_cycle,
             'amount' => $amount,
             'currency' => $currency,
@@ -163,9 +205,9 @@ class SaasProductController extends Controller
             'transaction_id' => strtoupper(trim($request->transaction_id)),
             'type' => 'initial',
             'status' => 'pending',
-            'notes' => 'Initial subscription order via ' . strtoupper($request->payment_method),
+            'notes' => 'Initial ' . ucfirst($request->package_tier) . ' tier order via ' . strtoupper($request->payment_method),
         ]);
 
-        return redirect()->route('customer.dashboard')->with('success', 'Your order (' . $subscription->order_number . ') has been placed successfully! Our team will verify your transaction (' . $subscription->transaction_id . ') and activate your service shortly.');
+        return redirect()->route('customer.dashboard')->with('success', 'Your order (' . $subscription->order_number . ') for ' . $product->name . ' (' . ucfirst($request->package_tier) . ' Tier) has been placed successfully! Our team will verify your transaction (' . $subscription->transaction_id . ') and activate your service shortly.');
     }
 }

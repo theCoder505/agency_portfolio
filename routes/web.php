@@ -30,6 +30,7 @@ Route::post('/contact', [ContactController::class, 'store'])->name('contact.stor
 
 // SaaS Products & Ordering Flow
 Route::get('/saas-products', [\App\Http\Controllers\SaasProductController::class, 'index'])->name('saas.index');
+Route::get('/saas-products/{slug}', [\App\Http\Controllers\SaasProductController::class, 'show'])->name('saas.show');
 Route::get('/pricing', function () {
     return redirect()->route('saas.index');
 })->name('pricing');

@@ -17,6 +17,7 @@ class SaasSubscription extends Model
         'order_number',
         'user_id',
         'saas_product_id',
+        'package_tier',
         'billing_cycle',
         'amount',
         'currency',

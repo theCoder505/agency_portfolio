@@ -116,11 +116,18 @@ export default function SubscriptionsIndex({
                                             </span>
                                         </div>
 
-                                        <h3 className="text-base font-black text-slate-900 dark:text-white">
-                                            {sub.product?.name || 'SaaS Product'}
-                                        </h3>
+                                        <div className="flex items-center space-x-2">
+                                            <h3 className="text-base font-black text-slate-900 dark:text-white">
+                                                {sub.product?.name || 'SaaS Product'}
+                                            </h3>
+                                            {sub.package_tier && (
+                                                <span className="px-2 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-300 text-[10px] font-black uppercase border border-indigo-200/60 dark:border-indigo-800">
+                                                    {sub.package_tier}
+                                                </span>
+                                            )}
+                                        </div>
                                         <div className="text-xs text-slate-400 mt-0.5">
-                                            Order #{sub.order_number} • {currency}{sub.amount.toLocaleString()} ({sub.billing_cycle})
+                                            Order #{sub.order_number} • {currency}{Number(sub.amount).toLocaleString('en-US')} ({sub.billing_cycle})
                                         </div>
 
                                         {/* Status & Deadline Info */}
@@ -143,7 +150,7 @@ export default function SubscriptionsIndex({
                                             )}
 
                                             <div className="text-[10px] text-slate-400">
-                                                Expires: {sub.expires_at ? new Date(sub.expires_at).toLocaleDateString() : 'Pending Activation'}
+                                                Expires: {sub.expires_at ? new Date(sub.expires_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Pending Activation'}
                                             </div>
                                         </div>
                                     </div>

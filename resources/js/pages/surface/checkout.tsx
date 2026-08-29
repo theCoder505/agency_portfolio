@@ -2,6 +2,7 @@ import React, { useState, FormEventHandler } from 'react';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { SaasProduct, SharedData } from '@/types';
 import { SurfaceLayout } from '@/layouts/surface-layout';
+import { formatCurrency, formatNumberEnUs } from '@/lib/formatters';
 import {
     CheckCircle2,
     Copy,
@@ -18,13 +19,15 @@ import {
     Building,
     Key,
     Info,
-    HelpCircle
+    HelpCircle,
+    Package
 } from 'lucide-react';
 import { showToast } from '@/lib/swal';
 
 interface CheckoutPageProps {
     product: SaasProduct;
     selectedCycle: 'monthly' | 'half_yearly' | 'yearly';
+    selectedTier?: 'basic' | 'standard' | 'premium';
     paymentSettings: {
         currency_symbol: string;
         currency_code: string;
@@ -40,16 +43,19 @@ interface CheckoutPageProps {
 export default function CheckoutPage({
     product,
     selectedCycle,
+    selectedTier = 'standard',
     paymentSettings,
 }: CheckoutPageProps) {
     const { auth, app_settings } = usePage<SharedData>().props;
     const currentUser = auth?.user;
 
     const [cycle, setCycle] = useState<'monthly' | 'half_yearly' | 'yearly'>(selectedCycle);
+    const [tier, setTier] = useState<'basic' | 'standard' | 'premium'>(selectedTier);
     const [copiedNumber, setCopiedNumber] = useState<string | null>(null);
 
     const { data, setData, post, processing, errors } = useForm({
         saas_product_id: product.id,
+        package_tier: tier,
         billing_cycle: cycle,
         payment_method: 'bkash',
         sender_number: currentUser?.phone || '',
@@ -67,10 +73,47 @@ export default function CheckoutPage({
 
     const currency = paymentSettings.currency_symbol || '৳';
 
+    // Packages
+    const packages = product.packages || {
+        basic: {
+            name: 'Basic Plan',
+            tagline: 'Starter tier',
+            monthly_price: Math.round(product.monthly_price * 0.7),
+            yearly_price: Math.round(product.yearly_price * 0.7),
+            badge: 'Starter',
+            is_popular: false,
+            features: ['Single Branch', 'Up to 5 Users', 'Basic Invoicing'],
+        },
+        standard: {
+            name: 'Standard Plan',
+            tagline: 'Most Popular tier',
+            monthly_price: product.monthly_price,
+            yearly_price: product.yearly_price,
+            badge: 'Most Popular',
+            is_popular: true,
+            features: ['Multi-Branch Sync', 'Up to 25 Users', 'Priority Support'],
+        },
+        premium: {
+            name: 'Premium Plan',
+            tagline: 'Enterprise tier',
+            monthly_price: Math.round(product.monthly_price * 1.6),
+            yearly_price: Math.round(product.yearly_price * 1.6),
+            badge: 'Enterprise',
+            is_popular: false,
+            features: ['Unlimited Users', 'Dedicated DB', 'VIP Support'],
+        },
+    };
+
+    const currentTierData = packages[tier] || packages.standard;
+
+    // Price calculation
     const getPrice = () => {
-        if (cycle === 'half_yearly') return product.half_yearly_price;
-        if (cycle === 'yearly') return product.yearly_price;
-        return product.monthly_price;
+        const tierMonthly = currentTierData.monthly_price || product.monthly_price;
+        const tierYearly = currentTierData.yearly_price || (tierMonthly * 10);
+
+        if (cycle === 'half_yearly') return Math.round(tierMonthly * 5.5);
+        if (cycle === 'yearly') return tierYearly;
+        return tierMonthly;
     };
 
     const handleCopy = (text: string, label: string) => {
@@ -85,6 +128,11 @@ export default function CheckoutPage({
         setData('billing_cycle', newCycle);
     };
 
+    const handleTierChange = (newTier: 'basic' | 'standard' | 'premium') => {
+        setTier(newTier);
+        setData('package_tier', newTier);
+    };
+
     const handleSubmit: FormEventHandler = (e) => {
         e.preventDefault();
         post('/checkout');
@@ -92,7 +140,7 @@ export default function CheckoutPage({
 
     return (
         <SurfaceLayout
-            title={`Checkout - ${product.name}`}
+            title={`Checkout - ${product.name} (${currentTierData.name})`}
             description="Complete your SaaS order with easy bKash and Nagad payment validation."
         >
             <div className="py-12 bg-slate-50/70 dark:bg-slate-950/70 min-h-screen">
@@ -107,36 +155,85 @@ export default function CheckoutPage({
                             Complete Your Subscription Order
                         </h1>
                         <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
-                            Provide your deployment details, transfer the package amount via bKash or Nagad, and submit your Transaction ID.
+                            Provide your deployment preferences, send the package amount via bKash or Nagad, and submit your Transaction ID.
                         </p>
                     </div>
 
                     <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-                        {/* LEFT COLUMN: Account & Deployment Details */}
+                        {/* LEFT COLUMN: Account, Package & Deployment Details */}
                         <div className="lg:col-span-7 space-y-6">
-                            {/* 1. PLAN SUMMARY CARD */}
-                            <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-6 sm:p-7 shadow-sm">
+                            {/* 1. PLAN & TIER SUMMARY CARD */}
+                            <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-6 sm:p-7 shadow-sm space-y-5">
                                 <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
-                                    <div>
-                                        <span className="text-xs uppercase tracking-wider font-bold text-indigo-600 dark:text-cyan-400">
-                                            Selected SaaS Product
-                                        </span>
-                                        <h2 className="text-xl font-black text-slate-900 dark:text-white mt-0.5">
-                                            {product.name}
-                                        </h2>
+                                    <div className="flex items-center space-x-3.5">
+                                        {product.thumbnail ? (
+                                            <div className="h-12 w-16 rounded-xl overflow-hidden bg-slate-950 border border-slate-200 dark:border-slate-800 shrink-0">
+                                                <img src={product.thumbnail} alt={product.name} className="h-full w-full object-cover" />
+                                            </div>
+                                        ) : (
+                                            <div className="h-12 w-12 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-cyan-400 flex items-center justify-center font-bold shrink-0">
+                                                <Package className="h-6 w-6" />
+                                            </div>
+                                        )}
+                                        <div>
+                                            <span className="text-[10px] uppercase tracking-wider font-bold text-indigo-600 dark:text-cyan-400 block">
+                                                Selected SaaS Product
+                                            </span>
+                                            <h2 className="text-lg font-black text-slate-900 dark:text-white mt-0.5 leading-snug">
+                                                {product.name}
+                                            </h2>
+                                        </div>
                                     </div>
                                     <Link
-                                        href="/saas-products"
-                                        className="text-xs font-bold text-indigo-600 dark:text-cyan-400 hover:underline"
+                                        href={`/saas-products/${product.slug}`}
+                                        className="text-xs font-bold text-indigo-600 dark:text-cyan-400 hover:underline shrink-0"
                                     >
-                                        Change Plan
+                                        Full Details
                                     </Link>
                                 </div>
 
-                                {/* Billing Cycle Switcher */}
-                                <div className="mt-5 space-y-2">
+                                {/* PACKAGE TIER SWITCHER (Basic, Standard, Premium) */}
+                                <div className="space-y-2">
                                     <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
-                                        Select Subscription Term:
+                                        Selected Package Tier:
+                                    </label>
+                                    <div className="grid grid-cols-3 gap-3">
+                                        {(['basic', 'standard', 'premium'] as const).map((tKey) => {
+                                            const tData = packages[tKey];
+                                            const isSelected = tier === tKey;
+
+                                            return (
+                                                <button
+                                                    key={tKey}
+                                                    type="button"
+                                                    onClick={() => handleTierChange(tKey)}
+                                                    className={`p-3 rounded-2xl border text-center transition-all relative ${
+                                                        isSelected
+                                                            ? 'border-indigo-600 bg-indigo-50/50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 ring-2 ring-indigo-500/20 font-bold shadow-xs'
+                                                            : 'border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300'
+                                                    }`}
+                                                >
+                                                    {tData.badge && (
+                                                        <span className={`absolute -top-2 right-2 px-1.5 py-0.2 rounded text-[9px] font-black ${
+                                                            isSelected ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+                                                        }`}>
+                                                            {tData.badge}
+                                                        </span>
+                                                    )}
+                                                    <div className="text-xs font-bold capitalize">{tData.name}</div>
+                                                    <div className="text-xs font-black mt-1 text-slate-900 dark:text-white">
+                                                        {formatCurrency(tData.monthly_price, currency, 0)}/mo
+                                                    </div>
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+
+                                {/* Billing Cycle Switcher */}
+                                <div className="space-y-2 pt-2">
+                                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                                        Select Billing Term Duration:
                                     </label>
                                     <div className="grid grid-cols-3 gap-3">
                                         <button
@@ -149,7 +246,7 @@ export default function CheckoutPage({
                                             }`}
                                         >
                                             <div className="text-xs font-bold">Monthly</div>
-                                            <div className="text-sm font-black mt-0.5">{currency}{product.monthly_price.toLocaleString()}</div>
+                                            <div className="text-sm font-black mt-0.5">{formatCurrency(currentTierData.monthly_price, currency, 0)}</div>
                                         </button>
 
                                         <button
@@ -163,7 +260,7 @@ export default function CheckoutPage({
                                         >
                                             <span className="absolute -top-2 right-2 px-1.5 py-0.2 bg-emerald-500 text-white rounded text-[9px] font-bold">Save 10%</span>
                                             <div className="text-xs font-bold">6 Months</div>
-                                            <div className="text-sm font-black mt-0.5">{currency}{product.half_yearly_price.toLocaleString()}</div>
+                                            <div className="text-sm font-black mt-0.5">{formatCurrency(Math.round(currentTierData.monthly_price * 5.5), currency, 0)}</div>
                                         </button>
 
                                         <button
@@ -175,9 +272,9 @@ export default function CheckoutPage({
                                                     : 'border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300'
                                             }`}
                                         >
-                                            <span className="absolute -top-2 right-2 px-1.5 py-0.2 bg-cyan-500 text-slate-950 rounded text-[9px] font-black">Save 20%</span>
+                                            <span className="absolute -top-2 right-2 px-1.5 py-0.2 bg-cyan-400 text-slate-950 rounded text-[9px] font-black">Save 20%</span>
                                             <div className="text-xs font-bold">Yearly (12 Mo)</div>
-                                            <div className="text-sm font-black mt-0.5">{currency}{product.yearly_price.toLocaleString()}</div>
+                                            <div className="text-sm font-black mt-0.5">{formatCurrency(currentTierData.yearly_price, currency, 0)}</div>
                                         </button>
                                     </div>
                                 </div>
@@ -224,7 +321,7 @@ export default function CheckoutPage({
                                                     value={data.name}
                                                     onChange={(e) => setData('name', e.target.value)}
                                                     placeholder="John Doe"
-                                                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-xs text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+                                                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500"
                                                 />
                                                 {errors.name && <p className="text-red-500 text-[11px] mt-1">{errors.name}</p>}
                                             </div>
@@ -239,7 +336,7 @@ export default function CheckoutPage({
                                                     value={data.email}
                                                     onChange={(e) => setData('email', e.target.value)}
                                                     placeholder="john@example.com"
-                                                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-xs text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+                                                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500"
                                                 />
                                                 {errors.email && <p className="text-red-500 text-[11px] mt-1">{errors.email}</p>}
                                             </div>
@@ -254,7 +351,7 @@ export default function CheckoutPage({
                                                     value={data.phone}
                                                     onChange={(e) => setData('phone', e.target.value)}
                                                     placeholder="+880 17XXXXXXXX"
-                                                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-xs text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+                                                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500"
                                                 />
                                                 {errors.phone && <p className="text-red-500 text-[11px] mt-1">{errors.phone}</p>}
                                             </div>
@@ -268,7 +365,7 @@ export default function CheckoutPage({
                                                     value={data.company_name}
                                                     onChange={(e) => setData('company_name', e.target.value)}
                                                     placeholder="Acme Inc (Optional)"
-                                                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-xs text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+                                                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500"
                                                 />
                                             </div>
                                         </div>
@@ -283,7 +380,7 @@ export default function CheckoutPage({
                                                 value={data.password}
                                                 onChange={(e) => setData('password', e.target.value)}
                                                 placeholder="Enter a secure password for your portal access"
-                                                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-xs text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+                                                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500"
                                             />
                                             {errors.password && <p className="text-red-500 text-[11px] mt-1">{errors.password}</p>}
                                         </div>
@@ -311,7 +408,7 @@ export default function CheckoutPage({
                                                 value={data.desired_domain}
                                                 onChange={(e) => setData('desired_domain', e.target.value)}
                                                 placeholder="e.g. mycompany.com"
-                                                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-xs text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+                                                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500"
                                             />
                                             <p className="text-[10px] text-slate-400 mt-1">We will provide DNS instructions upon activation.</p>
                                         </div>
@@ -326,7 +423,7 @@ export default function CheckoutPage({
                                                     value={data.desired_subdomain}
                                                     onChange={(e) => setData('desired_subdomain', e.target.value)}
                                                     placeholder="mybrand"
-                                                    className="w-full px-3.5 py-2.5 rounded-l-xl border border-r-0 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-xs text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+                                                    className="w-full px-3.5 py-2.5 rounded-l-xl border border-r-0 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500"
                                                 />
                                                 <span className="px-3 py-2.5 rounded-r-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-800 text-[11px] font-mono text-slate-500">
                                                     .codeventure.app
@@ -344,7 +441,7 @@ export default function CheckoutPage({
                                             value={data.payment_notes}
                                             onChange={(e) => setData('payment_notes', e.target.value)}
                                             placeholder="Any special configurations, integrations, or team size details..."
-                                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-xs text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+                                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500"
                                         />
                                     </div>
                                 </div>
@@ -431,7 +528,7 @@ export default function CheckoutPage({
                                     <div className="text-[11px] text-slate-500 dark:text-slate-400 space-y-1 pt-1 leading-relaxed">
                                         <p>1. Open your {data.payment_method === 'bkash' ? 'bKash App' : 'Nagad App'}.</p>
                                         <p>2. Select <strong>Send Money</strong> to the number above.</p>
-                                        <p>3. Send exactly <strong className="text-slate-900 dark:text-white">{currency}{getPrice().toLocaleString()}</strong>.</p>
+                                        <p>3. Send exactly <strong className="text-slate-900 dark:text-white">{formatCurrency(getPrice(), currency, 0)}</strong>.</p>
                                         <p>4. Copy the resulting <strong>Transaction ID (TrxID)</strong> and enter below.</p>
                                     </div>
                                 </div>
@@ -448,7 +545,7 @@ export default function CheckoutPage({
                                             value={data.sender_number}
                                             onChange={(e) => setData('sender_number', e.target.value)}
                                             placeholder="e.g. 017XXXXXXXX"
-                                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 font-mono text-xs text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+                                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 font-mono text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500"
                                         />
                                         {errors.sender_number && <p className="text-red-500 text-[11px] mt-1">{errors.sender_number}</p>}
                                     </div>
@@ -463,7 +560,7 @@ export default function CheckoutPage({
                                             value={data.transaction_id}
                                             onChange={(e) => setData('transaction_id', e.target.value.toUpperCase())}
                                             placeholder="e.g. 9B1234XYZ"
-                                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 font-mono text-xs uppercase text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+                                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 font-mono text-xs uppercase text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500"
                                         />
                                         {errors.transaction_id && <p className="text-red-500 text-[11px] mt-1">{errors.transaction_id}</p>}
                                     </div>
@@ -472,9 +569,12 @@ export default function CheckoutPage({
                                 {/* TOTAL SUMMARY & SUBMIT BUTTON */}
                                 <div className="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-4">
                                     <div className="flex items-center justify-between text-sm">
-                                        <span className="text-slate-500 dark:text-slate-400">Total Payable:</span>
+                                        <div>
+                                            <span className="text-slate-500 dark:text-slate-400 block text-xs">Total Payable ({currentTierData.name}):</span>
+                                            <span className="text-[10px] text-slate-400">{cycle === 'monthly' ? '1 Month Term' : cycle === 'half_yearly' ? '6 Months Term' : '12 Months Term'}</span>
+                                        </div>
                                         <span className="text-2xl font-black text-slate-900 dark:text-white">
-                                            {currency}{getPrice().toLocaleString()}
+                                            {formatCurrency(getPrice(), currency, 0)}
                                         </span>
                                     </div>
 
@@ -487,7 +587,7 @@ export default function CheckoutPage({
                                             <span>Submitting Order...</span>
                                         ) : (
                                             <>
-                                                <span>Confirm & Submit Order</span>
+                                                <span>Confirm & Place Order ({currentTierData.name})</span>
                                                 <ArrowRight className="h-4 w-4" />
                                             </>
                                         )}

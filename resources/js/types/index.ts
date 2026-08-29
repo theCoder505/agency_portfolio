@@ -133,6 +133,23 @@ export interface Blog {
     updated_at?: string;
 }
 
+export interface SaasPackageTier {
+    name: string;
+    tagline?: string;
+    monthly_price: number;
+    yearly_price: number;
+    badge?: string;
+    is_popular?: boolean;
+    features: string[];
+}
+
+export interface SaasPackages {
+    basic: SaasPackageTier;
+    standard: SaasPackageTier;
+    premium: SaasPackageTier;
+    [key: string]: SaasPackageTier | undefined;
+}
+
 export interface SaasProduct {
     id: number;
     name: string;
@@ -141,6 +158,9 @@ export interface SaasProduct {
     description?: string | null;
     icon?: string | null;
     badge?: string | null;
+    thumbnail?: string | null;
+    gallery_images?: string[] | null;
+    packages?: SaasPackages | null;
     monthly_price: number;
     half_yearly_price: number;
     yearly_price: number;
@@ -163,6 +183,7 @@ export interface SaasSubscription {
     user?: User | null;
     saas_product_id: number;
     product?: SaasProduct | null;
+    package_tier?: 'basic' | 'standard' | 'premium' | string | null;
     billing_cycle: 'monthly' | 'half_yearly' | 'yearly';
     amount: number;
     currency: string;

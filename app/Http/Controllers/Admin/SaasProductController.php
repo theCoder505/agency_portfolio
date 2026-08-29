@@ -88,14 +88,38 @@ class SaasProductController extends Controller
             'has_yearly' => 'boolean',
             'features' => 'nullable|array',
             'features.*' => 'string',
+            'packages' => 'nullable|array',
             'order' => 'integer|min:0',
             'is_featured' => 'boolean',
             'is_active' => 'boolean',
+            'thumbnail' => 'nullable', // File or string URL
+            'gallery_images' => 'nullable|array',
+            'gallery_images.*' => 'nullable',
         ]);
 
         if (empty($validated['slug'])) {
             $validated['slug'] = Str::slug($validated['name']);
         }
+
+        // Handle single thumbnail image file upload
+        if ($request->hasFile('thumbnail')) {
+            $path = $request->file('thumbnail')->store('saas-products/thumbnails', 'public');
+            $validated['thumbnail'] = '/storage/' . $path;
+        } elseif (is_string($request->input('thumbnail'))) {
+            $validated['thumbnail'] = $request->input('thumbnail');
+        }
+
+        // Handle gallery images multi-upload
+        $galleryPaths = [];
+        if ($request->hasFile('gallery_images')) {
+            foreach ($request->file('gallery_images') as $image) {
+                if ($image) {
+                    $path = $image->store('saas-products/galleries', 'public');
+                    $galleryPaths[] = '/storage/' . $path;
+                }
+            }
+        }
+        $validated['gallery_images'] = $galleryPaths;
 
         SaasProduct::create($validated);
 
@@ -137,10 +161,42 @@ class SaasProductController extends Controller
             'has_yearly' => 'boolean',
             'features' => 'nullable|array',
             'features.*' => 'string',
+            'packages' => 'nullable|array',
             'order' => 'integer|min:0',
             'is_featured' => 'boolean',
             'is_active' => 'boolean',
+            'thumbnail' => 'nullable', // File or string URL
+            'gallery_images' => 'nullable|array',
+            'gallery_images.*' => 'nullable',
+            'existing_gallery' => 'nullable|array',
         ]);
+
+        // Handle thumbnail replacement if new file uploaded
+        if ($request->hasFile('thumbnail')) {
+            $path = $request->file('thumbnail')->store('saas-products/thumbnails', 'public');
+            $validated['thumbnail'] = '/storage/' . $path;
+        } elseif ($request->has('thumbnail') && is_string($request->input('thumbnail'))) {
+            $validated['thumbnail'] = $request->input('thumbnail');
+        } elseif ($request->has('thumbnail') && $request->input('thumbnail') === null) {
+            $validated['thumbnail'] = null;
+        }
+
+        // Handle gallery images: keep existing + append newly uploaded
+        $galleryImages = $request->input('existing_gallery', []);
+        if (!is_array($galleryImages)) {
+            $galleryImages = [];
+        }
+
+        if ($request->hasFile('gallery_images')) {
+            foreach ($request->file('gallery_images') as $image) {
+                if ($image) {
+                    $path = $image->store('saas-products/galleries', 'public');
+                    $galleryImages[] = '/storage/' . $path;
+                }
+            }
+        }
+        $validated['gallery_images'] = array_values($galleryImages);
+        unset($validated['existing_gallery']);
 
         $saasProduct->update($validated);
 

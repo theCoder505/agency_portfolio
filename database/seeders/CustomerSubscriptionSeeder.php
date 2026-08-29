@@ -50,6 +50,7 @@ class CustomerSubscriptionSeeder extends Seeder
                 [
                     'user_id' => $customer->id,
                     'saas_product_id' => $erpProduct->id,
+                    'package_tier' => 'standard',
                     'billing_cycle' => 'monthly',
                     'amount' => $erpProduct->monthly_price,
                     'currency' => 'BDT',
@@ -96,6 +97,7 @@ class CustomerSubscriptionSeeder extends Seeder
                 [
                     'user_id' => $customer->id,
                     'saas_product_id' => $ecommerceProduct->id,
+                    'package_tier' => 'basic',
                     'billing_cycle' => 'half_yearly',
                     'amount' => $ecommerceProduct->half_yearly_price,
                     'currency' => 'BDT',

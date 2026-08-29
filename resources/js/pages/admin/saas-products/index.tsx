@@ -205,9 +205,19 @@ export default function SaasProductsIndex({
                                             </td>
                                             <td className="py-3.5 px-4">
                                                 <div className="flex items-center space-x-3">
-                                                    <div className="h-9 w-9 rounded-xl bg-indigo-50 dark:bg-slate-800 text-indigo-600 dark:text-cyan-400 flex items-center justify-center font-bold shrink-0">
-                                                        <Package className="h-4 w-4" />
-                                                    </div>
+                                                    {product.thumbnail ? (
+                                                        <div className="h-10 w-14 rounded-xl overflow-hidden bg-slate-950 border border-slate-200 dark:border-slate-800 shrink-0">
+                                                            <img
+                                                                src={product.thumbnail}
+                                                                alt={product.name}
+                                                                className="h-full w-full object-cover"
+                                                            />
+                                                        </div>
+                                                    ) : (
+                                                        <div className="h-10 w-10 rounded-xl bg-indigo-50 dark:bg-slate-800 text-indigo-600 dark:text-cyan-400 flex items-center justify-center font-bold shrink-0">
+                                                            <Package className="h-4 w-4" />
+                                                        </div>
+                                                    )}
                                                     <div>
                                                         <div className="flex items-center space-x-1.5">
                                                             <span className="font-bold text-slate-900 dark:text-white">{product.name}</span>
@@ -222,7 +232,12 @@ export default function SaasProductsIndex({
                                                                 </span>
                                                             )}
                                                         </div>
-                                                        <p className="text-[11px] text-slate-400 line-clamp-1">{product.tagline || product.slug}</p>
+                                                        <div className="flex items-center space-x-1 mt-0.5">
+                                                            <span className="px-1 py-0.2 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 text-[9px] font-medium">Basic</span>
+                                                            <span className="px-1 py-0.2 rounded bg-indigo-100 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-300 text-[9px] font-bold">Std</span>
+                                                            <span className="px-1 py-0.2 rounded bg-purple-100 dark:bg-purple-950 text-purple-600 dark:text-purple-300 text-[9px] font-bold">Prem</span>
+                                                            <p className="text-[11px] text-slate-400 line-clamp-1 ml-1">{product.tagline || product.slug}</p>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </td>

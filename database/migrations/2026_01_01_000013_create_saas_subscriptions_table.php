@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('order_number')->unique(); // e.g. ORD-2026-8921
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('saas_product_id')->constrained('saas_products')->onDelete('cascade');
+            $table->string('package_tier')->default('standard')->nullable(); // basic, standard, premium
             $table->enum('billing_cycle', ['monthly', 'half_yearly', 'yearly'])->default('monthly');
             $table->decimal('amount', 10, 2)->default(0);
             $table->string('currency', 10)->default('BDT');

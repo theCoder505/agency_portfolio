@@ -19,6 +19,9 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->string('icon')->nullable(); // Lucide icon name or image path
             $table->string('badge')->nullable(); // e.g. "Most Popular", "Enterprise", "Starter"
+            $table->string('thumbnail')->nullable(); // Primary product image / card thumbnail
+            $table->json('gallery_images')->nullable(); // Showcase screenshots / media
+            $table->json('packages')->nullable(); // Basic, Standard, Premium package tiers
             $table->decimal('monthly_price', 10, 2)->default(0);
             $table->decimal('half_yearly_price', 10, 2)->default(0);
             $table->decimal('yearly_price', 10, 2)->default(0);

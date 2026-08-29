@@ -244,7 +244,7 @@ export default function SubscriptionsIndex({
                                                 </div>
                                             </td>
                                             <td className="py-3.5 px-4">
-                                                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                                                <div className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold min-w-30 text-center ${
                                                     sub.status === 'active'
                                                         ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
                                                         : sub.status === 'pending'
@@ -252,7 +252,7 @@ export default function SubscriptionsIndex({
                                                         : 'bg-rose-500/10 text-rose-500 border border-rose-500/20'
                                                 }`}>
                                                     {sub.status_badge.label}
-                                                </span>
+                                                </div>
                                             </td>
                                             <td className="py-3.5 px-4 text-slate-500">
                                                 {sub.expires_at ? (
