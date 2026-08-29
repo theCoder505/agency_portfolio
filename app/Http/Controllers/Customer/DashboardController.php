@@ -43,6 +43,12 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
+        $customOrders = \App\Models\CustomOrder::with('milestones')
+            ->where('user_id', $user->id)
+            ->orderBy('created_at', 'desc')
+            ->take(5)
+            ->get();
+
         $appSettings = AppSetting::getAllGrouped();
 
         $kpis = [
@@ -50,6 +56,8 @@ class DashboardController extends Controller
             'total_pending' => $pendingSubscriptions->count(),
             'total_expired' => $expiredSubscriptions->count(),
             'total_invoices' => SubscriptionInvoice::where('user_id', $user->id)->count(),
+            'total_custom_orders' => \App\Models\CustomOrder::where('user_id', $user->id)->count(),
+            'active_custom_orders' => \App\Models\CustomOrder::where('user_id', $user->id)->whereIn('status', ['pending', 'accepted', 'in_progress'])->count(),
         ];
 
         return Inertia::render('customer/dashboard', [
@@ -59,6 +67,7 @@ class DashboardController extends Controller
             'expiredSubscriptions' => $expiredSubscriptions->values(),
             'allSubscriptions' => $subscriptions,
             'recentInvoices' => $recentInvoices,
+            'customOrders' => $customOrders,
             'paymentSettings' => [
                 'currency_symbol' => $appSettings['currency_symbol'] ?? '৳',
                 'currency_code' => $appSettings['currency_code'] ?? 'BDT',

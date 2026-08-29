@@ -43,8 +43,9 @@ export const SurfaceHeader: React.FC = () => {
 
     const navLinks = [
         { label: 'Home', href: '/' },
-        { label: 'SaaS Products', href: '/saas-products' },
         { label: 'Our Works', href: '/works' },
+        { label: 'SaaS Products', href: '/saas-products' },
+        { label: 'Custom Project', href: '/custom-orders/request' },
         { label: 'Blogs', href: '/blogs' },
         { label: 'About Us', href: '/about' },
         { label: 'Contact', href: '/contact' },

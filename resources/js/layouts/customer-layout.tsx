@@ -15,7 +15,9 @@ import {
     Globe,
     ShoppingBag,
     Headphones,
-    CheckCircle2
+    CheckCircle2,
+    FolderGit2,
+    PlusCircle
 } from 'lucide-react';
 import { ThemeToggle } from '@/components/surface/theme-toggle';
 import { showToast, showSuccessAlert, showErrorAlert } from '@/lib/swal';
@@ -31,7 +33,7 @@ export const CustomerLayout: React.FC<CustomerLayoutProps> = ({
     title = 'Customer Portal',
     breadcrumbs = [],
 }) => {
-    const { auth, app_settings, flash, customer_active_subscriptions_count } = usePage<SharedData>().props;
+    const { auth, app_settings, flash, customer_active_subscriptions_count, customer_custom_orders_count } = usePage<SharedData>().props;
     const { url } = usePage();
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
@@ -52,6 +54,12 @@ export const CustomerLayout: React.FC<CustomerLayoutProps> = ({
 
     const navigation = [
         { label: 'My Workspace', href: '/customer/dashboard', icon: LayoutDashboard },
+        { 
+            label: 'Custom Projects', 
+            href: '/customer/custom-orders', 
+            icon: FolderGit2, 
+            badge: customer_custom_orders_count 
+        },
         { label: 'My Subscriptions', href: '/customer/subscriptions', icon: Layers, badge: customer_active_subscriptions_count },
         { label: 'Payment Invoices', href: '/customer/invoices', icon: Receipt },
         { label: 'Account Profile', href: '/customer/profile', icon: User },

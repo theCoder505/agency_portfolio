@@ -43,11 +43,14 @@ class DashboardController extends Controller
             ->distinct('ip_address')
             ->count('ip_address');
 
-        // SaaS Metrics
+        // SaaS & Custom Orders Metrics
         $totalSaasProducts = SaasProduct::count();
         $totalCustomers = User::count();
         $pendingSubscriptions = SaasSubscription::where('status', 'pending')->count();
         $activeSubscriptions = SaasSubscription::where('status', 'active')->count();
+        $totalCustomOrders = \App\Models\CustomOrder::count();
+        $pendingCustomOrders = \App\Models\CustomOrder::where('status', 'pending')->count();
+        $inProgressCustomOrders = \App\Models\CustomOrder::whereIn('status', ['accepted', 'in_progress'])->count();
 
         // 2. Chart.js Data: Daily Traffic Line Chart
         $dailyLogs = VisitorLog::select(
@@ -112,6 +115,12 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
+        // 8. Recent Custom Orders
+        $recentCustomOrders = \App\Models\CustomOrder::with('user')
+            ->orderBy('created_at', 'desc')
+            ->take(5)
+            ->get();
+
         return Inertia::render('admin/dashboard', [
             'kpis' => [
                 'total_projects' => $totalProjects,
@@ -126,6 +135,9 @@ class DashboardController extends Controller
                 'total_customers' => $totalCustomers,
                 'pending_subscriptions' => $pendingSubscriptions,
                 'active_subscriptions' => $activeSubscriptions,
+                'total_custom_orders' => $totalCustomOrders,
+                'pending_custom_orders' => $pendingCustomOrders,
+                'in_progress_custom_orders' => $inProgressCustomOrders,
             ],
             'filters' => [
                 'from_date' => $startDate->format('Y-m-d'),
@@ -145,6 +157,7 @@ class DashboardController extends Controller
             'topPortfolios' => $topPortfolios,
             'recentLogs' => $recentLogs,
             'recentContacts' => $recentContacts,
+            'recentCustomOrders' => $recentCustomOrders,
         ]);
     }
 }

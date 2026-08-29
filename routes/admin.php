@@ -5,6 +5,8 @@ use App\Http\Controllers\Admin\BlogController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\ContactController;
 use App\Http\Controllers\Admin\CustomerController;
+use App\Http\Controllers\Admin\CustomOrderController;
+use App\Http\Controllers\Admin\CustomOrderMilestoneController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\PortfolioController;
 use App\Http\Controllers\Admin\ProfileController;
@@ -28,6 +30,22 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/', [DashboardController::class, 'index'])->name('index');
         Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
         Route::post('logout', [AuthController::class, 'logout'])->name('logout');
+
+        // Custom Orders & Milestone Deliverables Management
+        Route::get('custom-orders', [CustomOrderController::class, 'index'])->name('custom-orders.index');
+        Route::get('custom-orders/create', [CustomOrderController::class, 'create'])->name('custom-orders.create');
+        Route::post('custom-orders', [CustomOrderController::class, 'store'])->name('custom-orders.store');
+        Route::get('custom-orders/{id}', [CustomOrderController::class, 'show'])->name('custom-orders.show');
+        Route::put('custom-orders/{id}', [CustomOrderController::class, 'update'])->name('custom-orders.update');
+        Route::post('custom-orders/{id}/accept', [CustomOrderController::class, 'accept'])->name('custom-orders.accept');
+        Route::post('custom-orders/{id}/deny', [CustomOrderController::class, 'deny'])->name('custom-orders.deny');
+        Route::delete('custom-orders/{id}', [CustomOrderController::class, 'destroy'])->name('custom-orders.destroy');
+
+        // Milestone management inside custom order
+        Route::post('custom-orders/{id}/milestones', [CustomOrderMilestoneController::class, 'store'])->name('custom-orders.milestones.store');
+        Route::put('custom-orders/{id}/milestones/{milestoneId}', [CustomOrderMilestoneController::class, 'update'])->name('custom-orders.milestones.update');
+        Route::post('custom-orders/{id}/milestones/{milestoneId}/status', [CustomOrderMilestoneController::class, 'updateStatus'])->name('custom-orders.milestones.status');
+        Route::delete('custom-orders/{id}/milestones/{milestoneId}', [CustomOrderMilestoneController::class, 'destroy'])->name('custom-orders.milestones.destroy');
 
         // SaaS Products Management
         Route::post('saas-products/bulk-delete', [SaasProductController::class, 'bulkDelete'])->name('saas-products.bulk-delete');

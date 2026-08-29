@@ -308,12 +308,93 @@ export interface FlashMessages {
     info?: string | null;
 }
 
+export interface CustomOrderAttachment {
+    name: string;
+    path: string;
+    size?: number;
+    extension?: string;
+}
+
+export interface CustomOrderMilestone {
+    id: number;
+    custom_order_id: number;
+    order: number;
+    title: string;
+    description?: string | null;
+    amount: number;
+    due_date?: string | null;
+    payment_status: 'waiting-client-to-pay' | 'paid-and-bank-processing' | 'collected';
+    payment_method?: string | null;
+    payment_details?: string | null;
+    payment_instructions?: string | null;
+    client_payment_method?: string | null;
+    client_trx_id?: string | null;
+    client_sender_info?: string | null;
+    client_payment_proof?: string | null;
+    client_payment_notes?: string | null;
+    client_paid_at?: string | null;
+    collected_at?: string | null;
+    github_repo_url?: string | null;
+    drive_link?: string | null;
+    live_demo_url?: string | null;
+    deliverable_notes?: string | null;
+    is_deliverable_unlocked?: boolean;
+    status_badge?: {
+        label: string;
+        short_label: string;
+        color: string;
+        code: string;
+    };
+    has_deliverables?: boolean;
+    created_at?: string;
+    updated_at?: string;
+}
+
+export interface CustomOrder {
+    id: number;
+    order_number: string;
+    user_id: number;
+    user?: User | null;
+    title: string;
+    category?: string | null;
+    estimated_budget?: number | null;
+    agreed_price?: number | null;
+    currency: string;
+    target_deadline?: string | null;
+    requirements: string;
+    reference_links?: string | null;
+    attachments?: CustomOrderAttachment[] | null;
+    status: 'pending' | 'accepted' | 'in_progress' | 'completed' | 'denied' | 'cancelled';
+    admin_notes?: string | null;
+    rejection_reason?: string | null;
+    github_repo_url?: string | null;
+    drive_link?: string | null;
+    live_demo_url?: string | null;
+    accepted_at?: string | null;
+    completed_at?: string | null;
+    milestones?: CustomOrderMilestone[];
+    total_milestones_amount?: number;
+    total_collected_amount?: number;
+    total_processing_amount?: number;
+    total_pending_amount?: number;
+    progress_percentage?: number;
+    status_badge?: {
+        label: string;
+        color: string;
+        description: string;
+    };
+    created_at: string;
+    updated_at?: string;
+}
+
 export interface SharedData {
     name: string;
     app_settings: AppSettings;
     auth: Auth;
     pending_subscriptions_count?: number;
+    pending_custom_orders_count?: number;
     customer_active_subscriptions_count?: number;
+    customer_custom_orders_count?: number;
     flash: FlashMessages;
     [key: string]: unknown;
 }

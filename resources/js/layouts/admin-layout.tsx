@@ -22,7 +22,8 @@ import {
     Sparkles,
     UserCheck,
     CreditCard,
-    Package
+    Package,
+    FolderGit2
 } from 'lucide-react';
 import { ThemeToggle } from '@/components/surface/theme-toggle';
 import { showToast, showSuccessAlert, showErrorAlert } from '@/lib/swal';
@@ -38,7 +39,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
     title = 'Admin Panel',
     breadcrumbs = [],
 }) => {
-    const { auth, app_settings, flash, pending_subscriptions_count } = usePage<SharedData>().props;
+    const { auth, app_settings, flash, pending_subscriptions_count, pending_custom_orders_count } = usePage<SharedData>().props;
     const { url } = usePage();
     const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
 
@@ -59,6 +60,13 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
 
     const navigation = [
         { label: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
+        { 
+            label: 'Custom Orders', 
+            href: '/admin/custom-orders', 
+            icon: FolderGit2,
+            badge: pending_custom_orders_count,
+            badgeColor: 'bg-cyan-500 text-slate-950 font-bold'
+        },
         { 
             label: 'Orders & Subscriptions', 
             href: '/admin/subscriptions', 

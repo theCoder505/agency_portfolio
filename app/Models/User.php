@@ -61,4 +61,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(SubscriptionInvoice::class)->orderBy('created_at', 'desc');
     }
+
+    public function customOrders()
+    {
+        return $this->hasMany(CustomOrder::class)->orderBy('created_at', 'desc');
+    }
 }

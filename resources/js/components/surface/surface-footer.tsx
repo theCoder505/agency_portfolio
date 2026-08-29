@@ -79,6 +79,14 @@ export const SurfaceFooter: React.FC = () => {
                                 <Link href="/" className="hover:text-white transition-colors">Home</Link>
                             </li>
                             <li>
+                                <Link href="/custom-orders/request" className="text-cyan-400 hover:text-cyan-300 font-medium transition-colors">
+                                    Request Custom Project
+                                </Link>
+                            </li>
+                            <li>
+                                <Link href="/saas-products" className="hover:text-white transition-colors">SaaS Products</Link>
+                            </li>
+                            <li>
                                 <Link href="/works" className="hover:text-white transition-colors">Portfolio & Works</Link>
                             </li>
                             <li>

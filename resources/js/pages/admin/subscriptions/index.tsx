@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Head, Link, router } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import { AdminLayout } from '@/layouts/admin-layout';
 import { PaginatedData, SaasSubscription } from '@/types';
 import {
@@ -9,15 +9,12 @@ import {
     Clock,
     CheckCircle2,
     AlertCircle,
-    XCircle,
     Eye,
     Edit2,
     Trash2,
     Copy,
     Globe,
-    Smartphone,
     DollarSign,
-    RefreshCw
 } from 'lucide-react';
 import { showConfirmDialog, showToast } from '@/lib/swal';
 

@@ -37,12 +37,24 @@ Route::get('/pricing', function () {
 Route::get('/checkout/{slug}', [\App\Http\Controllers\SaasProductController::class, 'checkout'])->name('checkout.show');
 Route::post('/checkout', [\App\Http\Controllers\SaasProductController::class, 'processCheckout'])->name('checkout.process');
 
+// Custom Products & Bespoke Projects Request Flow
+Route::get('/custom-order', [\App\Http\Controllers\CustomOrderRequestController::class, 'create'])->name('custom-order.create');
+Route::get('/custom-orders/request', [\App\Http\Controllers\CustomOrderRequestController::class, 'create'])->name('custom-order.request');
+Route::post('/custom-orders/request', [\App\Http\Controllers\CustomOrderRequestController::class, 'store'])->name('custom-order.store');
+
 // Customer Portal (Guarded by web auth)
 Route::middleware('auth:web')->prefix('customer')->name('customer.')->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\Customer\DashboardController::class, 'index'])->name('dashboard');
     Route::get('/subscriptions', [\App\Http\Controllers\Customer\SubscriptionController::class, 'index'])->name('subscriptions.index');
     Route::get('/subscriptions/{id}', [\App\Http\Controllers\Customer\SubscriptionController::class, 'show'])->name('subscriptions.show');
     Route::post('/subscriptions/{id}/renew', [\App\Http\Controllers\Customer\SubscriptionController::class, 'renew'])->name('subscriptions.renew');
+    
+    // Custom Orders & Milestones
+    Route::get('/custom-orders', [\App\Http\Controllers\Customer\CustomOrderController::class, 'index'])->name('custom-orders.index');
+    Route::get('/custom-orders/{id}', [\App\Http\Controllers\Customer\CustomOrderController::class, 'show'])->name('custom-orders.show');
+    Route::post('/custom-orders/{id}/milestones/{milestoneId}/submit-payment', [\App\Http\Controllers\Customer\CustomOrderController::class, 'submitMilestonePayment'])->name('custom-orders.milestones.submit-payment');
+    Route::post('/custom-orders/{id}/cancel', [\App\Http\Controllers\Customer\CustomOrderController::class, 'cancel'])->name('custom-orders.cancel');
+
     Route::get('/invoices', [\App\Http\Controllers\Customer\InvoiceController::class, 'index'])->name('invoices.index');
     Route::get('/profile', [\App\Http\Controllers\Customer\ProfileController::class, 'index'])->name('profile.index');
     Route::put('/profile', [\App\Http\Controllers\Customer\ProfileController::class, 'update'])->name('profile.update');

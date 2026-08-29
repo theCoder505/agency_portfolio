@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, router } from '@inertiajs/react';
 import { AdminLayout } from '@/layouts/admin-layout';
-import { Contact, Portfolio, VisitorLog } from '@/types';
+import { Contact, Portfolio, VisitorLog, CustomOrder } from '@/types';
 import { DateRangeFilter } from '@/components/admin/date-range-filter';
 import { ReplyEmailModal } from '@/components/admin/reply-email-modal';
 import {
@@ -19,7 +19,8 @@ import {
     Send,
     ExternalLink,
     ChevronRight,
-    BookOpen
+    BookOpen,
+    FolderGit2
 } from 'lucide-react';
 
 // Chart.js imports
@@ -65,6 +66,9 @@ interface DashboardProps {
         total_customers?: number;
         pending_subscriptions?: number;
         active_subscriptions?: number;
+        total_custom_orders?: number;
+        pending_custom_orders?: number;
+        in_progress_custom_orders?: number;
     };
     filters: {
         from_date: string;
@@ -84,6 +88,7 @@ interface DashboardProps {
     topPortfolios: Portfolio[];
     recentLogs: VisitorLog[];
     recentContacts: Contact[];
+    recentCustomOrders?: CustomOrder[];
 }
 
 export default function Dashboard({
@@ -96,6 +101,7 @@ export default function Dashboard({
     topPortfolios,
     recentLogs,
     recentContacts,
+    recentCustomOrders = [],
 }: DashboardProps) {
     const [replyingContact, setReplyingContact] = useState<Contact | null>(null);
 
@@ -276,15 +282,32 @@ export default function Dashboard({
                     </div>
                 </div>
 
-                {/* SaaS & Customer Portal Highlights */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {/* SaaS & Custom Orders Highlights */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <Link
+                        href="/admin/custom-orders?status=pending"
+                        className="p-5 rounded-2xl bg-gradient-to-r from-cyan-500/15 via-cyan-500/5 to-transparent border border-cyan-500/30 hover:border-cyan-500/60 transition-all flex items-center justify-between group"
+                    >
+                        <div>
+                            <div className="text-[11px] font-bold uppercase text-cyan-600 dark:text-cyan-400">
+                                Pending Custom Orders
+                            </div>
+                            <div className="text-2xl font-black text-slate-900 dark:text-white mt-1">
+                                {kpis.pending_custom_orders ?? 0} Review
+                            </div>
+                        </div>
+                        <div className="h-10 w-10 rounded-xl bg-cyan-500/20 text-cyan-600 dark:text-cyan-400 flex items-center justify-center font-bold group-hover:scale-105 transition-transform">
+                            <FolderGit2 className="h-5 w-5" />
+                        </div>
+                    </Link>
+
                     <Link
                         href="/admin/subscriptions?status=pending"
                         className="p-5 rounded-2xl bg-gradient-to-r from-amber-500/15 via-amber-500/5 to-transparent border border-amber-500/30 hover:border-amber-500/60 transition-all flex items-center justify-between group"
                     >
                         <div>
                             <div className="text-[11px] font-bold uppercase text-amber-600 dark:text-amber-400">
-                                Pending TrxID Verifications
+                                Pending Subscriptions
                             </div>
                             <div className="text-2xl font-black text-slate-900 dark:text-white mt-1">
                                 {kpis.pending_subscriptions ?? 0} Orders
@@ -408,7 +431,7 @@ export default function Dashboard({
                     </div>
                 </div>
 
-                {/* Lower Dual Tables: Recent Inquiries & Recent Visitor Logs */}
+                {/* Lower Tables: Recent Inquiries & Recent Visitor Logs & Recent Custom Orders */}
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                     {/* Recent Inquiries with Quick Reply Action */}
                     <div className="lg:col-span-6 p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
@@ -454,33 +477,55 @@ export default function Dashboard({
                         </div>
                     </div>
 
-                    {/* Recent Visitor Logs */}
+                    {/* Recent Custom Orders */}
                     <div className="lg:col-span-6 p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
                         <div className="flex items-center justify-between">
                             <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center space-x-2">
-                                <Activity className="h-4 w-4 text-cyan-400" />
-                                <span>Recent Visitor Hits</span>
+                                <FolderGit2 className="h-4 w-4 text-cyan-400" />
+                                <span>Recent Custom Product Orders</span>
                             </h3>
-                            <Link href="/admin/visitor-logs" className="text-xs font-bold text-indigo-600 dark:text-cyan-400 hover:underline">
-                                Full Logs
+                            <Link href="/admin/custom-orders" className="text-xs font-bold text-indigo-600 dark:text-cyan-400 hover:underline">
+                                View All ({kpis.total_custom_orders ?? 0})
                             </Link>
                         </div>
 
                         <div className="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
-                            {recentLogs.map((log) => (
-                                <div key={log.id} className="py-2.5 flex items-center justify-between">
-                                    <div className="space-y-0.5">
-                                        <div className="flex items-center space-x-2">
-                                            <span className="font-mono font-bold text-slate-700 dark:text-slate-300">{log.ip_address}</span>
-                                            <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-[10px] text-slate-500">{log.device_type} • {log.browser}</span>
+                            {(!recentCustomOrders || recentCustomOrders.length === 0) ? (
+                                <p className="text-xs text-slate-500 py-4">No custom product orders yet.</p>
+                            ) : (
+                                recentCustomOrders.map((order) => {
+                                    const badge = order.status_badge || { label: order.status, color: 'slate' };
+                                    return (
+                                        <div key={order.id} className="py-3 flex items-center justify-between">
+                                            <div className="space-y-0.5 min-w-0 pr-2">
+                                                <div className="flex items-center space-x-2">
+                                                    <span className="font-mono font-bold text-indigo-600 dark:text-cyan-400">
+                                                        #{order.order_number}
+                                                    </span>
+                                                    <span className={`px-2 py-0.2 rounded-full text-[10px] font-bold ${
+                                                        badge.color === 'emerald'
+                                                            ? 'bg-emerald-500/10 text-emerald-500'
+                                                            : badge.color === 'amber'
+                                                            ? 'bg-amber-500/10 text-amber-500'
+                                                            : 'bg-indigo-500/10 text-indigo-500'
+                                                    }`}>
+                                                        {badge.label}
+                                                    </span>
+                                                </div>
+                                                <p className="font-bold text-slate-900 dark:text-white truncate max-w-xs">{order.title}</p>
+                                                <p className="text-[11px] text-slate-400">{order.user?.name} &bull; {order.currency} {(order.agreed_price || order.estimated_budget || 0).toLocaleString()}</p>
+                                            </div>
+
+                                            <Link
+                                                href={`/admin/custom-orders/${order.id}`}
+                                                className="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-indigo-600 hover:text-white font-bold text-xs shrink-0 transition-colors"
+                                            >
+                                                Manage
+                                            </Link>
                                         </div>
-                                        <p className="text-[11px] text-slate-400 font-mono line-clamp-1">{log.url}</p>
-                                    </div>
-                                    <span className="text-[10px] text-slate-500 shrink-0">
-                                        {new Date(log.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                    </span>
-                                </div>
-                            ))}
+                                    );
+                                })
+                            )}
                         </div>
                     </div>
                 </div>

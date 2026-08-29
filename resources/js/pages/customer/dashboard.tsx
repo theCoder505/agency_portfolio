@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import { CustomerLayout } from '@/layouts/customer-layout';
-import { SaasSubscription, SubscriptionInvoice, SharedData } from '@/types';
+import { SaasSubscription, SubscriptionInvoice, SharedData, CustomOrder } from '@/types';
 import {
     Layers,
     Clock,
@@ -20,7 +20,11 @@ import {
     Copy,
     Check,
     Eye,
-    EyeOff
+    EyeOff,
+    FolderGit2,
+    PlusCircle,
+    Github,
+    HardDrive
 } from 'lucide-react';
 import { showToast } from '@/lib/swal';
 
@@ -30,12 +34,15 @@ interface DashboardProps {
         total_pending: number;
         total_expired: number;
         total_invoices: number;
+        total_custom_orders?: number;
+        active_custom_orders?: number;
     };
     activeSubscriptions: SaasSubscription[];
     pendingSubscriptions: SaasSubscription[];
     expiredSubscriptions: SaasSubscription[];
     allSubscriptions: SaasSubscription[];
     recentInvoices: SubscriptionInvoice[];
+    customOrders?: CustomOrder[];
     paymentSettings: {
         currency_symbol: string;
         currency_code: string;
@@ -53,6 +60,7 @@ export default function CustomerDashboard({
     expiredSubscriptions,
     allSubscriptions,
     recentInvoices,
+    customOrders = [],
     paymentSettings,
 }: DashboardProps) {
     const { auth } = usePage<SharedData>().props;
@@ -159,6 +167,113 @@ export default function CustomerDashboard({
                         </p>
                     </div>
                 )}
+
+                {/* CUSTOM PROJECTS & MILESTONES SECTION */}
+                <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h2 className="text-lg font-black text-slate-900 dark:text-white flex items-center space-x-2">
+                                <FolderGit2 className="h-5 w-5 text-indigo-500" />
+                                <span>Custom Projects & Milestone Workspaces</span>
+                            </h2>
+                            <p className="text-xs text-slate-500 dark:text-slate-400">
+                                Track your custom software orders, milestone payment releases, and deliverables.
+                            </p>
+                        </div>
+
+                        <div className="flex items-center space-x-3">
+                            <Link
+                                href="/custom-orders/request"
+                                className="hidden sm:inline-flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200/60 dark:border-indigo-800 text-indigo-600 dark:text-cyan-400 font-bold text-xs hover:bg-indigo-100"
+                            >
+                                <PlusCircle className="h-3.5 w-3.5" />
+                                <span>Request New Project</span>
+                            </Link>
+                            <Link
+                                href="/customer/custom-orders"
+                                className="text-xs font-bold text-indigo-600 dark:text-cyan-400 hover:underline flex items-center space-x-1"
+                            >
+                                <span>View All ({kpis.total_custom_orders || 0})</span>
+                                <ChevronRight className="h-4 w-4" />
+                            </Link>
+                        </div>
+                    </div>
+
+                    {customOrders.length === 0 ? (
+                        <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-8 text-center space-y-3">
+                            <FolderGit2 className="h-10 w-10 text-slate-400 mx-auto" />
+                            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">No custom project orders placed yet</h3>
+                            <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                                Need custom software, a bespoke mobile app, or tailored enterprise system? Request a quote with milestone payment terms.
+                            </p>
+                            <Link
+                                href="/custom-orders/request"
+                                className="inline-flex items-center space-x-2 px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-500 text-white text-xs font-bold mt-2 shadow-sm"
+                            >
+                                <PlusCircle className="h-3.5 w-3.5" />
+                                <span>Request Custom Project</span>
+                            </Link>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {customOrders.map((order) => {
+                                const badge = order.status_badge || { label: order.status, color: 'slate' };
+                                const milestonesCount = order.milestones?.length || 0;
+                                const collectedAmount = order.total_collected_amount || 0;
+                                const agreedPrice = order.agreed_price || order.estimated_budget || 0;
+
+                                return (
+                                    <div
+                                        key={order.id}
+                                        className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-5 shadow-xs hover:border-indigo-500/40 transition-all flex flex-col justify-between space-y-4"
+                                    >
+                                        <div className="space-y-2">
+                                            <div className="flex items-center justify-between">
+                                                <span className="font-mono text-xs font-bold text-indigo-600 dark:text-cyan-400 bg-indigo-50 dark:bg-indigo-950/60 px-2 py-0.5 rounded-md">
+                                                    #{order.order_number}
+                                                </span>
+                                                <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
+                                                    badge.color === 'emerald'
+                                                        ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
+                                                        : badge.color === 'amber'
+                                                        ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
+                                                        : 'bg-indigo-500/10 text-indigo-500 border border-indigo-500/20'
+                                                }`}>
+                                                    {badge.label}
+                                                </span>
+                                            </div>
+
+                                            <h3 className="font-bold text-base text-slate-900 dark:text-white truncate">
+                                                {order.title}
+                                            </h3>
+
+                                            <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
+                                                {order.requirements}
+                                            </p>
+                                        </div>
+
+                                        <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                                            <div>
+                                                <span className="text-[10px] uppercase font-bold text-slate-400 block">Settled Amount</span>
+                                                <span className="text-sm font-black text-slate-900 dark:text-white">
+                                                    {order.currency} {agreedPrice.toLocaleString()}
+                                                </span>
+                                            </div>
+
+                                            <Link
+                                                href={`/customer/custom-orders/${order.id}`}
+                                                className="px-3.5 py-2 rounded-xl bg-slate-900 dark:bg-slate-800 text-white hover:bg-indigo-600 dark:hover:bg-indigo-600 transition-all font-bold text-xs flex items-center space-x-1"
+                                            >
+                                                <span>Open Workspace</span>
+                                                <ArrowRight className="h-3.5 w-3.5" />
+                                            </Link>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+                </div>
 
                 {/* ACTIVE SUBSCRIPTIONS GRID */}
                 <div className="space-y-4">
