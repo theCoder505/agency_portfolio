@@ -9,6 +9,7 @@ import {
     Github,
     HardDrive,
     Globe,
+    ExternalLink,
 } from 'lucide-react';
 import { showToast } from '@/lib/swal';
 
@@ -51,8 +52,18 @@ export const ProjectReportModal: React.FC<ProjectReportModalProps> = ({
     const totalPending = order.total_pending_amount || 0;
     const totalRefunded = order.total_refunded_amount || 0;
     const remainingBalance = Math.max(0, agreedPrice - totalCollected);
-    const milestones = order.milestones || [];
     const settlementProgress = order.progress_percentage ?? (agreedPrice > 0 ? Math.min(100, Math.round((totalCollected / agreedPrice) * 100)) : 0);
+    const milestones = order.milestones || [];
+    const titleSlug = order.slug || (order.title || 'project')
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '') || 'project';
+    const ref = order.order_number || order.id;
+    const orderShowPath = `/customer/custom-orders/${ref}/${titleSlug}`;
+    const fullVerificationUrl = typeof window !== 'undefined' && window.location.origin
+        ? `${window.location.origin}${orderShowPath}`
+        : `https://codeventure.tech${orderShowPath}`;
 
     const formattedGeneratedDate = new Date().toLocaleDateString('en-US', {
         year: 'numeric',
@@ -96,19 +107,18 @@ export const ProjectReportModal: React.FC<ProjectReportModalProps> = ({
                 remainingBalance,
                 settlementProgress,
                 statusBadge,
-                milestones
+                milestones,
+                fullVerificationUrl
             );
 
-            // Render container directly in document.body with fixed (0, 0) coordinates to guarantee zero shift in html2canvas
+            // Render container directly in document.body
             const renderContainer = document.createElement('div');
             renderContainer.id = 'pdf-render-direct-wrapper';
-            renderContainer.style.position = 'fixed';
-            renderContainer.style.left = '0px';
+            renderContainer.style.position = 'absolute';
+            renderContainer.style.left = '-9999px';
             renderContainer.style.top = '0px';
             renderContainer.style.width = '750px';
             renderContainer.style.backgroundColor = '#ffffff';
-            renderContainer.style.zIndex = '-99999';
-            renderContainer.style.pointerEvents = 'none';
             renderContainer.innerHTML = htmlContent;
             document.body.appendChild(renderContainer);
 
@@ -559,14 +569,39 @@ export const ProjectReportModal: React.FC<ProjectReportModalProps> = ({
                         </div>
                     </div>
 
-                    {/* OFFICIAL BRAND FOOTER (NO SIGNATURE) */}
-                    <div className="pt-6 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row justify-between items-center gap-2 text-[11px] text-slate-400 w-full relative z-10">
-                        <p className="font-medium">
-                            {brandSettings.brand_name || 'CodeVenture Tech'} &bull; Engineering &amp; Solutions Department
-                        </p>
-                        <p className="font-mono">
-                            Generated on {formattedGeneratedDate} &bull; Order #{order.order_number}
-                        </p>
+                    {/* OFFICIAL BRAND FOOTER WITH LIVE LEDGER DYNAMIC VERIFICATION LINK */}
+                    <div className="pt-6 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs w-full relative z-10">
+                        <div className="space-y-1 text-center sm:text-left">
+                            <p className="font-bold text-slate-900 dark:text-white">
+                                {brandSettings.brand_name || 'CodeVenture Tech'}
+                            </p>
+                            <p className="text-slate-500 text-[11px]">
+                                Engineering &amp; Solutions Department &bull; Support: {brandSettings.contact_email}
+                            </p>
+                            <p className="text-slate-400 text-[10px] font-mono">
+                                Generated on {formattedGeneratedDate} &bull; Order #{order.order_number}
+                            </p>
+                        </div>
+
+                        <div className="flex items-center space-x-3 bg-gradient-to-r from-indigo-50 to-cyan-50 dark:from-indigo-950/40 dark:to-cyan-950/30 p-3.5 rounded-2xl border border-indigo-100/80 dark:border-indigo-900/60 shadow-xs max-w-md">
+                            <div className="h-10 w-10 rounded-xl bg-indigo-600 dark:bg-indigo-500 text-white flex items-center justify-center shrink-0 shadow-xs">
+                                <ShieldCheck className="h-5 w-5" />
+                            </div>
+                            <div className="text-left space-y-0.5 min-w-0">
+                                <span className="text-[10px] font-extrabold text-indigo-700 dark:text-cyan-400 uppercase tracking-wider block">
+                                    Official Live Ledger Verification
+                                </span>
+                                <a
+                                    href={fullVerificationUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center space-x-1.5 text-xs font-bold text-indigo-600 hover:text-indigo-800 dark:text-cyan-400 dark:hover:text-cyan-300 group"
+                                >
+                                    <span className="truncate underline underline-offset-2">{orderShowPath}</span>
+                                    <ExternalLink className="h-3.5 w-3.5 shrink-0 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -596,7 +631,8 @@ function generateStandaloneReportHtml(
     remainingBalance: number,
     settlementProgress: number,
     statusBadge: { label: string; color: string; description: string },
-    milestones: CustomOrderMilestone[]
+    milestones: CustomOrderMilestone[],
+    fullVerificationUrl: string = ''
 ): string {
     const brandName = brandSettings.brand_name || 'CodeVenture Tech';
     const contactEmail = brandSettings.contact_email || 'hello@codeventure.tech';
@@ -930,16 +966,25 @@ function generateStandaloneReportHtml(
                     </table>
                 </div>
 
-                <!-- OFFICIAL FOOTER (NO SIGNATURE) -->
-                <div class="pdf-avoid-break pdf-card pdf-section" style="width: 100%; box-sizing: border-box; margin-top: 14px; border-top: 1px solid #e2e8f0; padding-top: 10px; page-break-inside: avoid !important; break-inside: avoid !important; break-inside: avoid-page !important;">
+                <!-- OFFICIAL FOOTER & VERIFICATION DYNAMIC LINK (AT LAST OF PDF) -->
+                <div class="pdf-avoid-break pdf-card pdf-section" style="width: 100%; box-sizing: border-box; margin-top: 16px; border-top: 1.5px solid #e2e8f0; padding-top: 14px; page-break-inside: avoid !important; break-inside: avoid !important; break-inside: avoid-page !important;">
                     <table style="width: 100%; border-collapse: collapse; table-layout: fixed;">
                         <tr>
-                            <td style="vertical-align: middle; width: 60%; text-align: left; padding: 4px 0;">
-                                <div style="font-weight: 700; font-size: 9.5px; color: #0f172a;">${brandName}</div>
-                                <div style="font-size: 8.5px; color: #94a3b8;">Engineering &amp; Solutions Department &bull; Support: ${contactEmail}</div>
+                            <td style="vertical-align: middle; width: 55%; text-align: left; padding: 0 10px 0 0;">
+                                <div style="font-weight: 800; font-size: 11px; color: #0f172a;">${brandName}</div>
+                                <div style="font-size: 8.5px; color: #64748b; margin-top: 1.5px;">Engineering &amp; Solutions Department &bull; Support: ${contactEmail}</div>
+                                <div style="font-size: 8.5px; color: #94a3b8; font-family: monospace; margin-top: 2px;">Generated on ${formattedGeneratedDate} &bull; Ref #${order.order_number}</div>
+                                <div style="font-size: 8.5px; color: #4f46e5; font-weight: 700; margin-top: 4px;">
+                                    🔒 Authorized Statement &amp; Deliverables Live Ledger
+                                </div>
                             </td>
-                            <td style="vertical-align: middle; width: 40%; text-align: right; padding: 4px 4px 4px 0;">
-                                <div style="font-size: 8.5px; color: #94a3b8; font-family: monospace;">Generated on ${formattedGeneratedDate} &bull; Ref #${order.order_number}</div>
+                            <td style="vertical-align: middle; width: 45%; text-align: right; padding: 0 0 0 12px;">
+                                <div style="font-size: 8.5px; font-weight: 700; color: #475569; margin-bottom: 2px;">
+                                    Live Ledger Verification Link:
+                                </div>
+                                <a href="${fullVerificationUrl}" target="_blank" style="display: inline-block; font-size: 9px; font-weight: 700; color: #4f46e5; text-decoration: underline; word-break: break-all; font-family: monospace; line-height: 1.35;">
+                                    ${fullVerificationUrl}
+                                </a>
                             </td>
                         </tr>
                     </table>

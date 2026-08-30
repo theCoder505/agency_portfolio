@@ -70,6 +70,9 @@ class CustomOrder extends Model
         'late_milestones_count',
         'has_pending_budget_request',
         'is_fully_paid',
+        'slug',
+        'customer_show_url',
+        'admin_show_url',
     ];
 
     protected static function boot()
@@ -298,5 +301,51 @@ class CustomOrder extends Model
                 'description' => '',
             ],
         };
+    }
+
+    /**
+     * URL-friendly slug of project title.
+     */
+    public function getSlugAttribute(): string
+    {
+        $slug = Str::slug($this->title ?: 'custom-order');
+        return !empty($slug) ? $slug : 'order';
+    }
+
+    /**
+     * Full customer URL with ref and title: prefix/{ref}/{title}
+     */
+    public function getCustomerShowUrlAttribute(): string
+    {
+        $ref = $this->order_number ?: $this->id;
+        return "/customer/custom-orders/{$ref}/{$this->slug}";
+    }
+
+    /**
+     * Full admin URL with ref and title: prefix/{ref}/{title}
+     */
+    public function getAdminShowUrlAttribute(): string
+    {
+        $ref = $this->order_number ?: $this->id;
+        return "/admin/custom-orders/{$ref}/{$this->slug}";
+    }
+
+    /**
+     * Find CustomOrder by order_number or numeric id (with optional user constraint).
+     */
+    public static function findByRefOrFail(string|int $ref, ?int $userId = null): self
+    {
+        $query = static::where(function ($q) use ($ref) {
+            $q->where('order_number', $ref);
+            if (is_numeric($ref)) {
+                $q->orWhere('id', (int) $ref);
+            }
+        });
+
+        if ($userId !== null) {
+            $query->where('user_id', $userId);
+        }
+
+        return $query->firstOrFail();
     }
 }

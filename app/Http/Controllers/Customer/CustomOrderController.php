@@ -63,7 +63,7 @@ class CustomOrderController extends Controller
     /**
      * Display detailed project overview & milestone payments for a custom order.
      */
-    public function show(int $id): Response
+    public function show(string|int $ref, ?string $title = null): Response
     {
         $user = Auth::user();
         $order = CustomOrder::with([
@@ -74,7 +74,13 @@ class CustomOrderController extends Controller
             }
         ])
         ->where('user_id', $user->id)
-        ->findOrFail($id);
+        ->where(function ($q) use ($ref) {
+            $q->where('order_number', $ref);
+            if (is_numeric($ref)) {
+                $q->orWhere('id', (int) $ref);
+            }
+        })
+        ->firstOrFail();
 
         $appSettings = AppSetting::getAllGrouped();
 
@@ -96,10 +102,10 @@ class CustomOrderController extends Controller
     /**
      * Customer submits payment proof and transaction reference for a milestone.
      */
-    public function submitMilestonePayment(Request $request, int $orderId, int $milestoneId): RedirectResponse
+    public function submitMilestonePayment(Request $request, string|int $ref, int $milestoneId): RedirectResponse
     {
         $user = Auth::user();
-        $order = CustomOrder::where('user_id', $user->id)->findOrFail($orderId);
+        $order = CustomOrder::findByRefOrFail($ref, $user->id);
         $milestone = CustomOrderMilestone::where('custom_order_id', $order->id)->findOrFail($milestoneId);
 
         if ($order->status === 'completed') {
@@ -153,17 +159,23 @@ class CustomOrderController extends Controller
             Log::error('Failed sending MilestonePaymentSubmittedMail: ' . $e->getMessage());
         }
 
-        return redirect()->route('customer.custom-orders.show', $order->id)
+        return redirect($order->customer_show_url)
             ->with('success', "Payment submitted for {$milestone->title}! Our financial department is verifying the transaction reference ({$milestone->client_trx_id}).");
     }
 
     /**
      * Customer marks the order as completed (allowed when payment is fully paid or in active delivery).
      */
-    public function complete(Request $request, int $id): RedirectResponse
+    public function complete(Request $request, string|int $ref): RedirectResponse
     {
         $user = Auth::user();
-        $order = CustomOrder::with('milestones')->where('user_id', $user->id)->findOrFail($id);
+        $order = CustomOrder::with('milestones')->where('user_id', $user->id)
+            ->where(function ($q) use ($ref) {
+                $q->where('order_number', $ref);
+                if (is_numeric($ref)) {
+                    $q->orWhere('id', (int) $ref);
+                }
+            })->firstOrFail();
 
         if ($order->status === 'completed') {
             return back()->with('info', 'Project is already marked as completed.');
@@ -182,17 +194,17 @@ class CustomOrderController extends Controller
             'completed_at' => $order->completed_at ?: Carbon::now(),
         ]);
 
-        return redirect()->route('customer.custom-orders.show', $order->id)
+        return redirect($order->customer_show_url)
             ->with('success', "Congratulations! Order #{$order->order_number} has been marked as Completed & Delivered. You can now leave a client review.");
     }
 
     /**
      * Customer submits or updates a review for their custom order.
      */
-    public function storeReview(Request $request, int $id): RedirectResponse
+    public function storeReview(Request $request, string|int $ref): RedirectResponse
     {
         $user = Auth::user();
-        $order = CustomOrder::where('user_id', $user->id)->findOrFail($id);
+        $order = CustomOrder::findByRefOrFail($ref, $user->id);
 
         if ($order->status !== 'completed') {
             return back()->with('error', 'Reviews can only be submitted once the project is marked as Completed & Delivered.');
@@ -224,17 +236,17 @@ class CustomOrderController extends Controller
             ]
         );
 
-        return redirect()->route('customer.custom-orders.show', $order->id)
+        return redirect($order->customer_show_url)
             ->with('success', 'Thank you for your feedback! Your review has been recorded.');
     }
 
     /**
      * Customer requests a revised budget / currency update (Requires Admin verification before applying).
      */
-    public function updateBudget(Request $request, int $id): RedirectResponse
+    public function updateBudget(Request $request, string|int $ref): RedirectResponse
     {
         $user = Auth::user();
-        $order = CustomOrder::where('user_id', $user->id)->findOrFail($id);
+        $order = CustomOrder::findByRefOrFail($ref, $user->id);
 
         if ($order->status === 'completed') {
             return back()->with('error', 'This project is Completed & Delivered. Budget proposals cannot be submitted.');
@@ -254,17 +266,17 @@ class CustomOrderController extends Controller
             'budget_update_status' => 'pending',
         ]);
 
-        return redirect()->route('customer.custom-orders.show', $order->id)
+        return redirect($order->customer_show_url)
             ->with('success', "Your budget revision request of " . ($validated['currency'] ?? $order->currency) . " " . number_format($validated['estimated_budget'], 2) . " has been submitted for Admin verification. It will be updated once verified by our team.");
     }
 
     /**
      * Customer cancels a pending request.
      */
-    public function cancel(Request $request, int $id): RedirectResponse
+    public function cancel(Request $request, string|int $ref): RedirectResponse
     {
         $user = Auth::user();
-        $order = CustomOrder::where('user_id', $user->id)->findOrFail($id);
+        $order = CustomOrder::findByRefOrFail($ref, $user->id);
 
         if ($order->status !== 'pending') {
             return back()->with('error', 'Only orders under pending review can be cancelled.');
@@ -279,7 +291,7 @@ class CustomOrderController extends Controller
     /**
      * Display printable PDF Project Deal & Payment Settlement Report.
      */
-    public function showReport(int $id): Response
+    public function showReport(string|int $ref, ?string $title = null): Response
     {
         $user = Auth::user();
         $order = CustomOrder::with([
@@ -290,7 +302,13 @@ class CustomOrderController extends Controller
             }
         ])
         ->where('user_id', $user->id)
-        ->findOrFail($id);
+        ->where(function ($q) use ($ref) {
+            $q->where('order_number', $ref);
+            if (is_numeric($ref)) {
+                $q->orWhere('id', (int) $ref);
+            }
+        })
+        ->firstOrFail();
 
         $appSettings = AppSetting::getAllGrouped();
 

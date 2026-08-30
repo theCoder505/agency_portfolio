@@ -60,6 +60,21 @@ class CustomOrderController extends Controller
 
         $allOrders = CustomOrder::with('milestones')->get();
 
+        $collectedByCurrency = [
+            'USD' => 0.0,
+            'EUR' => 0.0,
+            'BDT' => 0.0,
+        ];
+
+        foreach ($allOrders as $order) {
+            $curr = strtoupper($order->currency ?: 'BDT');
+            if (!isset($collectedByCurrency[$curr])) {
+                $collectedByCurrency[$curr] = 0.0;
+            }
+            $collectedAmount = $order->milestones->where('payment_status', 'collected')->sum('amount');
+            $collectedByCurrency[$curr] += (float) $collectedAmount;
+        }
+
         $totalRevenueCollected = $allOrders->sum(function ($order) {
             return $order->milestones->where('payment_status', 'collected')->sum('amount');
         });
@@ -84,6 +99,7 @@ class CustomOrderController extends Controller
             'pending_budgets' => $pendingBudgetRequestsCount,
             'total_collected' => $totalRevenueCollected,
             'total_refunded' => $totalRefunded,
+            'collected_by_currency' => $collectedByCurrency,
         ];
 
         $appSettings = AppSetting::getAllGrouped();
@@ -155,14 +171,14 @@ class CustomOrderController extends Controller
 
         $order = CustomOrder::create($validated);
 
-        return redirect()->route('admin.custom-orders.show', $order->id)
+        return redirect($order->admin_show_url)
             ->with('success', 'Custom order created successfully! You can now define payment milestones and deliverable links.');
     }
 
     /**
      * Display the specified custom order with full details & milestone management studio.
      */
-    public function show(int $id): Response
+    public function show(string|int $ref, ?string $title = null): Response
     {
         $order = CustomOrder::with([
             'user',
@@ -170,7 +186,12 @@ class CustomOrderController extends Controller
             'milestones' => function ($q) {
                 $q->orderBy('order', 'asc')->orderBy('id', 'asc');
             },
-        ])->findOrFail($id);
+        ])->where(function ($q) use ($ref) {
+            $q->where('order_number', $ref);
+            if (is_numeric($ref)) {
+                $q->orWhere('id', (int) $ref);
+            }
+        })->firstOrFail();
 
         $appSettings = AppSetting::getAllGrouped();
 
@@ -184,9 +205,9 @@ class CustomOrderController extends Controller
     /**
      * Update project metadata and overall deliverable links.
      */
-    public function update(Request $request, int $id): RedirectResponse
+    public function update(Request $request, string|int $ref): RedirectResponse
     {
-        $order = CustomOrder::findOrFail($id);
+        $order = CustomOrder::findByRefOrFail($ref);
 
         if ($order->status === 'completed') {
             return back()->with('error', 'This project is Completed & Delivered. The contract, deliverables, and specifications are finalized and locked.');
@@ -222,16 +243,16 @@ class CustomOrderController extends Controller
 
         $order->update($validated);
 
-        return redirect()->route('admin.custom-orders.show', $order->id)
+        return redirect($order->admin_show_url)
             ->with('success', 'Custom project details updated successfully!');
     }
 
     /**
      * Admin updates repository and deliverable links.
      */
-    public function updateDeliverables(Request $request, int $id): RedirectResponse
+    public function updateDeliverables(Request $request, string|int $ref): RedirectResponse
     {
-        $order = CustomOrder::findOrFail($id);
+        $order = CustomOrder::findByRefOrFail($ref);
 
         if ($order->status === 'completed') {
             return back()->with('error', 'This project is Completed & Delivered. Deliverable links are finalized and locked.');
@@ -245,16 +266,21 @@ class CustomOrderController extends Controller
 
         $order->update($validated);
 
-        return redirect()->route('admin.custom-orders.show', $order->id)
+        return redirect($order->admin_show_url)
             ->with('success', 'Source code & deliverable links updated successfully!');
     }
 
     /**
      * Mark order as completed (requires 100% settlement).
      */
-    public function complete(Request $request, int $id): RedirectResponse
+    public function complete(Request $request, string|int $ref): RedirectResponse
     {
-        $order = CustomOrder::with('milestones')->findOrFail($id);
+        $order = CustomOrder::with('milestones')->where(function ($q) use ($ref) {
+            $q->where('order_number', $ref);
+            if (is_numeric($ref)) {
+                $q->orWhere('id', (int) $ref);
+            }
+        })->firstOrFail();
 
         if (!$order->is_fully_paid || $order->remaining_balance > 0) {
             return back()->with('error', "Cannot mark order as completed: The project must be 100% settled first (Remaining Balance Due: {$order->currency} " . number_format($order->remaining_balance, 2) . ").");
@@ -265,16 +291,16 @@ class CustomOrderController extends Controller
             'completed_at' => $order->completed_at ?: Carbon::now(),
         ]);
 
-        return redirect()->route('admin.custom-orders.show', $order->id)
+        return redirect($order->admin_show_url)
             ->with('success', "Order #{$order->order_number} marked as Completed & Delivered.");
     }
 
     /**
      * Admin approves client's proposed budget revision.
      */
-    public function approveBudgetRequest(Request $request, int $id): RedirectResponse
+    public function approveBudgetRequest(Request $request, string|int $ref): RedirectResponse
     {
-        $order = CustomOrder::findOrFail($id);
+        $order = CustomOrder::findByRefOrFail($ref);
 
         if ($order->status === 'completed') {
             return back()->with('error', 'Completed projects are locked and cannot process budget revisions.');
@@ -298,16 +324,16 @@ class CustomOrderController extends Controller
             'requirements' => $order->requirements . $note,
         ]);
 
-        return redirect()->route('admin.custom-orders.show', $order->id)
+        return redirect($order->admin_show_url)
             ->with('success', "Client proposed budget of {$newCurrency} " . number_format($newBudget, 2) . " has been verified and approved!");
     }
 
     /**
      * Admin declines client's proposed budget revision.
      */
-    public function declineBudgetRequest(Request $request, int $id): RedirectResponse
+    public function declineBudgetRequest(Request $request, string|int $ref): RedirectResponse
     {
-        $order = CustomOrder::findOrFail($id);
+        $order = CustomOrder::findByRefOrFail($ref);
 
         if ($order->status === 'completed') {
             return back()->with('error', 'Completed projects are locked and cannot process budget revisions.');
@@ -326,16 +352,16 @@ class CustomOrderController extends Controller
             'requirements' => $order->requirements . $note,
         ]);
 
-        return redirect()->route('admin.custom-orders.show', $order->id)
+        return redirect($order->admin_show_url)
             ->with('warning', 'Client budget request was declined.');
     }
 
     /**
      * Issue or record a payment return (refund) for a milestone.
      */
-    public function refundMilestone(Request $request, int $orderId, int $milestoneId): RedirectResponse
+    public function refundMilestone(Request $request, string|int $ref, int $milestoneId): RedirectResponse
     {
-        $order = CustomOrder::findOrFail($orderId);
+        $order = CustomOrder::findByRefOrFail($ref);
         $milestone = CustomOrderMilestone::where('custom_order_id', $order->id)->findOrFail($milestoneId);
 
         if ($order->status === 'completed') {
@@ -368,16 +394,16 @@ class CustomOrderController extends Controller
             }
         }
 
-        return redirect()->route('admin.custom-orders.show', $order->id)
+        return redirect($order->admin_show_url)
             ->with('success', "Milestone '{$milestone->title}' has been marked as Payment Returned / Refunded ({$order->currency} {$validated['refund_amount']}).");
     }
 
     /**
      * Admin toggle review visibility on the public frontend.
      */
-    public function toggleReviewFeatured(Request $request, int $orderId, int $reviewId): RedirectResponse
+    public function toggleReviewFeatured(Request $request, string|int $ref, int $reviewId): RedirectResponse
     {
-        $order = CustomOrder::findOrFail($orderId);
+        $order = CustomOrder::findByRefOrFail($ref);
         $review = Review::where('custom_order_id', $order->id)->findOrFail($reviewId);
 
         $review->update([
@@ -386,16 +412,16 @@ class CustomOrderController extends Controller
 
         $state = $review->is_featured ? 'Enabled (Visible to Visitors)' : 'Disabled (Hidden from Visitors)';
 
-        return redirect()->route('admin.custom-orders.show', $order->id)
+        return redirect($order->admin_show_url)
             ->with('success', "Review visibility updated: {$state}.");
     }
 
     /**
      * Admin updates agreed price, estimated budget, and currency.
      */
-    public function updateBudget(Request $request, int $id): RedirectResponse
+    public function updateBudget(Request $request, string|int $ref): RedirectResponse
     {
-        $order = CustomOrder::findOrFail($id);
+        $order = CustomOrder::findByRefOrFail($ref);
 
         if ($order->status === 'completed') {
             return back()->with('error', 'This project is Completed & Delivered. Pricing terms are finalized and locked.');
@@ -410,16 +436,21 @@ class CustomOrderController extends Controller
 
         $order->update($validated);
 
-        return redirect()->route('admin.custom-orders.show', $order->id)
+        return redirect($order->admin_show_url)
             ->with('success', 'Project budget & currency updated successfully!');
     }
 
     /**
      * Accept a pending custom order proposal and notify client.
      */
-    public function accept(Request $request, int $id): RedirectResponse
+    public function accept(Request $request, string|int $ref): RedirectResponse
     {
-        $order = CustomOrder::with('user')->findOrFail($id);
+        $order = CustomOrder::with('user')->where(function ($q) use ($ref) {
+            $q->where('order_number', $ref);
+            if (is_numeric($ref)) {
+                $q->orWhere('id', (int) $ref);
+            }
+        })->firstOrFail();
 
         $validated = $request->validate([
             'agreed_price' => 'required|numeric|min:1',
@@ -481,16 +512,21 @@ class CustomOrderController extends Controller
             Log::error('Failed sending CustomOrderAcceptedMail: ' . $e->getMessage());
         }
 
-        return redirect()->route('admin.custom-orders.show', $order->id)
+        return redirect($order->admin_show_url)
             ->with('success', "Order #{$order->order_number} has been Accepted! Acceptance notification email sent to client.");
     }
 
     /**
      * Deny a custom order proposal with feedback reason and notify client.
      */
-    public function deny(Request $request, int $id): RedirectResponse
+    public function deny(Request $request, string|int $ref): RedirectResponse
     {
-        $order = CustomOrder::with('user')->findOrFail($id);
+        $order = CustomOrder::with('user')->where(function ($q) use ($ref) {
+            $q->where('order_number', $ref);
+            if (is_numeric($ref)) {
+                $q->orWhere('id', (int) $ref);
+            }
+        })->firstOrFail();
 
         $request->validate([
             'rejection_reason' => 'required|string|max:1000',
@@ -511,16 +547,16 @@ class CustomOrderController extends Controller
             Log::error('Failed sending CustomOrderDeniedMail: ' . $e->getMessage());
         }
 
-        return redirect()->route('admin.custom-orders.show', $order->id)
+        return redirect($order->admin_show_url)
             ->with('warning', "Order #{$order->order_number} marked as Denied. Reason sent to client.");
     }
 
     /**
      * Delete a custom order.
      */
-    public function destroy(int $id): RedirectResponse
+    public function destroy(string|int $ref): RedirectResponse
     {
-        $order = CustomOrder::findOrFail($id);
+        $order = CustomOrder::findByRefOrFail($ref);
         $orderNumber = $order->order_number;
         $order->delete();
 
@@ -531,7 +567,7 @@ class CustomOrderController extends Controller
     /**
      * Display printable PDF Project Deal & Payment Settlement Report.
      */
-    public function showReport(int $id): Response
+    public function showReport(string|int $ref, ?string $title = null): Response
     {
         $order = CustomOrder::with([
             'user',
@@ -539,7 +575,12 @@ class CustomOrderController extends Controller
             'milestones' => function ($q) {
                 $q->orderBy('order', 'asc')->orderBy('id', 'asc');
             }
-        ])->findOrFail($id);
+        ])->where(function ($q) use ($ref) {
+            $q->where('order_number', $ref);
+            if (is_numeric($ref)) {
+                $q->orWhere('id', (int) $ref);
+            }
+        })->firstOrFail();
 
         $appSettings = AppSetting::getAllGrouped();
 

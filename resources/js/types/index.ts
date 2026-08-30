@@ -412,6 +412,9 @@ export interface CustomOrder {
         color: string;
         description: string;
     };
+    slug?: string;
+    customer_show_url?: string;
+    admin_show_url?: string;
     created_at: string;
     updated_at?: string;
 }

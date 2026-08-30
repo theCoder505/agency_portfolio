@@ -13,6 +13,7 @@ import {
     AlertTriangle,
     Coins,
 } from 'lucide-react';
+import { getCustomOrderUrl } from '@/lib/utils';
 
 interface CustomOrderIndexProps {
     orders: PaginatedData<CustomOrder>;
@@ -217,7 +218,7 @@ export default function CustomOrderIndex({
                                             </div>
 
                                             <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-cyan-400 transition-colors truncate">
-                                                <Link href={`/customer/custom-orders/${order.id}`}>
+                                                <Link href={order.customer_show_url || getCustomOrderUrl(order, 'customer')}>
                                                     {order.title}
                                                 </Link>
                                             </h2>
@@ -255,7 +256,7 @@ export default function CustomOrderIndex({
                                             </div>
 
                                             <Link
-                                                href={`/customer/custom-orders/${order.id}`}
+                                                href={order.customer_show_url || getCustomOrderUrl(order, 'customer')}
                                                 className="px-5 py-3 rounded-2xl bg-slate-900 dark:bg-slate-800 text-white hover:bg-indigo-600 dark:hover:bg-indigo-600 transition-all font-bold text-xs flex items-center space-x-2 shrink-0 shadow-xs"
                                             >
                                                 <span>Open Workspace</span>

@@ -51,13 +51,13 @@ Route::middleware('auth:web')->prefix('customer')->name('customer.')->group(func
     
     // Custom Orders & Milestones
     Route::get('/custom-orders', [\App\Http\Controllers\Customer\CustomOrderController::class, 'index'])->name('custom-orders.index');
-    Route::get('/custom-orders/{id}', [\App\Http\Controllers\Customer\CustomOrderController::class, 'show'])->name('custom-orders.show');
-    Route::post('/custom-orders/{id}/update-budget', [\App\Http\Controllers\Customer\CustomOrderController::class, 'updateBudget'])->name('custom-orders.update-budget');
-    Route::post('/custom-orders/{id}/milestones/{milestoneId}/submit-payment', [\App\Http\Controllers\Customer\CustomOrderController::class, 'submitMilestonePayment'])->name('custom-orders.milestones.submit-payment');
-    Route::post('/custom-orders/{id}/complete', [\App\Http\Controllers\Customer\CustomOrderController::class, 'complete'])->name('custom-orders.complete');
-    Route::post('/custom-orders/{id}/review', [\App\Http\Controllers\Customer\CustomOrderController::class, 'storeReview'])->name('custom-orders.review');
-    Route::get('/custom-orders/{id}/report', [\App\Http\Controllers\Customer\CustomOrderController::class, 'showReport'])->name('custom-orders.report');
-    Route::post('/custom-orders/{id}/cancel', [\App\Http\Controllers\Customer\CustomOrderController::class, 'cancel'])->name('custom-orders.cancel');
+    Route::get('/custom-orders/{ref}/{title?}', [\App\Http\Controllers\Customer\CustomOrderController::class, 'show'])->name('custom-orders.show');
+    Route::post('/custom-orders/{ref}/update-budget', [\App\Http\Controllers\Customer\CustomOrderController::class, 'updateBudget'])->name('custom-orders.update-budget');
+    Route::post('/custom-orders/{ref}/milestones/{milestoneId}/submit-payment', [\App\Http\Controllers\Customer\CustomOrderController::class, 'submitMilestonePayment'])->name('custom-orders.milestones.submit-payment');
+    Route::post('/custom-orders/{ref}/complete', [\App\Http\Controllers\Customer\CustomOrderController::class, 'complete'])->name('custom-orders.complete');
+    Route::post('/custom-orders/{ref}/review', [\App\Http\Controllers\Customer\CustomOrderController::class, 'storeReview'])->name('custom-orders.review');
+    Route::get('/custom-orders/{ref}/report/{title?}', [\App\Http\Controllers\Customer\CustomOrderController::class, 'showReport'])->name('custom-orders.report');
+    Route::post('/custom-orders/{ref}/cancel', [\App\Http\Controllers\Customer\CustomOrderController::class, 'cancel'])->name('custom-orders.cancel');
 
     Route::get('/invoices', [\App\Http\Controllers\Customer\InvoiceController::class, 'index'])->name('invoices.index');
     Route::get('/profile', [\App\Http\Controllers\Customer\ProfileController::class, 'index'])->name('profile.index');

@@ -16,9 +16,9 @@ class CustomOrderMilestoneController extends Controller
     /**
      * Store a new milestone for a custom order.
      */
-    public function store(Request $request, int $orderId): RedirectResponse
+    public function store(Request $request, string|int $ref): RedirectResponse
     {
-        $order = CustomOrder::findOrFail($orderId);
+        $order = CustomOrder::findByRefOrFail($ref);
 
         if ($order->status === 'completed') {
             return back()->with('error', 'Cannot add new milestones to a completed project.');
@@ -77,16 +77,21 @@ class CustomOrderMilestoneController extends Controller
             $order->update(['status' => 'in_progress']);
         }
 
-        return redirect()->route('admin.custom-orders.show', $order->id)
+        return redirect($order->admin_show_url)
             ->with('success', "Milestone '{$milestone->title}' added successfully!");
     }
 
     /**
      * Update an existing milestone (settling amount, payment details, deliverables, payment status).
      */
-    public function update(Request $request, int $orderId, int $milestoneId): RedirectResponse
+    public function update(Request $request, string|int $ref, int $milestoneId): RedirectResponse
     {
-        $order = CustomOrder::with('user')->findOrFail($orderId);
+        $order = CustomOrder::with('user')->where(function ($q) use ($ref) {
+            $q->where('order_number', $ref);
+            if (is_numeric($ref)) {
+                $q->orWhere('id', (int) $ref);
+            }
+        })->firstOrFail();
         $milestone = CustomOrderMilestone::where('custom_order_id', $order->id)->findOrFail($milestoneId);
 
         if ($order->status === 'completed') {
@@ -176,16 +181,21 @@ class CustomOrderMilestoneController extends Controller
             }
         }
 
-        return redirect()->route('admin.custom-orders.show', $order->id)
+        return redirect($order->admin_show_url)
             ->with('success', "Milestone '{$milestone->title}' updated successfully!");
     }
 
     /**
      * Fast 1-click status updater for milestone payment status.
      */
-    public function updateStatus(Request $request, int $orderId, int $milestoneId): RedirectResponse
+    public function updateStatus(Request $request, string|int $ref, int $milestoneId): RedirectResponse
     {
-        $order = CustomOrder::with('user')->findOrFail($orderId);
+        $order = CustomOrder::with('user')->where(function ($q) use ($ref) {
+            $q->where('order_number', $ref);
+            if (is_numeric($ref)) {
+                $q->orWhere('id', (int) $ref);
+            }
+        })->firstOrFail();
         $milestone = CustomOrderMilestone::where('custom_order_id', $order->id)->findOrFail($milestoneId);
 
         if ($order->status === 'completed') {
@@ -200,7 +210,7 @@ class CustomOrderMilestoneController extends Controller
         $previousStatus = $milestone->payment_status;
 
         if ($previousStatus === 'collected' && $newStatus === 'waiting-client-to-pay') {
-            return redirect()->route('admin.custom-orders.show', $order->id)
+            return redirect($order->admin_show_url)
                 ->with('error', "A completed/collected milestone cannot be reverted back to awaiting client payment!");
         }
 
@@ -238,16 +248,16 @@ class CustomOrderMilestoneController extends Controller
             }
         }
 
-        return redirect()->route('admin.custom-orders.show', $order->id)
+        return redirect($order->admin_show_url)
             ->with('success', "Milestone '{$milestone->title}' status set to: {$milestone->status_badge['label']}");
     }
 
     /**
      * Delete a milestone (Admin only, and only if still pending / waiting for client to pay).
      */
-    public function destroy(int $orderId, int $milestoneId): RedirectResponse
+    public function destroy(string|int $ref, int $milestoneId): RedirectResponse
     {
-        $order = CustomOrder::findOrFail($orderId);
+        $order = CustomOrder::findByRefOrFail($ref);
         $milestone = CustomOrderMilestone::where('custom_order_id', $order->id)->findOrFail($milestoneId);
 
         if ($order->status === 'completed') {
@@ -256,14 +266,14 @@ class CustomOrderMilestoneController extends Controller
 
         if ($milestone->payment_status !== 'waiting-client-to-pay') {
             $statusLabel = $milestone->status_badge['label'] ?? $milestone->payment_status;
-            return redirect()->route('admin.custom-orders.show', $order->id)
+            return redirect($order->admin_show_url)
                 ->with('error', "Milestone '{$milestone->title}' cannot be deleted because it is not pending (current status: {$statusLabel}).");
         }
 
         $title = $milestone->title;
         $milestone->delete();
 
-        return redirect()->route('admin.custom-orders.show', $order->id)
+        return redirect($order->admin_show_url)
             ->with('info', "Pending milestone '{$title}' removed.");
     }
 }

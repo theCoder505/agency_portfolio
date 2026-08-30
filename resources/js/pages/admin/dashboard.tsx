@@ -22,6 +22,7 @@ import {
     BookOpen,
     FolderGit2
 } from 'lucide-react';
+import { getCustomOrderUrl } from '@/lib/utils';
 
 // Chart.js imports
 import {
@@ -517,7 +518,7 @@ export default function Dashboard({
                                             </div>
 
                                             <Link
-                                                href={`/admin/custom-orders/${order.id}`}
+                                                href={order.admin_show_url || getCustomOrderUrl(order, 'admin')}
                                                 className="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-indigo-600 hover:text-white font-bold text-xs shrink-0 transition-colors"
                                             >
                                                 Manage

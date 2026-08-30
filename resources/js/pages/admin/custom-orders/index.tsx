@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { showConfirmDialog, showToast } from '@/lib/swal';
 import { WhatsAppIcon } from '@/components/icons/whatsapp-icon';
+import { getCustomOrderUrl } from '@/lib/utils';
 
 interface CustomOrderIndexProps {
     orders: PaginatedData<CustomOrder>;
@@ -38,6 +39,11 @@ interface CustomOrderIndexProps {
         pending_budgets?: number;
         total_collected: number;
         total_refunded?: number;
+        collected_by_currency?: {
+            USD?: number;
+            EUR?: number;
+            BDT?: number;
+        };
     };
     filters: {
         search: string;
@@ -161,14 +167,31 @@ export default function CustomOrderAdminIndex({
                         </p>
                     </div>
 
-                    <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs">
-                        <div className="flex items-center justify-between text-xs font-bold text-slate-500 dark:text-slate-400">
+                    <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between">
+                        <div className="flex items-center justify-between text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">
                             <span>Revenue Settled</span>
                             <DollarSign className="h-4 w-4 text-emerald-500" />
                         </div>
-                        <p className="text-xl font-black text-slate-900 dark:text-white mt-2 truncate">
-                            {currencySymbol}{kpis.total_collected.toLocaleString()}
-                        </p>
+                        <div className="space-y-1 mt-1">
+                            <div className="flex justify-between items-baseline text-xs">
+                                <span className="font-bold text-slate-400">USD:</span>
+                                <span className="font-black font-mono text-emerald-600 dark:text-emerald-400">
+                                    ${(kpis.collected_by_currency?.USD ?? 0).toLocaleString()}
+                                </span>
+                            </div>
+                            <div className="flex justify-between items-baseline text-xs">
+                                <span className="font-bold text-slate-400">EUR:</span>
+                                <span className="font-black font-mono text-blue-600 dark:text-cyan-400">
+                                    €{(kpis.collected_by_currency?.EUR ?? 0).toLocaleString()}
+                                </span>
+                            </div>
+                            <div className="flex justify-between items-baseline text-xs">
+                                <span className="font-bold text-slate-400">BDT:</span>
+                                <span className="font-black font-mono text-indigo-600 dark:text-indigo-400">
+                                    ৳{(kpis.collected_by_currency?.BDT ?? 0).toLocaleString()}
+                                </span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -241,12 +264,13 @@ export default function CustomOrderAdminIndex({
                                         const collected = order.total_collected_amount || 0;
                                         const milestonesCount = order.milestones?.length || 0;
                                         const progress = order.progress_percentage ?? (agreedPrice > 0 ? Math.min(100, Math.round((collected / agreedPrice) * 100)) : 0);
+                                        const orderShowUrl = order.admin_show_url || getCustomOrderUrl(order, 'admin');
 
                                         return (
                                             <tr key={order.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
                                                 {/* Order # */}
                                                 <td className="py-3.5 px-3 font-mono font-bold text-indigo-600 dark:text-cyan-400">
-                                                    <Link href={`/admin/custom-orders/${order.id}`} className="hover:underline">
+                                                    <Link href={orderShowUrl} className="hover:underline">
                                                         #{order.order_number}
                                                     </Link>
                                                     <span className="block text-[10px] font-normal text-slate-400">
@@ -254,8 +278,8 @@ export default function CustomOrderAdminIndex({
                                                     </span>
                                                     {order.has_pending_budget_request && (
                                                         <span className="inline-flex items-center space-x-1 px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-600 font-bold text-[10px] mt-1 border border-amber-500/20">
-                                                            <Coins className="h-3 w-3" />
-                                                            <span>Budget Req</span>
+                                                             <Coins className="h-3 w-3" />
+                                                             <span>Budget Req</span>
                                                         </span>
                                                     )}
                                                 </td>
@@ -263,7 +287,7 @@ export default function CustomOrderAdminIndex({
                                                 {/* Project Title */}
                                                 <td className="py-3.5 px-3">
                                                     <Link
-                                                        href={`/admin/custom-orders/${order.id}`}
+                                                        href={orderShowUrl}
                                                         className="font-bold text-slate-900 dark:text-white hover:text-indigo-600 dark:hover:text-cyan-400 transition-colors block max-w-xs truncate"
                                                     >
                                                         {order.title}
@@ -369,7 +393,7 @@ export default function CustomOrderAdminIndex({
                                                 <td className="py-3.5 px-3 text-right">
                                                     <div className="flex items-center justify-end space-x-1.5">
                                                         <Link
-                                                            href={`/admin/custom-orders/${order.id}`}
+                                                            href={orderShowUrl}
                                                             className="p-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 transition-colors"
                                                             title="Manage Order & Milestones"
                                                         >

@@ -28,6 +28,7 @@ import {
 } from 'lucide-react';
 import { showToast } from '@/lib/swal';
 import { formatCurrency } from '@/lib/formatters';
+import { getCustomOrderUrl } from '@/lib/utils';
 
 interface DashboardProps {
     kpis: {
@@ -262,7 +263,7 @@ export default function CustomerDashboard({
                                             </div>
 
                                             <Link
-                                                href={`/customer/custom-orders/${order.id}`}
+                                                href={order.customer_show_url || getCustomOrderUrl(order, 'customer')}
                                                 className="px-3.5 py-2 rounded-xl bg-slate-900 dark:bg-slate-800 text-white hover:bg-indigo-600 dark:hover:bg-indigo-600 transition-all font-bold text-xs flex items-center space-x-1"
                                             >
                                                 <span>Open Workspace</span>
