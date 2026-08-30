@@ -19,47 +19,12 @@ class ContactController extends Controller
      */
     public function index(Request $request): Response
     {
-        $search = $request->query('search', '');
-        $status = $request->query('status', 'all'); // all, unread, read, replied
-        $fromDate = $request->query('from_date');
-        $toDate = $request->query('to_date');
-
-        $query = Contact::query();
-
-        if (!empty($search)) {
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%")
-                  ->orWhere('subject', 'like', "%{$search}%")
-                  ->orWhere('message', 'like', "%{$search}%");
-            });
-        }
-
-        if ($status === 'unread') {
-            $query->where('is_read', false);
-        } elseif ($status === 'read') {
-            $query->where('is_read', true)->whereNull('replied_at');
-        } elseif ($status === 'replied') {
-            $query->whereNotNull('replied_at');
-        }
-
-        if ($fromDate && $toDate) {
-            $query->whereBetween('created_at', [$fromDate . ' 00:00:00', $toDate . ' 23:59:59']);
-        }
-
-        $contacts = $query->orderBy('is_read', 'asc')
+        $contacts = Contact::orderBy('is_read', 'asc')
             ->orderBy('created_at', 'desc')
-            ->paginate(12)
-            ->withQueryString();
+            ->get();
 
         return Inertia::render('admin/contacts/index', [
             'contacts' => $contacts,
-            'filters' => [
-                'search' => $search,
-                'status' => $status,
-                'from_date' => $fromDate,
-                'to_date' => $toDate,
-            ],
         ]);
     }
 

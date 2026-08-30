@@ -19,34 +19,12 @@ class CustomerController extends Controller
      */
     public function index(Request $request): Response
     {
-        $search = $request->query('search', '');
-        $status = $request->query('status', 'all');
-
-        $query = User::withCount(['subscriptions', 'invoices']);
-
-        if (!empty($search)) {
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%")
-                  ->orWhere('phone', 'like', "%{$search}%")
-                  ->orWhere('company_name', 'like', "%{$search}%");
-            });
-        }
-
-        if ($status !== 'all' && !empty($status)) {
-            $query->where('status', $status);
-        }
-
-        $customers = $query->orderBy('created_at', 'desc')
-            ->paginate(15)
-            ->withQueryString();
+        $customers = User::withCount(['subscriptions', 'invoices'])
+            ->orderBy('created_at', 'desc')
+            ->get();
 
         return Inertia::render('admin/customers/index', [
             'customers' => $customers,
-            'filters' => [
-                'search' => $search,
-                'status' => $status,
-            ],
         ]);
     }
 

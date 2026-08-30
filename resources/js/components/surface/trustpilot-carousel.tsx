@@ -28,7 +28,7 @@ export const TrustpilotCarousel: React.FC<TrustpilotCarouselProps> = ({ reviews,
     const currentReview = reviews[currentIndex];
 
     return (
-        <section className="relative py-24 bg-slate-900/40 dark:bg-slate-950/60 border-y border-slate-200/80 dark:border-slate-850 overflow-hidden">
+        <section className="relative py-24 bg-slate-900/40 dark:bg-slate-950/60 overflow-hidden">
             {/* Background ambient lighting */}
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-emerald-500/10 dark:bg-emerald-500/5 blur-[120px] rounded-full pointer-events-none"></div>
 

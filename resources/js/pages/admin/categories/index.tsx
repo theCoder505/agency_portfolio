@@ -1,19 +1,40 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { router, Link } from '@inertiajs/react';
 import { AdminLayout } from '@/layouts/admin-layout';
 import { Category, PaginatedData } from '@/types';
 import { Plus, Edit, Trash2, FolderTree, Search, Check, X, Layers } from 'lucide-react';
 import { confirmAction } from '@/lib/swal';
+import { Pagination } from '@/components/ui/pagination';
+import { useClientDataTable } from '@/hooks/use-client-data-table';
 
 interface CategoryIndexProps {
-    categories: PaginatedData<Category>;
-    filters: {
-        search?: string;
-    };
+    categories: Category[] | PaginatedData<Category>;
 }
 
-export default function CategoryIndex({ categories, filters }: CategoryIndexProps) {
-    const [search, setSearch] = useState(filters?.search ?? '');
+export default function CategoryIndex({ categories }: CategoryIndexProps) {
+    const allCategoriesList = useMemo(() => {
+        return Array.isArray(categories) ? categories : categories?.data || [];
+    }, [categories]);
+
+    // Instant Frontend Search & Pagination
+    const {
+        search,
+        setSearch,
+        clearSearch,
+        handleImmediateSearch,
+        currentPage,
+        setCurrentPage,
+        totalPages,
+        totalItems,
+        from,
+        to,
+        paginatedItems,
+    } = useClientDataTable<Category>({
+        items: allCategoriesList,
+        pageSize: 10,
+        searchFields: ['name', 'slug', 'description'],
+    });
+
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingCategory, setEditingCategory] = useState<Category | null>(null);
 
@@ -22,11 +43,6 @@ export default function CategoryIndex({ categories, filters }: CategoryIndexProp
     const [formDescription, setFormDescription] = useState('');
     const [formOrder, setFormOrder] = useState(0);
     const [formIsActive, setFormIsActive] = useState(true);
-
-    const handleSearch = (e: React.FormEvent) => {
-        e.preventDefault();
-        router.get('/admin/categories', { search }, { preserveState: true, preserveScroll: true });
-    };
 
     const openCreateModal = () => {
         setEditingCategory(null);
@@ -112,15 +128,24 @@ export default function CategoryIndex({ categories, filters }: CategoryIndexProp
 
                 {/* Search Bar */}
                 <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex items-center justify-between">
-                    <form onSubmit={handleSearch} className="relative w-full sm:w-80">
+                    <form onSubmit={handleImmediateSearch} className="relative w-full sm:w-80">
                         <Search className="absolute left-3.5 top-2.5 h-4 w-4 text-slate-400" />
                         <input
                             type="text"
-                            value={search ?? ''}
+                            value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             placeholder="Search categories..."
-                            className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                            className="w-full pl-10 pr-9 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500"
                         />
+                        {search && (
+                            <button
+                                type="button"
+                                onClick={clearSearch}
+                                className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                            >
+                                <X className="h-4 w-4" />
+                            </button>
+                        )}
                     </form>
                 </div>
 
@@ -138,14 +163,14 @@ export default function CategoryIndex({ categories, filters }: CategoryIndexProp
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                            {categories.data.length === 0 ? (
+                            {paginatedItems.length === 0 ? (
                                 <tr>
                                     <td colSpan={6} className="text-center py-12 text-slate-400">
                                         No categories found.
                                     </td>
                                 </tr>
                             ) : (
-                                categories.data.map((cat) => (
+                                paginatedItems.map((cat) => (
                                     <tr key={cat.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
                                         <td className="p-4 font-bold text-slate-900 dark:text-white text-sm">
                                             {cat.name}
@@ -195,64 +220,90 @@ export default function CategoryIndex({ categories, filters }: CategoryIndexProp
                             )}
                         </tbody>
                     </table>
+
+                    <Pagination
+                        from={from}
+                        to={to}
+                        total={totalItems}
+                        currentPage={currentPage}
+                        lastPage={totalPages}
+                        onPageChange={setCurrentPage}
+                        itemLabel="categories"
+                    />
                 </div>
             </div>
 
             {/* Create / Edit Category Modal */}
             {isModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4 animate-in fade-in">
-                    <div className="relative w-full max-w-lg rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 shadow-2xl space-y-5">
+                    <div className="relative w-full max-w-lg rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 shadow-2xl space-y-4">
                         <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
-                            <h3 className="text-lg font-black text-slate-900 dark:text-white">
-                                {editingCategory ? 'Edit Category' : 'Create Category'}
+                            <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                                {editingCategory ? 'Edit Category' : 'Create New Category'}
                             </h3>
                             <button
                                 onClick={() => setIsModalOpen(false)}
-                                className="p-1 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-white"
+                                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
                             >
                                 <X className="h-5 w-5" />
                             </button>
                         </div>
 
-                        <form onSubmit={handleSave} className="space-y-4">
-                            <div className="space-y-1.5">
-                                <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Name *</label>
+                        <form onSubmit={handleSave} className="space-y-4 text-xs">
+                            <div>
+                                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
+                                    Category Name *
+                                </label>
                                 <input
                                     type="text"
                                     required
                                     value={formName}
-                                    onChange={(e) => {
-                                        setFormName(e.target.value);
-                                        if (!editingCategory) {
-                                            setFormSlug(e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, '-'));
-                                        }
-                                    }}
-                                    className="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    onChange={(e) => setFormName(e.target.value)}
+                                    placeholder="e.g. Fintech, Healthcare, E-Commerce"
+                                    className="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
                                 />
                             </div>
 
-                            <div className="space-y-1.5">
-                                <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Slug</label>
+                            <div>
+                                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
+                                    URL Slug (Leave blank to auto-generate)
+                                </label>
                                 <input
                                     type="text"
                                     value={formSlug}
                                     onChange={(e) => setFormSlug(e.target.value)}
-                                    className="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    placeholder="e.g. fintech"
+                                    className="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-mono focus:outline-none focus:ring-1 focus:ring-indigo-500"
                                 />
                             </div>
 
-                            <div className="space-y-1.5">
-                                <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Description</label>
+                            <div>
+                                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
+                                    Description
+                                </label>
                                 <textarea
                                     rows={3}
                                     value={formDescription}
                                     onChange={(e) => setFormDescription(e.target.value)}
-                                    className="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    placeholder="Short summary of this portfolio category..."
+                                    className="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
                                 />
                             </div>
 
-                            <div className="flex items-center justify-between pt-2">
-                                <label className="flex items-center space-x-2 text-xs font-bold cursor-pointer">
+                            <div className="flex items-center space-x-6">
+                                <div>
+                                    <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
+                                        Display Order
+                                    </label>
+                                    <input
+                                        type="number"
+                                        value={formOrder}
+                                        onChange={(e) => setFormOrder(parseInt(e.target.value) || 0)}
+                                        className="w-24 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-900 dark:text-white"
+                                    />
+                                </div>
+
+                                <label className="flex items-center space-x-2 text-xs font-bold cursor-pointer mt-5">
                                     <input
                                         type="checkbox"
                                         checked={formIsActive}

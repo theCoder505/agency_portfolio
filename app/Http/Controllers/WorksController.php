@@ -15,35 +15,12 @@ class WorksController extends Controller
      */
     public function index(Request $request): Response
     {
-        $selectedCategory = $request->query('category', 'all');
-        $search = $request->query('search', '');
-        $type = $request->query('type', 'all');
-
-        $query = Portfolio::with('category')->where('is_active', true);
-
-        if ($selectedCategory !== 'all' && !empty($selectedCategory)) {
-            $query->whereHas('category', function ($q) use ($selectedCategory) {
-                $q->where('slug', $selectedCategory);
-            });
-        }
-
-        if (!empty($search)) {
-            $query->where(function ($q) use ($search) {
-                $q->where('title', 'like', "%{$search}%")
-                  ->orWhere('short_description', 'like', "%{$search}%")
-                  ->orWhere('client_name', 'like', "%{$search}%");
-            });
-        }
-
-        if ($type === 'direct_link' || $type === 'in_app_link') {
-            $query->where('item_type', $type);
-        }
-
-        $portfolios = $query->orderBy('is_featured', 'desc')
+        $portfolios = Portfolio::with('category')
+            ->where('is_active', true)
+            ->orderBy('is_featured', 'desc')
             ->orderBy('order')
             ->orderBy('created_at', 'desc')
-            ->paginate(12)
-            ->withQueryString();
+            ->get();
 
         $categories = Category::where('is_active', true)
             ->withCount(['portfolios' => function ($q) {
@@ -55,11 +32,6 @@ class WorksController extends Controller
         return Inertia::render('surface/works/index', [
             'portfolios' => $portfolios,
             'categories' => $categories,
-            'filters' => [
-                'category' => $selectedCategory,
-                'search' => $search,
-                'type' => $type,
-            ],
         ]);
     }
 

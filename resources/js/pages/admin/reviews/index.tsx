@@ -1,21 +1,51 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { router, Link } from '@inertiajs/react';
 import { AdminLayout } from '@/layouts/admin-layout';
 import { Review, PaginatedData } from '@/types';
-import { Plus, Edit, Trash2, Star, Search, ShieldCheck, Eye, EyeOff } from 'lucide-react';
+import { Plus, Edit, Trash2, Star, Search, ShieldCheck, Eye, EyeOff, X } from 'lucide-react';
 import { confirmAction, showToast } from '@/lib/swal';
+import { Pagination } from '@/components/ui/pagination';
+import { useClientDataTable } from '@/hooks/use-client-data-table';
 
 interface ReviewIndexProps {
-    reviews: PaginatedData<Review>;
-    filters: { search?: string; source?: string };
+    reviews: Review[] | PaginatedData<Review>;
 }
 
-export default function ReviewIndex({ reviews, filters }: ReviewIndexProps) {
-    const [search, setSearch] = useState(filters.search || '');
+export default function ReviewIndex({ reviews }: ReviewIndexProps) {
+    const [source, setSource] = useState('all');
 
-    const handleSearch = (e: React.FormEvent) => {
-        e.preventDefault();
-        router.get('/admin/reviews', { search }, { preserveState: true, preserveScroll: true });
+    const allReviewsList = useMemo(() => {
+        return Array.isArray(reviews) ? reviews : reviews?.data || [];
+    }, [reviews]);
+
+    // Source filter
+    const filteredBySource = useMemo(() => {
+        if (source === 'all') return allReviewsList;
+        return allReviewsList.filter((r) => r.source === source);
+    }, [allReviewsList, source]);
+
+    // Instant Frontend Search & Pagination
+    const {
+        search,
+        setSearch,
+        clearSearch,
+        handleImmediateSearch,
+        currentPage,
+        setCurrentPage,
+        totalPages,
+        totalItems,
+        from,
+        to,
+        paginatedItems,
+    } = useClientDataTable<Review>({
+        items: filteredBySource,
+        pageSize: 10,
+        searchFields: ['author_name', 'company', 'author_role', 'review_title', 'review_text', 'source'],
+    });
+
+    const handleSourceFilter = (newSource: string) => {
+        setSource(newSource);
+        setCurrentPage(1);
     };
 
     const handleToggleFeatured = (review: Review) => {
@@ -64,6 +94,45 @@ export default function ReviewIndex({ reviews, filters }: ReviewIndexProps) {
                     </Link>
                 </div>
 
+                {/* Filters & Search Bar */}
+                <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3">
+                    <form onSubmit={handleImmediateSearch} className="relative w-full sm:w-80">
+                        <Search className="absolute left-3.5 top-2.5 h-4 w-4 text-slate-400" />
+                        <input
+                            type="text"
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            placeholder="Search author, company, review text..."
+                            className="w-full pl-10 pr-9 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                        />
+                        {search && (
+                            <button
+                                type="button"
+                                onClick={clearSearch}
+                                className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                            >
+                                <X className="h-4 w-4" />
+                            </button>
+                        )}
+                    </form>
+
+                    <div className="flex items-center space-x-1 p-1 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs self-stretch sm:self-auto justify-center">
+                        {['all', 'trustpilot', 'clutch', 'google', 'direct'].map((st) => (
+                            <button
+                                key={st}
+                                onClick={() => handleSourceFilter(st)}
+                                className={`px-3 py-1 rounded-lg font-bold capitalize transition-all ${
+                                    source === st
+                                        ? 'bg-indigo-600 text-white shadow-xs'
+                                        : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                                }`}
+                            >
+                                {st}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
                 {/* Table */}
                 <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm overflow-hidden">
                     <table className="w-full text-left text-xs">
@@ -78,14 +147,14 @@ export default function ReviewIndex({ reviews, filters }: ReviewIndexProps) {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                            {reviews.data.length === 0 ? (
+                            {paginatedItems.length === 0 ? (
                                 <tr>
                                     <td colSpan={6} className="text-center py-12 text-slate-400">
                                         No reviews found.
                                     </td>
                                 </tr>
                             ) : (
-                                reviews.data.map((review) => (
+                                paginatedItems.map((review) => (
                                     <tr key={review.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
                                         <td className="p-4">
                                             <div className="flex items-center space-x-3">
@@ -177,6 +246,16 @@ export default function ReviewIndex({ reviews, filters }: ReviewIndexProps) {
                             )}
                         </tbody>
                     </table>
+
+                    <Pagination
+                        from={from}
+                        to={to}
+                        total={totalItems}
+                        currentPage={currentPage}
+                        lastPage={totalPages}
+                        onPageChange={setCurrentPage}
+                        itemLabel="reviews"
+                    />
                 </div>
             </div>
         </AdminLayout>

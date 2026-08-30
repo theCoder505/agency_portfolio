@@ -19,9 +19,14 @@ import {
     ArrowRight,
     Lock,
     Eye,
-    EyeOff
+    EyeOff,
+    Search,
+    X,
+    LayoutDashboard
 } from 'lucide-react';
 import { showToast } from '@/lib/swal';
+import { useClientDataTable } from '@/hooks/use-client-data-table';
+import { Pagination } from '@/components/ui/pagination';
 
 interface SubscriptionShowProps {
     subscription: SaasSubscription;
@@ -41,15 +46,22 @@ export default function SubscriptionShow({
         currency_symbol: '৳',
         currency_code: 'BDT',
         bkash_number: '01712-345678',
-        bkash_instructions: '',
+        bkash_instructions: 'Send money to our Merchant / Personal bKash number.',
         nagad_number: '01812-345678',
-        nagad_instructions: '',
+        nagad_instructions: 'Send money to our Personal Nagad number.',
     },
 }: SubscriptionShowProps) {
     const currency = paymentSettings?.currency_symbol || '৳';
     const [isRenewModalOpen, setIsRenewModalOpen] = useState(false);
     const [copiedLabel, setCopiedLabel] = useState<string | null>(null);
-    const [showCredentials, setShowCredentials] = useState(true);
+    const [showCredentials, setShowCredentials] = useState(false);
+
+    const invoicesList = subscription?.invoices || [];
+    const invsTable = useClientDataTable<SubscriptionInvoice>({
+        data: invoicesList,
+        searchFields: (inv) => [inv.invoice_number, inv.type, inv.payment_method, inv.transaction_id, inv.status],
+        initialPageSize: 5,
+    });
 
     const { data, setData, post, processing, errors, reset } = useForm({
         billing_cycle: subscription.billing_cycle,
@@ -166,50 +178,127 @@ export default function SubscriptionShow({
                 </div>
 
                 {/* DOMAIN & DEPLOYMENT CONNECTIONS */}
-                <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-6 sm:p-7 shadow-sm space-y-4">
-                    <div className="flex items-center space-x-2">
-                        <Globe className="h-5 w-5 text-indigo-600 dark:text-cyan-400" />
-                        <h2 className="text-base font-bold text-slate-900 dark:text-white">
-                            Deployment Domains & Access Endpoints
-                        </h2>
-                    </div>
+                {(() => {
+                    const surfaceUrl = subscription.domain
+                        ? `https://${subscription.domain}`
+                        : subscription.subdomain
+                        ? `https://${subscription.subdomain}.codeventure.app`
+                        : null;
+                    const adminPanelUrl = surfaceUrl ? `${surfaceUrl}/admin` : null;
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/70 border border-slate-200/60 dark:border-slate-800 space-y-2">
-                            <div className="text-xs font-semibold text-slate-500">Custom Domain:</div>
-                            {subscription.domain ? (
-                                <a
-                                    href={`https://${subscription.domain}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="inline-flex items-center space-x-2 font-mono text-sm font-bold text-indigo-600 dark:text-cyan-400 hover:underline"
-                                >
-                                    <span>https://{subscription.domain}</span>
-                                    <ExternalLink className="h-3.5 w-3.5" />
-                                </a>
-                            ) : (
-                                <span className="text-xs text-slate-400 italic">No custom domain assigned yet.</span>
-                            )}
-                        </div>
+                    return (
+                        <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-6 sm:p-7 shadow-sm space-y-6">
+                            <div className="flex items-center space-x-2 border-b border-slate-100 dark:border-slate-800 pb-4">
+                                <Globe className="h-5 w-5 text-indigo-600 dark:text-cyan-400" />
+                                <div>
+                                    <h2 className="text-base font-bold text-slate-900 dark:text-white">
+                                        Live Application Endpoints & Portals
+                                    </h2>
+                                    <p className="text-xs text-slate-400">
+                                        Direct access links for your live public surface website and management admin panel.
+                                    </p>
+                                </div>
+                            </div>
 
-                        <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/70 border border-slate-200/60 dark:border-slate-800 space-y-2">
-                            <div className="text-xs font-semibold text-slate-500">Managed Subdomain:</div>
-                            {subscription.subdomain ? (
-                                <a
-                                    href={`https://${subscription.subdomain}.codeventure.app`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="inline-flex items-center space-x-2 font-mono text-sm font-bold text-indigo-600 dark:text-cyan-400 hover:underline"
-                                >
-                                    <span>https://{subscription.subdomain}.codeventure.app</span>
-                                    <ExternalLink className="h-3.5 w-3.5" />
-                                </a>
-                            ) : (
-                                <span className="text-xs text-slate-400 italic">Subdomain will be generated upon activation.</span>
-                            )}
+                            {/* 2 Primary Access Cards: Surface Website & Website Admin Panel */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                {/* Surface Website Card */}
+                                <div className="p-5 rounded-2xl bg-indigo-50/60 dark:bg-indigo-950/30 border border-indigo-200/70 dark:border-indigo-800/70 space-y-4 flex flex-col justify-between">
+                                    <div className="space-y-2">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center space-x-2 text-indigo-600 dark:text-cyan-400 font-bold text-xs">
+                                                <Globe className="h-4 w-4" />
+                                                <span>Surface Website (Public)</span>
+                                            </div>
+                                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-cyan-300">
+                                                Frontend
+                                            </span>
+                                        </div>
+                                        <p className="text-xs text-slate-600 dark:text-slate-400">
+                                            Public storefront and customer-facing web application.
+                                        </p>
+                                        <div className="font-mono text-xs font-bold text-slate-800 dark:text-slate-200 break-all bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-indigo-100 dark:border-indigo-900/50">
+                                            {surfaceUrl || 'Pending activation by admin'}
+                                        </div>
+                                    </div>
+
+                                    {surfaceUrl ? (
+                                        <div className="flex items-center space-x-2 pt-2">
+                                            <a
+                                                href={surfaceUrl}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="flex-1 py-2.5 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center justify-center space-x-1.5 shadow-sm transition-all"
+                                            >
+                                                <span>Open Surface Website</span>
+                                                <ExternalLink className="h-3.5 w-3.5" />
+                                            </a>
+                                            <button
+                                                type="button"
+                                                onClick={() => handleCopy(surfaceUrl, 'Surface Website URL')}
+                                                className="p-2.5 rounded-xl border border-indigo-200 dark:border-indigo-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-950 transition-colors"
+                                                title="Copy Surface URL"
+                                            >
+                                                {copiedLabel === 'Surface Website URL' ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <div className="text-[11px] text-amber-500 font-semibold italic">
+                                            URL will be ready once your order is activated.
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Website Admin Panel Card */}
+                                <div className="p-5 rounded-2xl bg-slate-900 dark:bg-slate-950 border border-slate-800 text-white space-y-4 flex flex-col justify-between shadow-md">
+                                    <div className="space-y-2">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center space-x-2 text-cyan-400 font-bold text-xs">
+                                                <LayoutDashboard className="h-4 w-4" />
+                                                <span>Website Admin Panel</span>
+                                            </div>
+                                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700">
+                                                Backend Portal
+                                            </span>
+                                        </div>
+                                        <p className="text-xs text-slate-300">
+                                            Administrative dashboard for managing products, orders, and content.
+                                        </p>
+                                        <div className="font-mono text-xs font-bold text-cyan-300 break-all bg-slate-950/80 p-2.5 rounded-xl border border-slate-800">
+                                            {adminPanelUrl || 'Pending activation by admin'}
+                                        </div>
+                                    </div>
+
+                                    {adminPanelUrl ? (
+                                        <div className="flex items-center space-x-2 pt-2">
+                                            <a
+                                                href={adminPanelUrl}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="flex-1 py-2.5 px-3 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs flex items-center justify-center space-x-1.5 shadow-sm transition-all"
+                                            >
+                                                <span>Open Admin Panel</span>
+                                                <ExternalLink className="h-3.5 w-3.5" />
+                                            </a>
+                                            <button
+                                                type="button"
+                                                onClick={() => handleCopy(adminPanelUrl, 'Admin Panel URL')}
+                                                className="p-2.5 rounded-xl border border-slate-800 bg-slate-800/80 text-slate-300 hover:bg-slate-700 transition-colors"
+                                                title="Copy Admin URL"
+                                            >
+                                                {copiedLabel === 'Admin Panel URL' ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <div className="text-[11px] text-slate-400 italic">
+                                            Admin login link will be generated upon activation.
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </div>
+                    );
+                })()}
 
                 {/* ACCESS CREDENTIALS & ADMIN SETUP NOTES */}
                 <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-6 sm:p-7 shadow-sm space-y-4">
@@ -258,54 +347,92 @@ export default function SubscriptionShow({
 
                 {/* INVOICE PAYMENT HISTORY */}
                 <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-6 sm:p-7 shadow-sm space-y-4">
-                    <div className="flex items-center space-x-2">
-                        <Receipt className="h-5 w-5 text-indigo-600 dark:text-cyan-400" />
-                        <h2 className="text-base font-bold text-slate-900 dark:text-white">
-                            Invoice & Payment History for this Order
-                        </h2>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div className="flex items-center space-x-2">
+                            <Receipt className="h-5 w-5 text-indigo-600 dark:text-cyan-400" />
+                            <h2 className="text-base font-bold text-slate-900 dark:text-white">
+                                Invoice & Payment History ({invoicesList.length})
+                            </h2>
+                        </div>
+
+                        {invoicesList.length > 0 && (
+                            <div className="relative w-full sm:w-64">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+                                <input
+                                    type="text"
+                                    value={invsTable.search}
+                                    onChange={(e) => invsTable.setSearch(e.target.value)}
+                                    placeholder="Search invoices..."
+                                    className="w-full pl-8 pr-8 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-xs focus:ring-1 focus:ring-indigo-500"
+                                />
+                                {invsTable.search && (
+                                    <button
+                                        type="button"
+                                        onClick={invsTable.clearSearch}
+                                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                                    >
+                                        <X className="h-3.5 w-3.5" />
+                                    </button>
+                                )}
+                            </div>
+                        )}
                     </div>
 
-                    {(!subscription.invoices || subscription.invoices.length === 0) ? (
+                    {invoicesList.length === 0 ? (
                         <div className="text-xs text-slate-400 py-4 text-center">No invoices recorded yet.</div>
+                    ) : invsTable.paginatedData.length === 0 ? (
+                        <div className="text-xs text-slate-400 py-4 text-center">No invoices matching &ldquo;{invsTable.search}&rdquo;</div>
                     ) : (
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left text-xs">
-                                <thead>
-                                    <tr className="border-b border-slate-100 dark:border-slate-800 text-slate-400 font-bold uppercase text-[10px]">
-                                        <th className="pb-3">Invoice Number</th>
-                                        <th className="pb-3">Type</th>
-                                        <th className="pb-3">Amount</th>
-                                        <th className="pb-3">Method</th>
-                                        <th className="pb-3">Transaction ID</th>
-                                        <th className="pb-3">Status</th>
-                                        <th className="pb-3 text-right">Date</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                                    {subscription.invoices.map((inv) => (
-                                        <tr key={inv.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
-                                            <td className="py-3 font-mono font-bold text-indigo-600 dark:text-cyan-400">{inv.invoice_number}</td>
-                                            <td className="py-3 capitalize">{inv.type}</td>
-                                            <td className="py-3 font-bold">{currency}{inv.amount.toLocaleString()}</td>
-                                            <td className="py-3 uppercase font-mono">{inv.payment_method}</td>
-                                            <td className="py-3 font-mono">{inv.transaction_id || 'N/A'}</td>
-                                            <td className="py-3">
-                                                <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
-                                                    inv.status === 'paid'
-                                                        ? 'bg-emerald-500/10 text-emerald-500'
-                                                        : inv.status === 'pending'
-                                                        ? 'bg-amber-500/10 text-amber-500'
-                                                        : 'bg-rose-500/10 text-rose-500'
-                                                }`}>
-                                                    {inv.status.toUpperCase()}
-                                                </span>
-                                            </td>
-                                            <td className="py-3 text-right text-slate-400">{new Date(inv.created_at).toLocaleDateString()}</td>
+                        <>
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left text-xs">
+                                    <thead>
+                                        <tr className="border-b border-slate-100 dark:border-slate-800 text-slate-400 font-bold uppercase text-[10px]">
+                                            <th className="pb-3">Invoice Number</th>
+                                            <th className="pb-3">Type</th>
+                                            <th className="pb-3">Amount</th>
+                                            <th className="pb-3">Method</th>
+                                            <th className="pb-3">Transaction ID</th>
+                                            <th className="pb-3">Status</th>
+                                            <th className="pb-3 text-right">Date</th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                        {invsTable.paginatedData.map((inv) => (
+                                            <tr key={inv.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                                                <td className="py-3 font-mono font-bold text-indigo-600 dark:text-cyan-400">{inv.invoice_number}</td>
+                                                <td className="py-3 capitalize">{inv.type}</td>
+                                                <td className="py-3 font-bold">{currency}{inv.amount.toLocaleString()}</td>
+                                                <td className="py-3 uppercase font-mono">{inv.payment_method}</td>
+                                                <td className="py-3 font-mono">{inv.transaction_id || 'N/A'}</td>
+                                                <td className="py-3">
+                                                    <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
+                                                        inv.status === 'paid'
+                                                            ? 'bg-emerald-500/10 text-emerald-500'
+                                                            : inv.status === 'pending'
+                                                            ? 'bg-amber-500/10 text-amber-500'
+                                                            : 'bg-rose-500/10 text-rose-500'
+                                                    }`}>
+                                                        {inv.status.toUpperCase()}
+                                                    </span>
+                                                </td>
+                                                <td className="py-3 text-right text-slate-400">{new Date(inv.created_at).toLocaleDateString()}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <Pagination
+                                currentPage={invsTable.currentPage}
+                                totalPages={invsTable.totalPages}
+                                total={invsTable.total}
+                                from={invsTable.from}
+                                to={invsTable.to}
+                                onPageChange={invsTable.setCurrentPage}
+                                itemLabel="invoices"
+                            />
+                        </>
                     )}
                 </div>
             </div>

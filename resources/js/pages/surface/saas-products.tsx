@@ -18,7 +18,8 @@ import {
     Shield,
     Headphones,
     ArrowUpRight,
-    Package
+    Package,
+    ChevronDown
 } from 'lucide-react';
 
 interface SaasProductsPageProps {
@@ -41,6 +42,7 @@ export default function SaasProductsPage({
 }: SaasProductsPageProps) {
     const { app_settings } = usePage<SharedData>().props;
     const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
+    const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
 
     const brandName = app_settings?.brand_name || 'CodeVenture Tech';
     const currency = paymentSettings.currency_symbol || '৳';
@@ -95,7 +97,7 @@ export default function SaasProductsPage({
         };
     };
 
-    const faqs = [
+    const defaultFaqs = [
         {
             q: 'How do I choose between Basic, Standard, and Premium packages?',
             a: 'Click on any product to view the full product specifications and compare features across the Basic, Standard, and Premium tiers. Each package is tailored for different business scales, from single-outlet startups to large enterprises.',
@@ -113,6 +115,18 @@ export default function SaasProductsPage({
             a: 'Yes, you can upgrade from Basic to Standard or Premium anytime directly from your customer portal dashboard or by reaching out to our dedicated support squad.',
         },
     ];
+
+    let faqs = defaultFaqs;
+    if (app_settings?.faqs_json) {
+        try {
+            const parsed = JSON.parse(app_settings.faqs_json);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+                faqs = parsed;
+            }
+        } catch (e) {
+            // fallback
+        }
+    }
 
     return (
         <SurfaceLayout
@@ -328,7 +342,7 @@ export default function SaasProductsPage({
             </section>
 
             {/* PAYMENT TRUST & METHOD HIGHLIGHTS */}
-            <section className="py-16 bg-white dark:bg-slate-900 border-y border-slate-200/80 dark:border-slate-800">
+            <section className="py-16 bg-white dark:bg-slate-900">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                         <div className="flex items-start space-x-4 p-6 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/60 dark:border-slate-800">
@@ -371,36 +385,61 @@ export default function SaasProductsPage({
             </section>
 
             {/* FREQUENTLY ASKED QUESTIONS */}
-            <section className="py-24 bg-slate-50/50 dark:bg-slate-950/30">
-                <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="text-center space-y-3 mb-16">
-                        <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-cyan-400 text-xs font-bold">
-                            <HelpCircle className="h-3.5 w-3.5" />
-                            <span>Transparent Answers</span>
-                        </div>
-                        <h2 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white">
-                            Frequently Asked Questions
-                        </h2>
-                    </div>
-
-                    <div className="space-y-4">
-                        {faqs.map((faq, idx) => (
-                            <div
-                                key={idx}
-                                className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-6 shadow-sm"
-                            >
-                                <h3 className="text-base font-bold text-slate-900 dark:text-white mb-2 flex items-center space-x-2">
-                                    <span className="h-2 w-2 rounded-full bg-indigo-500" />
-                                    <span>{faq.q}</span>
-                                </h3>
-                                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed pl-4">
-                                    {faq.a}
-                                </p>
+            {faqs.length > 0 && (
+                <section id="faq" className="py-24 bg-slate-50/50 dark:bg-slate-950/30">
+                    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <div className="text-center max-w-2xl mx-auto mb-16" data-aos="fade-up">
+                            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-cyan-400 text-xs font-bold mb-3">
+                                <HelpCircle className="h-3.5 w-3.5" />
+                                <span>Transparent Answers</span>
                             </div>
-                        ))}
+                            <h2 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white">
+                                Frequently Asked Questions
+                            </h2>
+                            <p className="mt-3 text-sm text-slate-600 dark:text-slate-400">
+                                Common questions about our SaaS packages, custom domains, bKash & Nagad billing, and cloud deployment.
+                            </p>
+                        </div>
+
+                        <div className="space-y-4">
+                            {faqs.map((faq, idx) => {
+                                const isOpen = openFaqIndex === idx;
+                                return (
+                                    <div
+                                        key={idx}
+                                        data-aos="fade-up"
+                                        data-aos-delay={`${(idx % 5) * 60}`}
+                                        className={`rounded-2xl transition-all duration-200 overflow-hidden border ${
+                                            isOpen
+                                                ? 'bg-white dark:bg-slate-900 border-indigo-500/50 shadow-lg shadow-indigo-500/5'
+                                                : 'bg-white/70 dark:bg-slate-900/60 border-slate-200/80 dark:border-slate-800/80 hover:border-slate-300 dark:hover:border-slate-700'
+                                        }`}
+                                    >
+                                        <button
+                                            type="button"
+                                            onClick={() => setOpenFaqIndex(isOpen ? null : idx)}
+                                            className="w-full px-6 py-5 text-left flex items-center justify-between gap-4"
+                                        >
+                                            <span className="font-bold text-sm sm:text-base text-slate-900 dark:text-white">
+                                                {faq.q}
+                                            </span>
+                                            <div className={`p-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 transition-transform duration-200 flex-shrink-0 ${isOpen ? 'rotate-180 bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-cyan-400' : ''}`}>
+                                                <ChevronDown className="h-4 w-4" />
+                                            </div>
+                                        </button>
+
+                                        {isOpen && (
+                                            <div className="px-6 pb-6 pt-1 text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed border-t border-slate-100 dark:border-slate-800/60 animate-in fade-in">
+                                                {faq.a}
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
                     </div>
-                </div>
-            </section>
+                </section>
+            )}
         </SurfaceLayout>
     );
 }

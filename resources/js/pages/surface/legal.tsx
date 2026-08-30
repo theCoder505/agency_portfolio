@@ -14,7 +14,7 @@ export default function Legal({ title, content }: LegalPageProps) {
             title={title}
             description={`CodeVenture Tech legal compliance and ${title.toLowerCase()}.`}
         >
-            <div className="py-12 bg-slate-900/30 dark:bg-slate-950/60 border-b border-slate-200/80 dark:border-slate-850">
+            <div className="py-12 bg-slate-900/30 dark:bg-slate-950/60">
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                     <Link
                         href="/"

@@ -1,72 +1,103 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import { AdminLayout } from '@/layouts/admin-layout';
 import { CustomOrder, PaginatedData } from '@/types';
 import {
     FolderGit2,
+    Plus,
     PlusCircle,
     Search,
+    Edit2,
+    Trash2,
+    Eye,
     Clock,
     CheckCircle2,
-    AlertCircle,
-    Eye,
-    Trash2,
-    DollarSign,
-    Layers,
-    Calendar,
-    User,
-    Mail,
-    ArrowUpRight,
-    Filter,
-    XCircle,
     AlertTriangle,
+    Layers,
+    DollarSign,
+    Calendar,
+    ArrowRight,
+    TrendingUp,
+    FileText,
+    Percent,
+    ExternalLink,
+    Briefcase,
+    ShieldAlert,
     Coins,
-    RotateCcw
+    Mail,
+    X
 } from 'lucide-react';
 import { showConfirmDialog, showToast } from '@/lib/swal';
+import { Pagination } from '@/components/ui/pagination';
+import { useClientDataTable } from '@/hooks/use-client-data-table';
 import { WhatsAppIcon } from '@/components/icons/whatsapp-icon';
 import { getCustomOrderUrl } from '@/lib/utils';
 
 interface CustomOrderIndexProps {
-    orders: PaginatedData<CustomOrder>;
+    orders: CustomOrder[] | PaginatedData<CustomOrder>;
     kpis: {
         total: number;
         pending: number;
         in_progress: number;
         completed: number;
-        denied: number;
         overdue?: number;
-        pending_budgets?: number;
-        total_collected: number;
-        total_refunded?: number;
+        denied: number;
+        total_agreed?: number;
+        total_collected?: number;
         collected_by_currency?: {
+            BDT?: number;
             USD?: number;
             EUR?: number;
-            BDT?: number;
         };
     };
-    filters: {
-        search: string;
-        status: string;
-    };
-    currencySymbol: string;
+    currencySymbol?: string;
 }
 
 export default function CustomOrderAdminIndex({
     orders,
     kpis,
-    filters,
     currencySymbol = '৳',
 }: CustomOrderIndexProps) {
-    const [search, setSearch] = useState(filters.search || '');
+    const [activeStatus, setActiveStatus] = useState('all');
 
-    const handleSearch = (e: React.FormEvent) => {
-        e.preventDefault();
-        router.get('/admin/custom-orders', { search, status: filters.status }, { preserveState: true });
-    };
+    const allOrdersList = useMemo(() => {
+        return Array.isArray(orders) ? orders : orders?.data || [];
+    }, [orders]);
+
+    // Status filter
+    const filteredByStatus = useMemo(() => {
+        if (activeStatus === 'all') return allOrdersList;
+        if (activeStatus === 'in_progress') {
+            return allOrdersList.filter((o) => o.status === 'accepted' || o.status === 'in_progress');
+        }
+        if (activeStatus === 'overdue') {
+            return allOrdersList.filter((o) => o.is_late && !['completed', 'cancelled', 'denied'].includes(o.status));
+        }
+        return allOrdersList.filter((o) => o.status === activeStatus);
+    }, [allOrdersList, activeStatus]);
+
+    // Instant Frontend Search & Pagination
+    const {
+        search,
+        setSearch,
+        clearSearch,
+        handleImmediateSearch,
+        currentPage,
+        setCurrentPage,
+        totalPages,
+        totalItems,
+        from,
+        to,
+        paginatedItems,
+    } = useClientDataTable<CustomOrder>({
+        items: filteredByStatus,
+        pageSize: 15,
+        searchFields: ['order_number', 'title', 'category', 'requirements', 'client_email', 'client_whatsapp', 'user.name', 'user.email', 'user.phone'],
+    });
 
     const handleStatusFilter = (st: string) => {
-        router.get('/admin/custom-orders', { search: filters.search, status: st }, { preserveState: true });
+        setActiveStatus(st);
+        setCurrentPage(1);
     };
 
     const handleDelete = async (order: CustomOrder) => {
@@ -76,17 +107,17 @@ export default function CustomOrderAdminIndex({
             'Delete Order'
         );
         if (confirmed) {
-            router.delete(`/admin/custom-orders/${order.id}`);
+            router.delete(`/admin/custom-orders/${order.id}`, { preserveScroll: true });
         }
     };
 
     const statusTabs = [
-        { label: 'All Orders', value: 'all', count: kpis.total },
-        { label: 'Pending Review', value: 'pending', count: kpis.pending, badgeColor: 'bg-amber-500 text-slate-950' },
-        { label: 'Active Development', value: 'in_progress', count: kpis.in_progress },
-        { label: 'Completed', value: 'completed', count: kpis.completed },
-        { label: 'Overdue / Late', value: 'overdue', count: kpis.overdue || 0, badgeColor: 'bg-rose-500 text-white' },
-        { label: 'Denied', value: 'denied', count: kpis.denied },
+        { label: 'All Orders', value: 'all', count: kpis?.total ?? allOrdersList.length },
+        { label: 'Pending Review', value: 'pending', count: kpis?.pending ?? allOrdersList.filter(o => o.status === 'pending').length, badgeColor: 'bg-amber-500 text-slate-950' },
+        { label: 'Active Development', value: 'in_progress', count: kpis?.in_progress ?? allOrdersList.filter(o => o.status === 'accepted' || o.status === 'in_progress').length },
+        { label: 'Completed', value: 'completed', count: kpis?.completed ?? allOrdersList.filter(o => o.status === 'completed').length },
+        { label: 'Overdue / Late', value: 'overdue', count: kpis?.overdue || 0, badgeColor: 'bg-rose-500 text-white' },
+        { label: 'Denied', value: 'denied', count: kpis?.denied ?? allOrdersList.filter(o => o.status === 'denied').length },
     ];
 
     return (
@@ -123,7 +154,7 @@ export default function CustomOrderAdminIndex({
                             <FolderGit2 className="h-4 w-4 text-indigo-500" />
                         </div>
                         <p className="text-2xl font-black text-slate-900 dark:text-white mt-2">
-                            {kpis.total}
+                            {kpis?.total ?? allOrdersList.length}
                         </p>
                     </div>
 
@@ -133,7 +164,7 @@ export default function CustomOrderAdminIndex({
                             <Clock className="h-4 w-4 text-amber-500" />
                         </div>
                         <p className="text-2xl font-black text-amber-500 mt-2">
-                            {kpis.pending}
+                            {kpis?.pending ?? 0}
                         </p>
                     </div>
 
@@ -143,7 +174,7 @@ export default function CustomOrderAdminIndex({
                             <Layers className="h-4 w-4 text-blue-500" />
                         </div>
                         <p className="text-2xl font-black text-blue-500 mt-2">
-                            {kpis.in_progress}
+                            {kpis?.in_progress ?? 0}
                         </p>
                     </div>
 
@@ -153,7 +184,7 @@ export default function CustomOrderAdminIndex({
                             <AlertTriangle className="h-4 w-4 text-rose-500" />
                         </div>
                         <p className="text-2xl font-black text-rose-500 mt-2">
-                            {kpis.overdue || 0}
+                            {kpis?.overdue || 0}
                         </p>
                     </div>
 
@@ -163,7 +194,7 @@ export default function CustomOrderAdminIndex({
                             <CheckCircle2 className="h-4 w-4 text-emerald-500" />
                         </div>
                         <p className="text-2xl font-black text-emerald-500 mt-2">
-                            {kpis.completed}
+                            {kpis?.completed ?? 0}
                         </p>
                     </div>
 
@@ -176,19 +207,19 @@ export default function CustomOrderAdminIndex({
                             <div className="flex justify-between items-baseline text-xs">
                                 <span className="font-bold text-slate-400">USD:</span>
                                 <span className="font-black font-mono text-emerald-600 dark:text-emerald-400">
-                                    ${(kpis.collected_by_currency?.USD ?? 0).toLocaleString()}
+                                    ${(kpis?.collected_by_currency?.USD ?? 0).toLocaleString()}
                                 </span>
                             </div>
                             <div className="flex justify-between items-baseline text-xs">
                                 <span className="font-bold text-slate-400">EUR:</span>
                                 <span className="font-black font-mono text-blue-600 dark:text-cyan-400">
-                                    €{(kpis.collected_by_currency?.EUR ?? 0).toLocaleString()}
+                                    €{(kpis?.collected_by_currency?.EUR ?? 0).toLocaleString()}
                                 </span>
                             </div>
                             <div className="flex justify-between items-baseline text-xs">
                                 <span className="font-bold text-slate-400">BDT:</span>
                                 <span className="font-black font-mono text-indigo-600 dark:text-indigo-400">
-                                    ৳{(kpis.collected_by_currency?.BDT ?? 0).toLocaleString()}
+                                    ৳{(kpis?.collected_by_currency?.BDT ?? 0).toLocaleString()}
                                 </span>
                             </div>
                         </div>
@@ -201,7 +232,7 @@ export default function CustomOrderAdminIndex({
                         {/* Filter Tabs */}
                         <div className="flex flex-wrap items-center gap-1.5 w-full md:w-auto">
                             {statusTabs.map((tab) => {
-                                const active = (filters.status || 'all') === tab.value;
+                                const active = activeStatus === tab.value;
                                 return (
                                     <button
                                         key={tab.value}
@@ -225,20 +256,29 @@ export default function CustomOrderAdminIndex({
                         </div>
 
                         {/* Search Bar */}
-                        <form onSubmit={handleSearch} className="relative w-full md:w-80">
+                        <form onSubmit={handleImmediateSearch} className="relative w-full md:w-80">
                             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                             <input
                                 type="text"
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
                                 placeholder="Search order #, client, title..."
-                                className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs font-medium text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                className="w-full pl-10 pr-9 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs font-medium text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                             />
+                            {search && (
+                                <button
+                                    type="button"
+                                    onClick={clearSearch}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                                >
+                                    <X className="h-4 w-4" />
+                                </button>
+                            )}
                         </form>
                     </div>
 
                     {/* TABLE */}
-                    {orders.data.length === 0 ? (
+                    {paginatedItems.length === 0 ? (
                         <div className="py-12 text-center text-slate-400 space-y-2">
                             <FolderGit2 className="h-10 w-10 mx-auto text-slate-300 dark:text-slate-600" />
                             <p className="text-sm font-semibold">No custom orders found matching criteria.</p>
@@ -258,7 +298,7 @@ export default function CustomOrderAdminIndex({
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                                    {orders.data.map((order) => {
+                                    {paginatedItems.map((order) => {
                                         const badge = order.status_badge || { label: order.status, color: 'slate' };
                                         const agreedPrice = order.agreed_price || order.estimated_budget || 0;
                                         const collected = order.total_collected_amount || 0;
@@ -418,27 +458,15 @@ export default function CustomOrderAdminIndex({
                     )}
 
                     {/* PAGINATION */}
-                    {orders.links && orders.links.length > 3 && (
-                        <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800 text-xs">
-                            <span className="text-slate-400">
-                                Showing {orders.from || 0} to {orders.to || 0} of {orders.total} custom orders
-                            </span>
-                            <div className="flex items-center space-x-1">
-                                {orders.links.map((link, idx) => (
-                                    <Link
-                                        key={idx}
-                                        href={link.url || '#'}
-                                        dangerouslySetInnerHTML={{ __html: link.label }}
-                                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold ${
-                                            link.active
-                                                ? 'bg-indigo-600 text-white'
-                                                : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
-                                        } ${!link.url ? 'opacity-40 cursor-not-allowed' : ''}`}
-                                    />
-                                ))}
-                            </div>
-                        </div>
-                    )}
+                    <Pagination
+                        from={from}
+                        to={to}
+                        total={totalItems}
+                        currentPage={currentPage}
+                        lastPage={totalPages}
+                        onPageChange={setCurrentPage}
+                        itemLabel="custom orders"
+                    />
                 </div>
             </div>
         </AdminLayout>

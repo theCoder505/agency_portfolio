@@ -26,39 +26,9 @@ class CustomOrderController extends Controller
      */
     public function index(Request $request): Response
     {
-        $search = $request->query('search', '');
-        $status = $request->query('status', 'all');
-
-        $query = CustomOrder::with(['user', 'milestones', 'review']);
-
-        if (!empty($search)) {
-            $query->where(function ($q) use ($search) {
-                $q->where('order_number', 'like', "%{$search}%")
-                  ->orWhere('title', 'like', "%{$search}%")
-                  ->orWhere('category', 'like', "%{$search}%")
-                  ->orWhereHas('user', function ($uq) use ($search) {
-                      $uq->where('name', 'like', "%{$search}%")
-                        ->orWhere('email', 'like', "%{$search}%")
-                        ->orWhere('phone', 'like', "%{$search}%");
-                  });
-            });
-        }
-
-        if ($status !== 'all' && !empty($status)) {
-            if ($status === 'in_progress' || $status === 'accepted') {
-                $query->whereIn('status', ['accepted', 'in_progress']);
-            } elseif ($status === 'overdue') {
-                $query->whereNotIn('status', ['completed', 'cancelled', 'denied'])
-                      ->whereNotNull('target_deadline')
-                      ->whereDate('target_deadline', '<', Carbon::today());
-            } else {
-                $query->where('status', $status);
-            }
-        }
-
-        $orders = $query->orderBy('created_at', 'desc')->paginate(15)->withQueryString();
-
-        $allOrders = CustomOrder::with('milestones')->get();
+        $allOrders = CustomOrder::with(['user', 'milestones', 'review'])
+            ->orderBy('created_at', 'desc')
+            ->get();
 
         $collectedByCurrency = [
             'USD' => 0.0,
@@ -105,12 +75,8 @@ class CustomOrderController extends Controller
         $appSettings = AppSetting::getAllGrouped();
 
         return Inertia::render('admin/custom-orders/index', [
-            'orders' => $orders,
+            'orders' => $allOrders,
             'kpis' => $kpis,
-            'filters' => [
-                'search' => $search,
-                'status' => $status,
-            ],
             'currencySymbol' => $appSettings['currency_symbol'] ?? '৳',
         ]);
     }

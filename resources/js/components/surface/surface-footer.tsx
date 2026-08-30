@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, usePage } from '@inertiajs/react';
-import { Mail, Phone, MapPin, ArrowUpRight, Github, Twitter, Linkedin, Facebook, Instagram, Youtube, Star, ShieldCheck, Heart } from 'lucide-react';
+import { Mail, Phone, MapPin, ArrowUpRight, Github, Twitter, Linkedin, Facebook, Instagram, Youtube, Star } from 'lucide-react';
 import { WhatsAppIcon } from '@/components/icons/whatsapp-icon';
 import { SharedData } from '@/types';
 
@@ -8,6 +8,7 @@ export const SurfaceFooter: React.FC = () => {
     const { app_settings } = usePage<SharedData>().props;
 
     const brandName = app_settings?.brand_name || 'CodeVenture Tech';
+    const logoUrl = app_settings?.logo;
     const footerText = app_settings?.footer_text || 'Pioneering digital craftsmanship and modern web applications.';
     const copyrightText = app_settings?.copyright_text || `© ${new Date().getFullYear()} CodeVenture Technology. All rights reserved.`;
     const email = app_settings?.contact_email || 'hello@codeventure.tech';
@@ -22,7 +23,7 @@ export const SurfaceFooter: React.FC = () => {
     const whatsappUrl = cleanWhatsapp ? `https://wa.me/${cleanWhatsapp}?text=${encodeURIComponent(whatsappPrompt)}` : '';
 
     return (
-        <footer className="relative bg-slate-950 text-slate-400 pt-16 pb-12 border-t border-slate-800/80 overflow-hidden">
+        <footer className="relative bg-slate-950 text-slate-400 pt-16 pb-6 border-t border-slate-800/80 overflow-hidden">
             {/* Background Glows */}
             <div className="absolute top-0 left-1/4 w-96 h-96 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none"></div>
             <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-cyan-600/10 rounded-full blur-3xl pointer-events-none"></div>
@@ -32,14 +33,11 @@ export const SurfaceFooter: React.FC = () => {
                     {/* Col 1 & 2: Brand Info */}
                     <div className="lg:col-span-2 space-y-4">
                         <Link href="/" className="inline-flex items-center space-x-2.5">
-                            <div className="h-9 w-9 rounded-xl bg-gradient-to-tr from-indigo-500 to-cyan-400 p-[2px]">
-                                <div className="h-full w-full bg-slate-950 rounded-[10px] flex items-center justify-center text-cyan-400 font-bold text-base">
-                                    CV
-                                </div>
-                            </div>
-                            <span className="text-xl font-black text-white tracking-tight">
-                                {brandName}
-                            </span>
+                            <img
+                                src={logoUrl}
+                                alt={brandName}
+                                className="h-9 w-auto object-contain transition-transform group-hover:scale-105"
+                            />
                         </Link>
                         <p className="text-sm leading-relaxed text-slate-400 max-w-sm">
                             {footerText}
@@ -212,15 +210,8 @@ export const SurfaceFooter: React.FC = () => {
                 </div>
 
                 {/* Bottom Bar */}
-                <div className="pt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500">
+                <div className="pt-4 flex flex-col sm:flex-row items-center justify-center text-xs text-slate-500">
                     <p>{copyrightText}</p>
-                    <div className="flex items-center space-x-4 mt-4 sm:mt-0">
-                        <span className="flex items-center space-x-1">
-                            <span>Crafted with</span>
-                            <Heart className="h-3 w-3 text-red-500 fill-current" />
-                            <span>by CodeVenture</span>
-                        </span>
-                    </div>
                 </div>
             </div>
         </footer>

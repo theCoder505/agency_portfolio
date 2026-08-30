@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
-import { Head, Link, router } from '@inertiajs/react';
+import React, { useState, useMemo } from 'react';
+import { Head, Link } from '@inertiajs/react';
 import { CustomerLayout } from '@/layouts/customer-layout';
 import { PaginatedData, SubscriptionInvoice } from '@/types';
 import { formatCurrency } from '@/lib/formatters';
+import { Pagination } from '@/components/ui/pagination';
+import { useClientDataTable } from '@/hooks/use-client-data-table';
 import {
     Receipt,
     Printer,
@@ -14,27 +16,24 @@ import {
     Building2,
     Calendar,
     ChevronRight,
+    Search,
     X
 } from 'lucide-react';
 
 interface InvoicesIndexProps {
-    invoices: PaginatedData<SubscriptionInvoice>;
-    filters: {
-        status: string;
-    };
-    brandSettings: {
-        brand_name: string;
-        contact_email: string;
-        contact_phone: string;
-        address_line1: string;
-        address_line2: string;
-        currency_symbol: string;
+    invoices: SubscriptionInvoice[] | PaginatedData<SubscriptionInvoice>;
+    brandSettings?: {
+        brand_name?: string;
+        contact_email?: string;
+        contact_phone?: string;
+        address_line1?: string;
+        address_line2?: string;
+        currency_symbol?: string;
     };
 }
 
 export default function InvoicesIndex({
     invoices,
-    filters = { status: 'all' },
     brandSettings = {
         brand_name: 'CodeVenture Tech',
         contact_email: 'hello@codeventure.tech',
@@ -46,9 +45,40 @@ export default function InvoicesIndex({
 }: InvoicesIndexProps) {
     const currency = brandSettings?.currency_symbol || '৳';
     const [selectedInvoice, setSelectedInvoice] = useState<SubscriptionInvoice | null>(null);
+    const [activeStatus, setActiveStatus] = useState('all');
 
-    const handleFilter = (status: string) => {
-        router.get('/customer/invoices', { status }, { preserveState: true });
+    const allInvoicesList = useMemo(() => {
+        return Array.isArray(invoices) ? invoices : invoices?.data || [];
+    }, [invoices]);
+
+    // Status filter
+    const filteredByStatus = useMemo(() => {
+        if (activeStatus === 'all') return allInvoicesList;
+        return allInvoicesList.filter((inv) => inv.status === activeStatus);
+    }, [allInvoicesList, activeStatus]);
+
+    // Instant Frontend Search & Pagination
+    const {
+        search,
+        setSearch,
+        clearSearch,
+        handleImmediateSearch,
+        currentPage,
+        setCurrentPage,
+        totalPages,
+        totalItems,
+        from,
+        to,
+        paginatedItems,
+    } = useClientDataTable<SubscriptionInvoice>({
+        items: filteredByStatus,
+        pageSize: 10,
+        searchFields: ['invoice_number', 'transaction_id', 'payment_method', 'type', 'subscription.product.name'],
+    });
+
+    const handleStatusFilter = (st: string) => {
+        setActiveStatus(st);
+        setCurrentPage(1);
     };
 
     const printReceipt = () => {
@@ -72,31 +102,53 @@ export default function InvoicesIndex({
                         </p>
                     </div>
 
-                    {/* Filter Tabs */}
-                    <div className="flex items-center space-x-1.5 p-1 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 self-start sm:self-auto shadow-xs">
-                        {['all', 'paid', 'pending', 'rejected'].map((st) => (
-                            <button
-                                key={st}
-                                onClick={() => handleFilter(st)}
-                                className={`px-3 py-1.5 rounded-xl text-xs font-bold capitalize transition-all ${
-                                    filters.status === st || (st === 'all' && (!filters.status || filters.status === 'all'))
-                                        ? 'bg-indigo-600 text-white shadow-sm'
-                                        : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
-                                }`}
-                            >
-                                {st}
-                            </button>
-                        ))}
+                    {/* Filter Tabs and Live Search */}
+                    <div className="flex flex-col sm:flex-row gap-3 items-center">
+                        <form onSubmit={handleImmediateSearch} className="relative w-full sm:w-64">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+                            <input
+                                type="text"
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                placeholder="Search invoice, TrxID..."
+                                className="w-full pl-8 pr-8 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs focus:ring-1 focus:ring-indigo-500"
+                            />
+                            {search && (
+                                <button
+                                    type="button"
+                                    onClick={clearSearch}
+                                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                                >
+                                    <X className="h-3.5 w-3.5" />
+                                </button>
+                            )}
+                        </form>
+
+                        <div className="flex items-center space-x-1.5 p-1 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 self-start sm:self-auto shadow-xs">
+                            {['all', 'paid', 'pending', 'rejected'].map((st) => (
+                                <button
+                                    key={st}
+                                    onClick={() => handleStatusFilter(st)}
+                                    className={`px-3 py-1.5 rounded-xl text-xs font-bold capitalize transition-all ${
+                                        activeStatus === st
+                                            ? 'bg-indigo-600 text-white shadow-sm'
+                                            : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                                    }`}
+                                >
+                                    {st}
+                                </button>
+                            ))}
+                        </div>
                     </div>
                 </div>
 
                 {/* Invoices Table Card */}
                 <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
-                    {invoices.data.length === 0 ? (
+                    {paginatedItems.length === 0 ? (
                         <div className="p-12 text-center space-y-3">
                             <Receipt className="h-10 w-10 text-slate-400 mx-auto" />
                             <h3 className="text-base font-bold text-slate-800 dark:text-slate-200">No invoices found</h3>
-                            <p className="text-xs text-slate-500">You currently have no invoices under the selected filter.</p>
+                            <p className="text-xs text-slate-500">You currently have no invoices matching the selected search/filter.</p>
                         </div>
                     ) : (
                         <div className="overflow-x-auto">
@@ -115,7 +167,7 @@ export default function InvoicesIndex({
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                                    {invoices.data.map((inv) => (
+                                    {paginatedItems.map((inv) => (
                                         <tr key={inv.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
                                             <td className="py-4 px-5 font-mono font-bold text-indigo-600 dark:text-cyan-400">
                                                 {inv.invoice_number}
@@ -164,6 +216,16 @@ export default function InvoicesIndex({
                             </table>
                         </div>
                     )}
+
+                    <Pagination
+                        from={from}
+                        to={to}
+                        total={totalItems}
+                        currentPage={currentPage}
+                        lastPage={totalPages}
+                        onPageChange={setCurrentPage}
+                        itemLabel="invoices"
+                    />
                 </div>
             </div>
 
@@ -199,10 +261,10 @@ export default function InvoicesIndex({
                             <div className="flex justify-between items-start">
                                 <div>
                                     <h2 className="text-xl font-black text-slate-900 dark:text-white">
-                                        {brandSettings.brand_name}
+                                        {brandSettings?.brand_name || 'CodeVenture Tech'}
                                     </h2>
-                                    <p className="text-xs text-slate-500 mt-1">{brandSettings.address_line1}</p>
-                                    <p className="text-xs text-slate-500">{brandSettings.contact_email}</p>
+                                    <p className="text-xs text-slate-500 mt-1">{brandSettings?.address_line1}</p>
+                                    <p className="text-xs text-slate-500">{brandSettings?.contact_email}</p>
                                 </div>
 
                                 <div className="text-right">
@@ -235,7 +297,7 @@ export default function InvoicesIndex({
                                             <td className="p-3 font-semibold">
                                                 {selectedInvoice.subscription?.product?.name || 'SaaS Cloud Subscription'}
                                             </td>
-                                            <td className="p-3 capitalize">{selectedInvoice.billing_cycle.replace('_', ' ')}</td>
+                                            <td className="p-3 capitalize">{selectedInvoice.billing_cycle ? selectedInvoice.billing_cycle.replace('_', ' ') : 'Subscription'}</td>
                                             <td className="p-3 text-right font-black">{currency}{selectedInvoice.amount.toLocaleString()}</td>
                                         </tr>
                                     </tbody>

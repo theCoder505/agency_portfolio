@@ -73,7 +73,14 @@ export interface AppSettings {
     nagad_enabled?: string | boolean;
     terms_and_conditions?: string;
     privacy_policy?: string;
+    faqs_json?: string;
     [key: string]: string | undefined | boolean;
+}
+
+export interface FAQItem {
+    id?: string | number;
+    q: string;
+    a: string;
 }
 
 export interface Category {

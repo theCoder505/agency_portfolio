@@ -23,41 +23,9 @@ class SubscriptionController extends Controller
      */
     public function index(Request $request): Response
     {
-        $search = $request->query('search', '');
-        $status = $request->query('status', 'all');
-        $cycle = $request->query('cycle', 'all');
-
-        $query = SaasSubscription::with(['user', 'product', 'approver']);
-
-        if (!empty($search)) {
-            $query->where(function ($q) use ($search) {
-                $q->where('order_number', 'like', "%{$search}%")
-                  ->orWhere('transaction_id', 'like', "%{$search}%")
-                  ->orWhere('sender_number', 'like', "%{$search}%")
-                  ->orWhere('domain', 'like', "%{$search}%")
-                  ->orWhere('subdomain', 'like', "%{$search}%")
-                  ->orWhereHas('user', function ($uq) use ($search) {
-                      $uq->where('name', 'like', "%{$search}%")
-                        ->orWhere('email', 'like', "%{$search}%")
-                        ->orWhere('phone', 'like', "%{$search}%");
-                  })
-                  ->orWhereHas('product', function ($pq) use ($search) {
-                      $pq->where('name', 'like', "%{$search}%");
-                  });
-            });
-        }
-
-        if ($status !== 'all' && !empty($status)) {
-            $query->where('status', $status);
-        }
-
-        if ($cycle !== 'all' && !empty($cycle)) {
-            $query->where('billing_cycle', $cycle);
-        }
-
-        $subscriptions = $query->orderBy('created_at', 'desc')
-            ->paginate(15)
-            ->withQueryString();
+        $subscriptions = SaasSubscription::with(['user', 'product', 'approver'])
+            ->orderBy('created_at', 'desc')
+            ->get();
 
         $kpis = [
             'total' => SaasSubscription::count(),
@@ -72,11 +40,6 @@ class SubscriptionController extends Controller
         return Inertia::render('admin/subscriptions/index', [
             'subscriptions' => $subscriptions,
             'kpis' => $kpis,
-            'filters' => [
-                'search' => $search,
-                'status' => $status,
-                'cycle' => $cycle,
-            ],
             'currencySymbol' => $appSettings['currency_symbol'] ?? '৳',
         ]);
     }

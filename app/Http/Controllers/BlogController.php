@@ -15,36 +15,12 @@ class BlogController extends Controller
      */
     public function index(Request $request): Response
     {
-        $selectedCategory = $request->query('category', 'all');
-        $search = $request->query('search', '');
-        $tag = $request->query('tag', '');
-
-        $query = Blog::with('category')->where('is_published', true);
-
-        if ($selectedCategory !== 'all' && !empty($selectedCategory)) {
-            $query->whereHas('category', function ($q) use ($selectedCategory) {
-                $q->where('slug', $selectedCategory);
-            });
-        }
-
-        if (!empty($search)) {
-            $query->where(function ($q) use ($search) {
-                $q->where('title', 'like', "%{$search}%")
-                  ->orWhere('short_description', 'like', "%{$search}%")
-                  ->orWhere('author_name', 'like', "%{$search}%")
-                  ->orWhere('content', 'like', "%{$search}%");
-            });
-        }
-
-        if (!empty($tag)) {
-            $query->whereJsonContains('tags', $tag);
-        }
-
-        $blogs = $query->orderBy('is_featured', 'desc')
+        $blogs = Blog::with('category')
+            ->where('is_published', true)
+            ->orderBy('is_featured', 'desc')
             ->orderBy('order')
             ->orderBy('published_at', 'desc')
-            ->paginate(9)
-            ->withQueryString();
+            ->get();
 
         // Spotlight featured blog
         $featuredBlog = Blog::with('category')
@@ -66,11 +42,6 @@ class BlogController extends Controller
             'blogs' => $blogs,
             'featuredBlog' => $featuredBlog,
             'categories' => $categories,
-            'filters' => [
-                'category' => $selectedCategory,
-                'search' => $search,
-                'tag' => $tag,
-            ],
         ]);
     }
 

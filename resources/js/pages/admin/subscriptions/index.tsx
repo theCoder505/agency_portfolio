@@ -1,60 +1,85 @@
-import React, { useState } from 'react';
-import { Link, router } from '@inertiajs/react';
+import React, { useState, useMemo } from 'react';
+import { Head, Link, router } from '@inertiajs/react';
 import { AdminLayout } from '@/layouts/admin-layout';
 import { PaginatedData, SaasSubscription } from '@/types';
 import {
     CreditCard,
     Plus,
     Search,
-    Clock,
-    CheckCircle2,
-    AlertCircle,
-    Eye,
     Edit2,
     Trash2,
+    Eye,
+    CheckCircle2,
+    Clock,
+    AlertCircle,
+    XCircle,
     Copy,
     Globe,
-    DollarSign,
+    Building2,
+    Calendar,
+    ArrowUpRight,
+    TrendingUp,
+    Check,
     Mail,
-    Phone,
+    X
 } from 'lucide-react';
 import { showConfirmDialog, showToast } from '@/lib/swal';
 import { WhatsAppIcon } from '@/components/icons/whatsapp-icon';
+import { useClientDataTable } from '@/hooks/use-client-data-table';
+import { Pagination } from '@/components/ui/pagination';
 
 interface SubscriptionsIndexProps {
-    subscriptions: PaginatedData<SaasSubscription>;
+    subscriptions: SaasSubscription[] | PaginatedData<SaasSubscription>;
     kpis: {
         total: number;
         pending: number;
         active: number;
         expired: number;
+        rejected?: number;
         total_revenue: number;
     };
-    filters: {
-        search: string;
-        status: string;
-        cycle: string;
-    };
-    currencySymbol: string;
+    currencySymbol?: string;
 }
 
 export default function SubscriptionsIndex({
     subscriptions,
     kpis,
-    filters,
-    currencySymbol,
+    currencySymbol = '৳',
 }: SubscriptionsIndexProps) {
-    const [search, setSearch] = useState(filters.search || '');
-    const [status, setStatus] = useState(filters.status || 'all');
+    const [status, setStatus] = useState('all');
 
-    const handleSearch = (e: React.FormEvent) => {
-        e.preventDefault();
-        router.get('/admin/subscriptions', { search, status }, { preserveState: true });
-    };
+    const allSubscriptionsList = useMemo(() => {
+        return Array.isArray(subscriptions) ? subscriptions : subscriptions?.data || [];
+    }, [subscriptions]);
+
+    // Status filter
+    const filteredByStatus = useMemo(() => {
+        if (status === 'all') return allSubscriptionsList;
+        return allSubscriptionsList.filter((s) => s.status === status);
+    }, [allSubscriptionsList, status]);
+
+    // Instant Frontend Search & Pagination
+    const {
+        search,
+        setSearch,
+        clearSearch,
+        handleImmediateSearch,
+        currentPage,
+        setCurrentPage,
+        totalPages,
+        totalItems,
+        from,
+        to,
+        paginatedItems,
+    } = useClientDataTable<SaasSubscription>({
+        items: filteredByStatus,
+        pageSize: 15,
+        searchFields: ['order_number', 'transaction_id', 'sender_number', 'domain', 'subdomain', 'user.name', 'user.email', 'user.phone', 'product.name', 'package_tier'],
+    });
 
     const handleStatusFilter = (newStatus: string) => {
         setStatus(newStatus);
-        router.get('/admin/subscriptions', { search, status: newStatus }, { preserveState: true });
+        setCurrentPage(1);
     };
 
     const handleCopy = (text: string, label: string) => {
@@ -68,7 +93,7 @@ export default function SubscriptionsIndex({
             `Are you sure you want to delete order "${orderNum}"?`
         );
         if (confirmed) {
-            router.delete(`/admin/subscriptions/${id}`);
+            router.delete(`/admin/subscriptions/${id}`, { preserveScroll: true });
         }
     };
 
@@ -78,14 +103,14 @@ export default function SubscriptionsIndex({
             breadcrumbs={[{ title: 'Subscriptions' }]}
         >
             <div className="space-y-6">
-                {/* Header & New Manual Subscription Action */}
+                {/* Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
                         <h1 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 dark:text-white">
-                            Customer Orders & Subscriptions
+                            SaaS Order & Subscription Management
                         </h1>
                         <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                            Cross-check bKash/Nagad transactions, assign custom domains, configure credentials, and manage service terms.
+                            Verify customer bKash/Nagad transactions, assign custom domains, and activate SaaS accounts.
                         </p>
                     </div>
 
@@ -94,66 +119,60 @@ export default function SubscriptionsIndex({
                         className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-xs flex items-center space-x-1.5 transition-all self-start sm:self-auto"
                     >
                         <Plus className="h-3.5 w-3.5" />
-                        <span>Create Subscription Manually</span>
+                        <span>Create Subscription</span>
                     </Link>
                 </div>
 
-                {/* KPI Metrics */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex items-center space-x-3.5">
-                        <div className="h-10 w-10 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center font-bold shrink-0">
-                            <Clock className="h-5 w-5" />
-                        </div>
-                        <div>
-                            <span className="text-[11px] font-semibold text-slate-400">Pending Verification</span>
-                            <div className="text-xl font-black text-amber-500">{kpis.pending}</div>
-                        </div>
+                {/* KPI Overview */}
+                <div className="grid grid-cols-2 lg:grid-cols-6 gap-3">
+                    <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs">
+                        <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total Orders</div>
+                        <div className="text-xl font-black text-slate-900 dark:text-white mt-1">{kpis?.total ?? allSubscriptionsList.length}</div>
                     </div>
-
-                    <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex items-center space-x-3.5">
-                        <div className="h-10 w-10 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center font-bold shrink-0">
-                            <CheckCircle2 className="h-5 w-5" />
-                        </div>
-                        <div>
-                            <span className="text-[11px] font-semibold text-slate-400">Active Deployments</span>
-                            <div className="text-xl font-black text-emerald-500">{kpis.active}</div>
-                        </div>
+                    <div className="p-4 rounded-2xl bg-amber-500/5 border border-amber-500/20 shadow-xs">
+                        <div className="text-[11px] font-bold text-amber-600 dark:amber-400 uppercase tracking-wider">Pending Verify</div>
+                        <div className="text-xl font-black text-amber-600 dark:text-amber-400 mt-1">{kpis?.pending ?? 0}</div>
                     </div>
-
-                    <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex items-center space-x-3.5">
-                        <div className="h-10 w-10 rounded-xl bg-rose-500/10 text-rose-500 flex items-center justify-center font-bold shrink-0">
-                            <AlertCircle className="h-5 w-5" />
-                        </div>
-                        <div>
-                            <span className="text-[11px] font-semibold text-slate-400">Expired Deadlines</span>
-                            <div className="text-xl font-black text-rose-500">{kpis.expired}</div>
-                        </div>
+                    <div className="p-4 rounded-2xl bg-emerald-500/5 border border-emerald-500/20 shadow-xs">
+                        <div className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">Active Apps</div>
+                        <div className="text-xl font-black text-emerald-600 dark:text-emerald-400 mt-1">{kpis?.active ?? 0}</div>
                     </div>
-
-                    <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex items-center space-x-3.5">
-                        <div className="h-10 w-10 rounded-xl bg-indigo-500/10 text-indigo-500 flex items-center justify-center font-bold shrink-0">
-                            <DollarSign className="h-5 w-5" />
-                        </div>
-                        <div>
-                            <span className="text-[11px] font-semibold text-slate-400">Validated Revenue</span>
-                            <div className="text-xl font-black text-slate-900 dark:text-white">
-                                {currencySymbol}{kpis.total_revenue.toLocaleString()}
-                            </div>
+                    <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
+                        <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Expired</div>
+                        <div className="text-xl font-black text-slate-700 dark:text-slate-300 mt-1">{kpis?.expired ?? 0}</div>
+                    </div>
+                    <div className="p-4 rounded-2xl bg-rose-500/5 border border-rose-500/20 shadow-xs">
+                        <div className="text-[11px] font-bold text-rose-500 uppercase tracking-wider">Rejected</div>
+                        <div className="text-xl font-black text-rose-500 mt-1">{kpis?.rejected ?? 0}</div>
+                    </div>
+                    <div className="p-4 rounded-2xl bg-indigo-500/5 border border-indigo-500/20 shadow-xs">
+                        <div className="text-[11px] font-bold text-indigo-600 dark:text-cyan-400 uppercase tracking-wider">Total Volume</div>
+                        <div className="text-xl font-black text-indigo-600 dark:text-cyan-400 mt-1 truncate">
+                            {currencySymbol}{(kpis?.total_revenue ?? 0).toLocaleString()}
                         </div>
                     </div>
                 </div>
 
                 {/* Filters & Search */}
                 <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
-                    <form onSubmit={handleSearch} className="relative w-full sm:w-80">
+                    <form onSubmit={handleImmediateSearch} className="relative w-full sm:w-80">
                         <input
                             type="text"
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             placeholder="Search order #, TrxID, customer, domain..."
-                            className="w-full pl-9 pr-4 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs focus:ring-2 focus:ring-indigo-500"
+                            className="w-full pl-9 pr-9 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs focus:ring-2 focus:ring-indigo-500"
                         />
                         <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400" />
+                        {search && (
+                            <button
+                                type="button"
+                                onClick={clearSearch}
+                                className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                            >
+                                <X className="h-4 w-4" />
+                            </button>
+                        )}
                     </form>
 
                     <div className="flex items-center space-x-1 p-1 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs overflow-x-auto self-stretch sm:self-auto">
@@ -167,7 +186,7 @@ export default function SubscriptionsIndex({
                                         : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
                                 }`}
                             >
-                                {st} {st === 'pending' && kpis.pending > 0 && `(${kpis.pending})`}
+                                {st} {st === 'pending' && kpis?.pending > 0 && `(${kpis.pending})`}
                             </button>
                         ))}
                     </div>
@@ -175,11 +194,11 @@ export default function SubscriptionsIndex({
 
                 {/* Subscriptions Table Card */}
                 <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs overflow-hidden">
-                    {subscriptions.data.length === 0 ? (
+                    {paginatedItems.length === 0 ? (
                         <div className="p-12 text-center space-y-3">
                             <CreditCard className="h-10 w-10 text-slate-400 mx-auto" />
                             <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300">No subscriptions found</h3>
-                            <p className="text-xs text-slate-400">Orders placed by customers will appear here for verification.</p>
+                            <p className="text-xs text-slate-400">Orders placed by customers will appear here.</p>
                         </div>
                     ) : (
                         <div className="overflow-x-auto">
@@ -197,7 +216,7 @@ export default function SubscriptionsIndex({
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                                    {subscriptions.data.map((sub) => (
+                                    {paginatedItems.map((sub) => (
                                         <tr key={sub.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
                                             <td className="py-3.5 px-4 font-mono font-bold text-indigo-600 dark:text-cyan-400">
                                                 {sub.order_number}
@@ -284,7 +303,7 @@ export default function SubscriptionsIndex({
                                                         ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20 animate-pulse'
                                                         : 'bg-rose-500/10 text-rose-500 border border-rose-500/20'
                                                 }`}>
-                                                    {sub.status_badge.label}
+                                                    {sub.status_badge?.label || sub.status}
                                                 </div>
                                             </td>
                                             <td className="py-3.5 px-4 text-slate-500">
@@ -334,6 +353,16 @@ export default function SubscriptionsIndex({
                             </table>
                         </div>
                     )}
+
+                    <Pagination
+                        from={from}
+                        to={to}
+                        total={totalItems}
+                        currentPage={currentPage}
+                        lastPage={totalPages}
+                        onPageChange={setCurrentPage}
+                        itemLabel="subscriptions"
+                    />
                 </div>
             </div>
         </AdminLayout>

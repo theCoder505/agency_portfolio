@@ -6,15 +6,11 @@ import {
     Users,
     Code,
     Sparkles,
-    Shield,
-    Globe,
     Zap,
     MapPin,
     Github,
     Linkedin,
     Twitter,
-    Award,
-    CheckCircle2,
     ArrowRight
 } from 'lucide-react';
 
@@ -43,8 +39,8 @@ export default function About({ teamMembers }: AboutPageProps) {
             description={`Learn about ${brandName}'s mission, engineering standards, leadership team, and global footprint.`}
         >
             {/* Hero Header */}
-            <section className="pt-16 pb-20 bg-slate-900/40 dark:bg-slate-950/60 border-b border-slate-200/80 dark:border-slate-850 relative overflow-hidden">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center max-w-3xl relative z-10">
+            <section className="pt-16 pb-20 bg-slate-900/40 dark:bg-slate-950/60 relative overflow-hidden">
+                <div className="mx-auto px-4 sm:px-6 lg:px-8 text-center max-w-3xl relative z-10">
                     <div
                         data-aos="fade-down"
                         className="inline-flex items-center space-x-2 px-3 py-1.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-cyan-400 border border-indigo-500/20 text-xs font-bold mb-4"
@@ -119,7 +115,7 @@ export default function About({ teamMembers }: AboutPageProps) {
             </section>
 
             {/* TEAM MEMBERS GRID */}
-            <section className="py-20 bg-slate-50/70 dark:bg-slate-950/40 border-y border-slate-200/80 dark:border-slate-850">
+            <section className="py-20 bg-slate-50/70 dark:bg-slate-950/40">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center max-w-2xl mx-auto mb-16" data-aos="fade-up">
                         <div className="inline-flex items-center space-x-2 px-3 py-1.5 rounded-full bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20 text-xs font-bold mb-3">
@@ -140,56 +136,151 @@ export default function About({ teamMembers }: AboutPageProps) {
                                 key={member.id}
                                 data-aos="fade-up"
                                 data-aos-delay={`${(idx % 4) * 100}`}
-                                className="group rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 overflow-hidden shadow-sm hover:shadow-xl hover:border-indigo-500/40 transition-all duration-300 flex flex-col justify-between"
+                                className="group [perspective:1000px] min-h-[350px] w-full cursor-pointer"
                             >
-                                <div className="p-6 text-center space-y-4">
-                                    <div className="relative mx-auto h-28 w-28 rounded-full overflow-hidden ring-4 ring-slate-100 dark:ring-slate-800 group-hover:ring-indigo-500 transition-all">
-                                        {member.avatar ? (
-                                            <img
-                                                src={member.avatar}
-                                                alt={member.name}
-                                                className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-300"
-                                            />
-                                        ) : (
-                                            <div className="h-full w-full bg-gradient-to-tr from-indigo-500 to-cyan-400 flex items-center justify-center text-white text-2xl font-bold">
-                                                {member.name.charAt(0)}
+                                {/* 3D Flipping Container */}
+                                <div className="relative h-full w-full rounded-3xl transition-transform duration-700 [transform-style:preserve-3d] group-hover:[transform:rotateY(180deg)] shadow-sm hover:shadow-2xl hover:shadow-purple-500/20">
+
+                                    {/* FRONT SIDE OF THE BUSINESS CARD */}
+                                    <div className="absolute inset-0 h-full w-full rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 p-6 flex flex-col justify-between [backface-visibility:hidden]">
+                                        <div className="text-center space-y-4">
+                                            <div className="relative mx-auto h-28 w-28 rounded-full overflow-hidden ring-4 ring-slate-100 dark:ring-slate-800 shadow-inner group-hover:ring-purple-400 transition-all duration-300">
+                                                {member.avatar ? (
+                                                    <img
+                                                        src={member.avatar}
+                                                        alt={member.name}
+                                                        className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                                    />
+                                                ) : (
+                                                    <div className="h-full w-full bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center text-white text-2xl font-bold">
+                                                        {member.name.charAt(0)}
+                                                    </div>
+                                                )}
                                             </div>
-                                        )}
+
+                                            <div>
+                                                <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+                                                    {member.name}
+                                                </h3>
+                                                <p className="text-xs font-semibold text-indigo-600 dark:text-cyan-400 mt-0.5">
+                                                    {member.role}
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        {/* Social Links on Front Side */}
+                                        <div className="px-4 py-2.5 border-t border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-950/30 rounded-2xl flex items-center justify-center space-x-3">
+                                            {member.social_linkedin && (
+                                                <a
+                                                    href={member.social_linkedin}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-slate-400 hover:text-indigo-600 dark:hover:text-cyan-400 transition-colors"
+                                                    onClick={(e) => e.stopPropagation()}
+                                                >
+                                                    <Linkedin className="h-4 w-4" />
+                                                </a>
+                                            )}
+                                            {member.social_github && (
+                                                <a
+                                                    href={member.social_github}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-slate-400 hover:text-indigo-600 dark:hover:text-cyan-400 transition-colors"
+                                                    onClick={(e) => e.stopPropagation()}
+                                                >
+                                                    <Github className="h-4 w-4" />
+                                                </a>
+                                            )}
+                                            {member.social_twitter && (
+                                                <a
+                                                    href={member.social_twitter}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-slate-400 hover:text-indigo-600 dark:hover:text-cyan-400 transition-colors"
+                                                    onClick={(e) => e.stopPropagation()}
+                                                >
+                                                    <Twitter className="h-4 w-4" />
+                                                </a>
+                                            )}
+                                        </div>
                                     </div>
 
-                                    <div>
-                                        <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-                                            {member.name}
-                                        </h3>
-                                        <p className="text-xs font-semibold text-indigo-600 dark:text-cyan-400 mt-0.5">
-                                            {member.role}
-                                        </p>
+                                    {/* BACK SIDE OF THE BUSINESS CARD (Purple Background, Teammate Details & Social Links) */}
+                                    <div className="absolute inset-0 h-full w-full rounded-3xl bg-gradient-to-br from-purple-600 via-indigo-700 to-violet-900 dark:from-purple-950 dark:via-indigo-950 dark:to-slate-950 text-white p-6 flex flex-col justify-between [transform:rotateY(180deg)] [backface-visibility:hidden] border border-purple-400/40 dark:border-purple-500/30 shadow-xl overflow-hidden">
+                                        {/* Ambient glow backgrounds */}
+                                        <div className="absolute -top-12 -right-12 w-32 h-32 bg-purple-400/20 rounded-full blur-xl pointer-events-none" />
+                                        <div className="absolute -bottom-12 -left-12 w-32 h-32 bg-indigo-400/20 rounded-full blur-xl pointer-events-none" />
+
+                                        <div className="relative z-10 space-y-3">
+                                            <div className="flex items-center justify-between border-b border-white/15 pb-3">
+                                                <span className="text-[10px] font-black uppercase tracking-widest text-purple-200">
+                                                    Executive Profile
+                                                </span>
+                                                <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-white/10 text-cyan-300 border border-white/10">
+                                                    CodeVenture
+                                                </span>
+                                            </div>
+
+                                            <div>
+                                                <h3 className="text-xl font-black text-white tracking-tight">
+                                                    {member.name}
+                                                </h3>
+                                                <p className="text-xs font-bold text-purple-200 mt-0.5">
+                                                    {member.role}
+                                                </p>
+                                            </div>
+
+                                            <div className="pt-1">
+                                                <p className="text-xs text-purple-100/90 leading-relaxed line-clamp-5 font-normal">
+                                                    {member.bio || 'Senior software engineer dedicated to building scalable backend systems, robust database architectures, and intuitive web interfaces.'}
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        {/* Social Links & ID Badge on Back Side */}
+                                        <div className="relative z-10 pt-3 border-t border-white/15 flex items-center justify-between">
+                                            <div className="flex items-center space-x-2">
+                                                {member.social_linkedin && (
+                                                    <a
+                                                        href={member.social_linkedin}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-purple-200 hover:text-white transition-colors"
+                                                        onClick={(e) => e.stopPropagation()}
+                                                        aria-label={`${member.name} LinkedIn`}
+                                                    >
+                                                        <Linkedin className="h-3.5 w-3.5" />
+                                                    </a>
+                                                )}
+                                                {member.social_github && (
+                                                    <a
+                                                        href={member.social_github}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-purple-200 hover:text-white transition-colors"
+                                                        onClick={(e) => e.stopPropagation()}
+                                                        aria-label={`${member.name} GitHub`}
+                                                    >
+                                                        <Github className="h-3.5 w-3.5" />
+                                                    </a>
+                                                )}
+                                                {member.social_twitter && (
+                                                    <a
+                                                        href={member.social_twitter}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-purple-200 hover:text-white transition-colors"
+                                                        onClick={(e) => e.stopPropagation()}
+                                                        aria-label={`${member.name} Twitter`}
+                                                    >
+                                                        <Twitter className="h-3.5 w-3.5" />
+                                                    </a>
+                                                )}
+                                            </div>
+                                        </div>
                                     </div>
 
-                                    {member.bio && (
-                                        <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed line-clamp-3">
-                                            {member.bio}
-                                        </p>
-                                    )}
-                                </div>
-
-                                {/* Social Links */}
-                                <div className="px-6 py-3 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/30 flex items-center justify-center space-x-3">
-                                    {member.social_linkedin && (
-                                        <a href={member.social_linkedin} target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-indigo-600 transition-colors">
-                                            <Linkedin className="h-4 w-4" />
-                                        </a>
-                                    )}
-                                    {member.social_github && (
-                                        <a href={member.social_github} target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-indigo-600 transition-colors">
-                                            <Github className="h-4 w-4" />
-                                        </a>
-                                    )}
-                                    {member.social_twitter && (
-                                        <a href={member.social_twitter} target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-indigo-600 transition-colors">
-                                            <Twitter className="h-4 w-4" />
-                                        </a>
-                                    )}
                                 </div>
                             </div>
                         ))}

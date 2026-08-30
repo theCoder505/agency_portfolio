@@ -16,47 +16,12 @@ class VisitorLogController extends Controller
      */
     public function index(Request $request): Response
     {
-        $search = $request->query('search', '');
-        $device = $request->query('device', 'all');
-        $browser = $request->query('browser', 'all');
-        $fromDate = $request->query('from_date');
-        $toDate = $request->query('to_date');
-
-        $query = VisitorLog::with('portfolio');
-
-        if (!empty($search)) {
-            $query->where(function ($q) use ($search) {
-                $q->where('ip_address', 'like', "%{$search}%")
-                  ->orWhere('url', 'like', "%{$search}%")
-                  ->orWhere('referer', 'like', "%{$search}%");
-            });
-        }
-
-        if ($device !== 'all' && !empty($device)) {
-            $query->where('device_type', $device);
-        }
-
-        if ($browser !== 'all' && !empty($browser)) {
-            $query->where('browser', $browser);
-        }
-
-        if ($fromDate && $toDate) {
-            $query->whereBetween('created_at', [$fromDate . ' 00:00:00', $toDate . ' 23:59:59']);
-        }
-
-        $logs = $query->orderBy('created_at', 'desc')
-            ->paginate(20)
-            ->withQueryString();
+        $logs = VisitorLog::with('portfolio')
+            ->orderBy('created_at', 'desc')
+            ->get();
 
         return Inertia::render('admin/visitor-logs/index', [
             'logs' => $logs,
-            'filters' => [
-                'search' => $search,
-                'device' => $device,
-                'browser' => $browser,
-                'from_date' => $fromDate,
-                'to_date' => $toDate,
-            ],
         ]);
     }
 

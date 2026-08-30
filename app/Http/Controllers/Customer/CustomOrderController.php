@@ -26,28 +26,17 @@ class CustomOrderController extends Controller
     public function index(Request $request): Response
     {
         $user = Auth::user();
-        $status = $request->query('status', 'all');
 
-        $query = CustomOrder::with(['milestones'])
-            ->where('user_id', $user->id);
-
-        if ($status !== 'all' && !empty($status)) {
-            if ($status === 'in_progress' || $status === 'accepted') {
-                $query->whereIn('status', ['accepted', 'in_progress']);
-            } else {
-                $query->where('status', $status);
-            }
-        }
-
-        $orders = $query->orderBy('created_at', 'desc')->paginate(10)->withQueryString();
-
-        $allOrders = CustomOrder::where('user_id', $user->id)->get();
+        $orders = CustomOrder::with(['milestones'])
+            ->where('user_id', $user->id)
+            ->orderBy('created_at', 'desc')
+            ->get();
 
         $kpis = [
-            'total' => $allOrders->count(),
-            'pending' => $allOrders->where('status', 'pending')->count(),
-            'in_progress' => $allOrders->whereIn('status', ['accepted', 'in_progress'])->count(),
-            'completed' => $allOrders->where('status', 'completed')->count(),
+            'total' => $orders->count(),
+            'pending' => $orders->where('status', 'pending')->count(),
+            'in_progress' => $orders->whereIn('status', ['accepted', 'in_progress'])->count(),
+            'completed' => $orders->where('status', 'completed')->count(),
         ];
 
         $appSettings = AppSetting::getAllGrouped();
@@ -55,7 +44,6 @@ class CustomOrderController extends Controller
         return Inertia::render('customer/custom-orders/index', [
             'orders' => $orders,
             'kpis' => $kpis,
-            'activeStatus' => $status,
             'currencySymbol' => $appSettings['currency_symbol'] ?? '৳',
         ]);
     }

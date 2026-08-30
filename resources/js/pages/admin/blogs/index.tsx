@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Link, router } from '@inertiajs/react';
 import { AdminLayout } from '@/layouts/admin-layout';
 import { Blog, Category, PaginatedData } from '@/types';
 import { DateRangeFilter } from '@/components/admin/date-range-filter';
+import { Pagination } from '@/components/ui/pagination';
+import { useClientDataTable } from '@/hooks/use-client-data-table';
 import {
     BookOpen,
     Plus,
@@ -14,72 +16,100 @@ import {
     CheckCircle2,
     Clock,
     RotateCcw,
+    X
 } from 'lucide-react';
 import { showConfirmDialog } from '@/lib/swal';
 
 interface BlogIndexProps {
-    blogs: PaginatedData<Blog>;
+    blogs: Blog[] | PaginatedData<Blog>;
     categories: Category[];
-    filters: {
-        search?: string;
-        category_id?: string;
-        status?: string;
-        from_date?: string;
-        to_date?: string;
-    };
 }
 
-export default function BlogIndex({ blogs, categories, filters }: BlogIndexProps) {
-    const [search, setSearch] = useState(filters?.search ?? '');
-    const [categoryId, setCategoryId] = useState(filters?.category_id ?? 'all');
-    const [status, setStatus] = useState(filters?.status ?? 'all');
-    const [fromDate, setFromDate] = useState(filters?.from_date ?? '');
-    const [toDate, setToDate] = useState(filters?.to_date ?? '');
+export default function BlogIndex({ blogs, categories }: BlogIndexProps) {
+    const [categoryId, setCategoryId] = useState('all');
+    const [status, setStatus] = useState('all');
+    const [fromDate, setFromDate] = useState('');
+    const [toDate, setToDate] = useState('');
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
-    const handleFilter = (e?: React.FormEvent) => {
-        if (e) e.preventDefault();
-        router.get(
-            '/admin/blogs',
-            {
-                search: search || undefined,
-                category_id: categoryId !== 'all' ? categoryId : undefined,
-                status: status !== 'all' ? status : undefined,
-                from_date: fromDate || undefined,
-                to_date: toDate || undefined,
-            },
-            { preserveState: true, replace: true }
-        );
+    const allBlogsList = useMemo(() => {
+        return Array.isArray(blogs) ? blogs : blogs?.data || [];
+    }, [blogs]);
+
+    // Multi-criteria filter
+    const filteredByFilters = useMemo(() => {
+        return allBlogsList.filter((blog) => {
+            if (categoryId !== 'all' && String(blog.category_id) !== String(categoryId)) {
+                return false;
+            }
+            if (status === 'published' && !blog.is_published) return false;
+            if (status === 'draft' && blog.is_published) return false;
+            if (status === 'featured' && !blog.is_featured) return false;
+
+            if (fromDate && toDate && (blog.published_at || blog.created_at)) {
+                const dateStr = blog.published_at || blog.created_at;
+                const blogDate = new Date(dateStr).getTime();
+                const start = new Date(fromDate + ' 00:00:00').getTime();
+                const end = new Date(toDate + ' 23:59:59').getTime();
+                if (blogDate < start || blogDate > end) return false;
+            }
+            return true;
+        });
+    }, [allBlogsList, categoryId, status, fromDate, toDate]);
+
+    // Instant Frontend Search & Pagination
+    const {
+        search,
+        setSearch,
+        clearSearch,
+        handleImmediateSearch,
+        currentPage,
+        setCurrentPage,
+        totalPages,
+        totalItems,
+        from,
+        to,
+        paginatedItems,
+    } = useClientDataTable<Blog>({
+        items: filteredByFilters,
+        pageSize: 10,
+        searchFields: ['title', 'slug', 'short_description', 'author_name', 'tags', 'category.name'],
+    });
+
+    const handleCategoryChange = (cat: string) => {
+        setCategoryId(cat);
+        setCurrentPage(1);
+    };
+
+    const handleStatusChange = (st: string) => {
+        setStatus(st);
+        setCurrentPage(1);
+    };
+
+    const handleDateApply = (fromVal: string, toVal: string) => {
+        setFromDate(fromVal);
+        setToDate(toVal);
+        setCurrentPage(1);
+    };
+
+    const handleDateClear = () => {
+        setFromDate('');
+        setToDate('');
+        setCurrentPage(1);
     };
 
     const handleReset = () => {
-        setSearch('');
+        clearSearch();
         setCategoryId('all');
         setStatus('all');
         setFromDate('');
         setToDate('');
-        router.get('/admin/blogs', {}, { preserveState: true, replace: true });
-    };
-
-    const handleDateChange = (from: string, to: string) => {
-        setFromDate(from);
-        setToDate(to);
-        router.get(
-            '/admin/blogs',
-            {
-                search: search || undefined,
-                category_id: categoryId !== 'all' ? categoryId : undefined,
-                status: status !== 'all' ? status : undefined,
-                from_date: from || undefined,
-                to_date: to || undefined,
-            },
-            { preserveState: true, replace: true }
-        );
+        setCurrentPage(1);
     };
 
     const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.checked) {
-            setSelectedIds(blogs.data.map((b) => b.id));
+            setSelectedIds(paginatedItems.map((b) => b.id));
         } else {
             setSelectedIds([]);
         }
@@ -102,6 +132,7 @@ export default function BlogIndex({ blogs, categories, filters }: BlogIndexProps
 
         if (confirmed) {
             router.delete(`/admin/blogs/${id}`, {
+                preserveScroll: true,
                 onSuccess: () => setSelectedIds((prev) => prev.filter((item) => item !== id)),
             });
         }
@@ -121,13 +152,14 @@ export default function BlogIndex({ blogs, categories, filters }: BlogIndexProps
                 '/admin/blogs/bulk-delete',
                 { ids: selectedIds },
                 {
+                    preserveScroll: true,
                     onSuccess: () => setSelectedIds([]),
                 }
             );
         }
     };
 
-    const totalReads = blogs.data.reduce((acc, b) => acc + (b.reads_count || 0), 0);
+    const totalReads = allBlogsList.reduce((acc, b) => acc + (b.reads_count || 0), 0);
 
     return (
         <AdminLayout
@@ -152,7 +184,7 @@ export default function BlogIndex({ blogs, categories, filters }: BlogIndexProps
                         <div className="hidden sm:flex items-center space-x-3 px-3.5 py-1.5 rounded-xl bg-indigo-50/80 dark:bg-indigo-950/50 border border-indigo-200/60 dark:border-indigo-800/60 text-xs">
                             <div className="flex items-center space-x-1.5 text-indigo-700 dark:text-indigo-300 font-semibold">
                                 <Eye className="h-4 w-4" />
-                                <span>Page Total Reads:</span>
+                                <span>Total Reads:</span>
                                 <span className="font-bold text-indigo-900 dark:text-indigo-100">{totalReads.toLocaleString()}</span>
                             </div>
                         </div>
@@ -169,24 +201,33 @@ export default function BlogIndex({ blogs, categories, filters }: BlogIndexProps
 
                 {/* Search & Filter Bar */}
                 <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
-                    <form onSubmit={handleFilter} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 items-center">
+                    <form onSubmit={handleImmediateSearch} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 items-center">
                         {/* Search Input */}
                         <div className="lg:col-span-4 relative">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
                             <input
                                 type="text"
                                 placeholder="Search by title, author, or keywords..."
-                                value={search ?? ''}
+                                value={search}
                                 onChange={(e) => setSearch(e.target.value)}
-                                className="w-full pl-9 pr-4 py-2 text-sm bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                className="w-full pl-9 pr-9 py-2 text-sm bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
                             />
+                            {search && (
+                                <button
+                                    type="button"
+                                    onClick={clearSearch}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                                >
+                                    <X className="h-4 w-4" />
+                                </button>
+                            )}
                         </div>
 
                         {/* Category Filter */}
                         <div className="lg:col-span-3">
                             <select
                                 value={categoryId ?? 'all'}
-                                onChange={(e) => setCategoryId(e.target.value)}
+                                onChange={(e) => handleCategoryChange(e.target.value)}
                                 className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
                             >
                                 <option value="all">All Categories</option>
@@ -199,10 +240,10 @@ export default function BlogIndex({ blogs, categories, filters }: BlogIndexProps
                         </div>
 
                         {/* Status Filter */}
-                        <div className="lg:col-span-2">
+                        <div className="lg:col-span-3">
                             <select
                                 value={status ?? 'all'}
-                                onChange={(e) => setStatus(e.target.value)}
+                                onChange={(e) => handleStatusChange(e.target.value)}
                                 className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
                             >
                                 <option value="all">All Statuses</option>
@@ -212,21 +253,16 @@ export default function BlogIndex({ blogs, categories, filters }: BlogIndexProps
                             </select>
                         </div>
 
-                        {/* Action Buttons */}
-                        <div className="lg:col-span-3 flex items-center space-x-2">
-                            <button
-                                type="submit"
-                                className="flex-1 px-4 py-2 bg-slate-900 dark:bg-slate-100 hover:bg-slate-800 dark:hover:bg-white text-white dark:text-slate-900 text-xs font-bold rounded-xl transition-all"
-                            >
-                                Apply Filters
-                            </button>
+                        {/* Reset Button */}
+                        <div className="lg:col-span-2 flex items-center justify-end">
                             <button
                                 type="button"
                                 onClick={handleReset}
-                                className="p-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white bg-slate-100 dark:bg-slate-800 rounded-xl transition-colors"
+                                className="w-full px-4 py-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl transition-colors text-xs font-bold flex items-center justify-center space-x-1.5"
                                 title="Reset Filters"
                             >
-                                <RotateCcw className="h-4 w-4" />
+                                <RotateCcw className="h-3.5 w-3.5" />
+                                <span>Reset</span>
                             </button>
                         </div>
                     </form>
@@ -236,7 +272,8 @@ export default function BlogIndex({ blogs, categories, filters }: BlogIndexProps
                         <DateRangeFilter
                             fromDate={fromDate ?? ''}
                             toDate={toDate ?? ''}
-                            onChange={handleDateChange}
+                            onApply={handleDateApply}
+                            onClear={handleDateClear}
                         />
                     </div>
                 </div>
@@ -269,8 +306,8 @@ export default function BlogIndex({ blogs, categories, filters }: BlogIndexProps
                                             type="checkbox"
                                             onChange={handleSelectAll}
                                             checked={
-                                                blogs.data.length > 0 &&
-                                                selectedIds.length === blogs.data.length
+                                                paginatedItems.length > 0 &&
+                                                selectedIds.length === paginatedItems.length
                                             }
                                             className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 h-4 w-4"
                                         />
@@ -278,7 +315,6 @@ export default function BlogIndex({ blogs, categories, filters }: BlogIndexProps
                                     <th className="p-4">Article</th>
                                     <th className="p-4">Category</th>
                                     <th className="p-4">Author</th>
-                                    {/* Prominently Highlight Reads Count */}
                                     <th className="p-4 text-center">
                                         <span className="inline-flex items-center space-x-1 text-indigo-600 dark:text-cyan-400">
                                             <Eye className="h-3.5 w-3.5" />
@@ -291,16 +327,16 @@ export default function BlogIndex({ blogs, categories, filters }: BlogIndexProps
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
-                                {blogs.data.length === 0 ? (
+                                {paginatedItems.length === 0 ? (
                                     <tr>
                                         <td colSpan={8} className="p-8 text-center text-slate-500 dark:text-slate-400">
                                             <BookOpen className="h-10 w-10 mx-auto text-slate-400 mb-2 opacity-50" />
                                             <p className="font-semibold">No blog articles found.</p>
-                                            <p className="text-xs mt-1">Try adjusting your filters or create your first post.</p>
+                                            <p className="text-xs mt-1">Try adjusting your filters or search query.</p>
                                         </td>
                                     </tr>
                                 ) : (
-                                    blogs.data.map((blog) => (
+                                    paginatedItems.map((blog) => (
                                         <tr
                                             key={blog.id}
                                             className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors"
@@ -380,7 +416,7 @@ export default function BlogIndex({ blogs, categories, filters }: BlogIndexProps
                                                 </div>
                                             </td>
 
-                                            {/* READS COUNT (PROMINENT BADGE) */}
+                                            {/* READS COUNT */}
                                             <td className="p-4 text-center whitespace-nowrap">
                                                 <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-xl bg-cyan-50 dark:bg-cyan-950/60 border border-cyan-200 dark:border-cyan-800 text-cyan-700 dark:text-cyan-300 font-mono text-xs font-bold shadow-xs">
                                                     <Eye className="h-3.5 w-3.5 text-cyan-600 dark:text-cyan-400" />
@@ -446,30 +482,15 @@ export default function BlogIndex({ blogs, categories, filters }: BlogIndexProps
                     </div>
 
                     {/* Pagination Links */}
-                    {blogs.links && blogs.links.length > 3 && (
-                        <div className="p-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                            <span className="text-xs text-slate-500">
-                                Showing {blogs.from || 0} to {blogs.to || 0} of {blogs.total} articles
-                            </span>
-                            <div className="flex items-center space-x-1">
-                                {blogs.links.map((link, idx) => (
-                                    <Link
-                                        key={idx}
-                                        href={link.url || '#'}
-                                        preserveScroll
-                                        className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
-                                            link.active
-                                                ? 'bg-indigo-600 text-white'
-                                                : link.url
-                                                ? 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
-                                                : 'text-slate-400 pointer-events-none'
-                                        }`}
-                                        dangerouslySetInnerHTML={{ __html: link.label }}
-                                    />
-                                ))}
-                            </div>
-                        </div>
-                    )}
+                    <Pagination
+                        from={from}
+                        to={to}
+                        total={totalItems}
+                        currentPage={currentPage}
+                        lastPage={totalPages}
+                        onPageChange={setCurrentPage}
+                        itemLabel="articles"
+                    />
                 </div>
             </div>
         </AdminLayout>

@@ -16,29 +16,12 @@ class ReviewController extends Controller
      */
     public function index(Request $request): Response
     {
-        $search = $request->query('search', '');
-        $source = $request->query('source', 'all');
-
-        $reviews = Review::when($search, function ($q) use ($search) {
-                $q->where('author_name', 'like', "%{$search}%")
-                  ->orWhere('company', 'like', "%{$search}%")
-                  ->orWhere('review_title', 'like', "%{$search}%")
-                  ->orWhere('review_text', 'like', "%{$search}%");
-            })
-            ->when($source !== 'all' && !empty($source), function ($q) use ($source) {
-                $q->where('source', $source);
-            })
-            ->orderBy('rating', 'desc')
+        $reviews = Review::orderBy('rating', 'desc')
             ->orderBy('created_at', 'desc')
-            ->paginate(10)
-            ->withQueryString();
+            ->get();
 
         return Inertia::render('admin/reviews/index', [
             'reviews' => $reviews,
-            'filters' => [
-                'search' => $search,
-                'source' => $source,
-            ],
         ]);
     }
 

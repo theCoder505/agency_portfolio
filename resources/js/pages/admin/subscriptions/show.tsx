@@ -1,7 +1,7 @@
 import React, { useState, FormEventHandler } from 'react';
 import { Head, Link, useForm, router } from '@inertiajs/react';
 import { AdminLayout } from '@/layouts/admin-layout';
-import { SaasSubscription } from '@/types';
+import { SaasSubscription, SubscriptionInvoice } from '@/types';
 import {
     CreditCard,
     CheckCircle2,
@@ -20,10 +20,14 @@ import {
     Receipt,
     ExternalLink,
     Calendar,
-    Save
+    Save,
+    Search,
+    X
 } from 'lucide-react';
 import { showConfirmDialog, showToast } from '@/lib/swal';
 import { WhatsAppIcon } from '@/components/icons/whatsapp-icon';
+import { useClientDataTable } from '@/hooks/use-client-data-table';
+import { Pagination } from '@/components/ui/pagination';
 
 interface SubscriptionShowProps {
     subscription: SaasSubscription;
@@ -36,6 +40,29 @@ export default function SubscriptionShow({
 }: SubscriptionShowProps) {
     const [copiedLabel, setCopiedLabel] = useState<string | null>(null);
     const [isRejecting, setIsRejecting] = useState(false);
+
+    // Format ISO dates into clean human-readable date format (e.g. 30 Aug 2026)
+    const formatDateHuman = (dateStr?: string | null) => {
+        if (!dateStr) return null;
+        try {
+            const d = new Date(dateStr);
+            if (isNaN(d.getTime())) return dateStr;
+            return d.toLocaleDateString('en-GB', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric',
+            });
+        } catch {
+            return dateStr;
+        }
+    };
+
+    const invoicesList = subscription?.invoices || [];
+    const invsTable = useClientDataTable<SubscriptionInvoice>({
+        data: invoicesList,
+        searchFields: (inv) => [inv.invoice_number, inv.type, inv.payment_method, inv.transaction_id, inv.status],
+        initialPageSize: 10,
+    });
 
     // Calculate default dates
     const todayStr = new Date().toISOString().split('T')[0];
@@ -99,7 +126,7 @@ export default function SubscriptionShow({
                 { title: `Order #${subscription.order_number}` },
             ]}
         >
-            <div className="space-y-6 max-w-5xl">
+            <div className="space-y-6 w-full">
                 {/* Header Navigation */}
                 <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
@@ -227,11 +254,27 @@ export default function SubscriptionShow({
                             </div>
 
                             <div className="flex justify-between items-center">
-                                <span className="text-slate-400">Billing Cycle:</span>
+                                <span className="text-slate-400">Package Tier:</span>
+                                <span className="capitalize font-bold px-2 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-cyan-400 border border-indigo-200/50 dark:border-indigo-800/50">
+                                    {subscription.package_tier || 'Standard'} Tier
+                                </span>
+                            </div>
+
+                            <div className="flex justify-between items-center">
+                                <span className="text-slate-400">Package Type / Billing Cycle:</span>
                                 <span className="capitalize font-bold text-indigo-600 dark:text-cyan-400">
                                     {subscription.billing_cycle.replace('_', ' ')}
                                 </span>
                             </div>
+
+                            {subscription.starts_at && subscription.expires_at && (
+                                <div className="flex justify-between items-center">
+                                    <span className="text-slate-400">Active Service Period:</span>
+                                    <span className="font-medium text-slate-800 dark:text-slate-200">
+                                        {formatDateHuman(subscription.starts_at)} to {formatDateHuman(subscription.expires_at)}
+                                    </span>
+                                </div>
+                            )}
 
                             <div className="flex justify-between items-center">
                                 <span className="text-slate-400">Expected Payable:</span>
@@ -431,54 +474,103 @@ export default function SubscriptionShow({
 
                 {/* INVOICES LIST FOR THIS ORDER */}
                 <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-6 shadow-xs space-y-4">
-                    <div className="flex items-center space-x-2">
-                        <Receipt className="h-4 w-4 text-indigo-600 dark:text-cyan-400" />
-                        <h2 className="text-sm font-bold text-slate-900 dark:text-white">
-                            Generated Invoices & Payments for this Order
-                        </h2>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div className="flex items-center space-x-2">
+                            <Receipt className="h-4 w-4 text-indigo-600 dark:text-cyan-400" />
+                            <h2 className="text-sm font-bold text-slate-900 dark:text-white">
+                                Generated Invoices & Payments for this Order ({invoicesList.length})
+                            </h2>
+                        </div>
+
+                        {invoicesList.length > 0 && (
+                            <div className="relative w-full sm:w-64">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+                                <input
+                                    type="text"
+                                    value={invsTable.search}
+                                    onChange={(e) => invsTable.setSearch(e.target.value)}
+                                    placeholder="Search invoices..."
+                                    className="w-full pl-8 pr-8 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-xs focus:ring-1 focus:ring-indigo-500"
+                                />
+                                {invsTable.search && (
+                                    <button
+                                        type="button"
+                                        onClick={invsTable.clearSearch}
+                                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                                    >
+                                        <X className="h-3.5 w-3.5" />
+                                    </button>
+                                )}
+                            </div>
+                        )}
                     </div>
 
-                    {(!subscription.invoices || subscription.invoices.length === 0) ? (
+                    {invoicesList.length === 0 ? (
                         <div className="text-xs text-slate-400">No invoices recorded yet.</div>
+                    ) : invsTable.paginatedData.length === 0 ? (
+                        <div className="text-xs text-slate-400 py-4 text-center">No invoices matching &ldquo;{invsTable.search}&rdquo;</div>
                     ) : (
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left text-xs">
-                                <thead>
-                                    <tr className="border-b border-slate-100 dark:border-slate-800 text-slate-400 font-bold uppercase text-[10px]">
-                                        <th className="pb-3">Invoice #</th>
-                                        <th className="pb-3">Type</th>
-                                        <th className="pb-3">Amount</th>
-                                        <th className="pb-3">Gateway</th>
-                                        <th className="pb-3">TrxID</th>
-                                        <th className="pb-3">Status</th>
-                                        <th className="pb-3">Period</th>
-                                        <th className="pb-3 text-right">Created</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                                    {subscription.invoices.map((inv) => (
-                                        <tr key={inv.id}>
-                                            <td className="py-3 font-mono font-bold text-indigo-600 dark:text-cyan-400">{inv.invoice_number}</td>
-                                            <td className="py-3 capitalize">{inv.type}</td>
-                                            <td className="py-3 font-bold">{currencySymbol}{inv.amount.toLocaleString()}</td>
-                                            <td className="py-3 uppercase font-mono">{inv.payment_method}</td>
-                                            <td className="py-3 font-mono">{inv.transaction_id || 'N/A'}</td>
-                                            <td className="py-3">
-                                                <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
-                                                    inv.status === 'paid' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-amber-500/10 text-amber-500'
-                                                }`}>
-                                                    {inv.status.toUpperCase()}
-                                                </span>
-                                            </td>
-                                            <td className="py-3 text-slate-400">
-                                                {inv.period_start && inv.period_end ? `${inv.period_start} to ${inv.period_end}` : 'N/A'}
-                                            </td>
-                                            <td className="py-3 text-right text-slate-400">{new Date(inv.created_at).toLocaleDateString()}</td>
+                        <>
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left text-xs">
+                                    <thead>
+                                        <tr className="border-b border-slate-100 dark:border-slate-800 text-slate-400 font-bold uppercase text-[10px]">
+                                            <th className="pb-3">Invoice #</th>
+                                            <th className="pb-3">Type</th>
+                                            <th className="pb-3">Amount</th>
+                                            <th className="pb-3">Gateway</th>
+                                            <th className="pb-3">TrxID</th>
+                                            <th className="pb-3">Status</th>
+                                            <th className="pb-3">Period</th>
+                                            <th className="pb-3 text-right">Created</th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                        {invsTable.paginatedData.map((inv) => (
+                                            <tr key={inv.id}>
+                                                <td className="py-3 font-mono font-bold text-indigo-600 dark:text-cyan-400">{inv.invoice_number}</td>
+                                                <td className="py-3 capitalize">{inv.type}</td>
+                                                <td className="py-3 font-bold">{currencySymbol}{inv.amount.toLocaleString()}</td>
+                                                <td className="py-3 uppercase font-mono">{inv.payment_method}</td>
+                                                <td className="py-3 font-mono">{inv.transaction_id || 'N/A'}</td>
+                                                <td className="py-3">
+                                                    <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
+                                                        inv.status === 'paid' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-amber-500/10 text-amber-500'
+                                                    }`}>
+                                                        {inv.status.toUpperCase()}
+                                                    </span>
+                                                </td>
+                                                <td className="py-3 text-slate-700 dark:text-slate-300">
+                                                    <div>
+                                                        <div className="font-semibold text-slate-800 dark:text-slate-200">
+                                                            {inv.period_start && inv.period_end
+                                                                ? `${formatDateHuman(inv.period_start)} to ${formatDateHuman(inv.period_end)}`
+                                                                : subscription.starts_at && subscription.expires_at
+                                                                ? `${formatDateHuman(subscription.starts_at)} to ${formatDateHuman(subscription.expires_at)}`
+                                                                : 'Awaiting Activation'}
+                                                        </div>
+                                                        <div className="text-[10px] text-indigo-600 dark:text-cyan-400 font-bold capitalize mt-0.5">
+                                                            {(inv.billing_cycle || subscription.billing_cycle || 'monthly').replace('_', ' ')} Plan • {subscription.package_tier || 'Standard'} Tier
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className="py-3 text-right text-slate-400">{new Date(inv.created_at).toLocaleDateString()}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <Pagination
+                                currentPage={invsTable.currentPage}
+                                totalPages={invsTable.totalPages}
+                                total={invsTable.total}
+                                from={invsTable.from}
+                                to={invsTable.to}
+                                onPageChange={invsTable.setCurrentPage}
+                                itemLabel="invoices"
+                            />
+                        </>
                     )}
                 </div>
             </div>

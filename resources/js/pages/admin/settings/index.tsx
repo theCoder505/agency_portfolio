@@ -16,7 +16,12 @@ import {
     Play,
     FileText,
     Check,
-    CreditCard
+    CreditCard,
+    HelpCircle,
+    Plus,
+    Trash2,
+    ArrowUp,
+    ArrowDown
 } from 'lucide-react';
 import { showToast, showSuccessAlert } from '@/lib/swal';
 
@@ -24,8 +29,31 @@ interface SettingsIndexProps {
     settings: AppSettings;
 }
 
+const DEFAULT_FAQS = [
+    {
+        q: 'What services and technologies does CodeVenture Tech specialize in?',
+        a: 'We engineer high-performance web applications, enterprise SaaS platforms, AI streaming agents, custom cloud portals, and bespoke modern websites using React, Next.js, Laravel, TypeScript, Tailwind CSS, PostgreSQL, and cloud infrastructure.',
+    },
+    {
+        q: 'How does the custom project workflow and delivery milestones operate?',
+        a: 'Every custom project is structured into transparent, trackable milestones with deliverables and budget breakdowns. You can track progress in real-time, review deliverables, request revisions, and release milestone funds securely from your dedicated client portal.',
+    },
+    {
+        q: 'How do subscription packages and payment processing work for SaaS products?',
+        a: 'You can subscribe to our ready-to-deploy enterprise SaaS platforms with flexible monthly or yearly billing cycles. We support instant local payment verification via bKash and Nagad with Transaction ID validation, as well as enterprise invoicing.',
+    },
+    {
+        q: 'Do you provide post-launch maintenance, cloud hosting, and SLA support?',
+        a: 'Yes! All our software products and custom web systems come with ongoing maintenance, high-availability cloud deployment (99.99% uptime), automated database backups, custom domain and SSL provisioning, and priority SLA technical support.',
+    },
+    {
+        q: 'How fast can CodeVenture Tech start on my project?',
+        a: 'Once you submit a project inquiry or custom order brief, our senior engineering leads review your requirements and provide an architectural roadmap, deliverable estimates, and a kick-off schedule within 24 hours.',
+    },
+];
+
 export default function SettingsIndex({ settings }: SettingsIndexProps) {
-    const [activeTab, setActiveTab] = useState<'branding' | 'contact' | 'payments' | 'whatsapp' | 'trustpilot' | 'social' | 'media' | 'legal'>('branding');
+    const [activeTab, setActiveTab] = useState<'branding' | 'contact' | 'payments' | 'whatsapp' | 'trustpilot' | 'social' | 'media' | 'legal' | 'faqs'>('branding');
 
     // Branding State
     const [brandName, setBrandName] = useState(settings?.brand_name || 'CodeVenture Tech');
@@ -83,6 +111,59 @@ export default function SettingsIndex({ settings }: SettingsIndexProps) {
     const [termsContent, setTermsContent] = useState(settings?.terms_and_conditions || '');
     const [privacyContent, setPrivacyContent] = useState(settings?.privacy_policy || '');
 
+    // FAQs State
+    const parseInitialFaqs = (): Array<{ q: string; a: string }> => {
+        try {
+            if (settings?.faqs_json) {
+                const parsed = JSON.parse(settings.faqs_json);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    return parsed;
+                }
+            }
+        } catch (e) {
+            // fallback to defaults
+        }
+        return DEFAULT_FAQS;
+    };
+
+    const [faqsList, setFaqsList] = useState<Array<{ q: string; a: string }>>(parseInitialFaqs);
+
+    const handleAddFaq = () => {
+        setFaqsList((prev) => [
+            ...prev,
+            { q: '', a: '' }
+        ]);
+    };
+
+    const handleUpdateFaq = (index: number, field: 'q' | 'a', value: string) => {
+        setFaqsList((prev) => {
+            const copy = [...prev];
+            copy[index] = { ...copy[index], [field]: value };
+            return copy;
+        });
+    };
+
+    const handleRemoveFaq = (index: number) => {
+        setFaqsList((prev) => prev.filter((_, i) => i !== index));
+    };
+
+    const handleMoveFaq = (index: number, direction: 'up' | 'down') => {
+        setFaqsList((prev) => {
+            const targetIndex = direction === 'up' ? index - 1 : index + 1;
+            if (targetIndex < 0 || targetIndex >= prev.length) return prev;
+            const copy = [...prev];
+            const temp = copy[index];
+            copy[index] = copy[targetIndex];
+            copy[targetIndex] = temp;
+            return copy;
+        });
+    };
+
+    const handleResetFaqs = () => {
+        setFaqsList(DEFAULT_FAQS);
+        showToast('Reset to default agency FAQs.', 'info');
+    };
+
     const [isSaving, setIsSaving] = useState(false);
 
     const handleSave = (e: React.FormEvent) => {
@@ -135,10 +216,11 @@ export default function SettingsIndex({ settings }: SettingsIndexProps) {
         formData.append('social_instagram', socialInstagram);
         formData.append('social_youtube', socialYoutube);
 
-        // Media & Legal
+        // Media & Legal & FAQs
         formData.append('featured_youtube_video', featuredVideo);
         formData.append('terms_and_conditions', termsContent);
         formData.append('privacy_policy', privacyContent);
+        formData.append('faqs_json', JSON.stringify(faqsList.filter(f => f.q.trim() || f.a.trim())));
 
         router.post('/admin/settings', formData, {
             preserveScroll: true,
@@ -150,6 +232,7 @@ export default function SettingsIndex({ settings }: SettingsIndexProps) {
         { id: 'branding', label: 'Branding & Logos', icon: ImageIcon },
         { id: 'payments', label: 'bKash & Nagad Payments', icon: CreditCard },
         { id: 'contact', label: 'Contact & Location', icon: MapPin },
+        { id: 'faqs', label: 'FAQs & Questions', icon: HelpCircle },
         { id: 'whatsapp', label: 'WhatsApp Widget', icon: WhatsAppIcon },
         { id: 'trustpilot', label: 'Trustpilot Setup', icon: Star },
         { id: 'social', label: 'Social Media', icon: Share2 },
@@ -719,6 +802,134 @@ export default function SettingsIndex({ settings }: SettingsIndexProps) {
                                             className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-xs font-mono"
                                         />
                                     </div>
+                                </div>
+                            )}
+
+                            {/* TAB: FAQS & QUESTIONS */}
+                            {activeTab === 'faqs' && (
+                                <div className="space-y-6 animate-in fade-in">
+                                    <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+                                        <div>
+                                            <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                                                Frequently Asked Questions (FAQ)
+                                            </h3>
+                                            <p className="text-xs text-slate-500 mt-0.5">
+                                                Manage questions and answers displayed dynamically across the landing page and SaaS pages.
+                                            </p>
+                                        </div>
+
+                                        <div className="flex items-center space-x-2">
+                                            <button
+                                                type="button"
+                                                onClick={handleResetFaqs}
+                                                className="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold transition-colors"
+                                            >
+                                                Reset Defaults
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={handleAddFaq}
+                                                className="inline-flex items-center space-x-1.5 px-4 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-sm transition-all"
+                                            >
+                                                <Plus className="h-3.5 w-3.5" />
+                                                <span>Add FAQ</span>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {faqsList.length === 0 ? (
+                                        <div className="text-center py-12 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl p-6">
+                                            <HelpCircle className="h-10 w-10 text-slate-400 mx-auto mb-2 opacity-50" />
+                                            <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                                                No FAQs configured yet.
+                                            </p>
+                                            <p className="text-xs text-slate-500 mt-1">
+                                                Click "Add FAQ" or "Reset Defaults" to seed standard agency questions.
+                                            </p>
+                                            <button
+                                                type="button"
+                                                onClick={handleAddFaq}
+                                                className="mt-4 px-4 py-2 rounded-xl bg-indigo-600 text-white text-xs font-bold shadow-md hover:bg-indigo-700 transition-all"
+                                            >
+                                                + Add First FAQ
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-4">
+                                            {faqsList.map((faq, index) => (
+                                                <div
+                                                    key={index}
+                                                    className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-4 shadow-sm relative group"
+                                                >
+                                                    <div className="flex items-center justify-between">
+                                                        <div className="inline-flex items-center space-x-2">
+                                                            <span className="h-6 w-6 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-cyan-400 text-xs font-bold flex items-center justify-center">
+                                                                {index + 1}
+                                                            </span>
+                                                            <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                                                                FAQ Item #{index + 1}
+                                                            </span>
+                                                        </div>
+
+                                                        <div className="flex items-center space-x-1">
+                                                            <button
+                                                                type="button"
+                                                                disabled={index === 0}
+                                                                onClick={() => handleMoveFaq(index, 'up')}
+                                                                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white disabled:opacity-30 transition-colors"
+                                                                title="Move Up"
+                                                            >
+                                                                <ArrowUp className="h-4 w-4" />
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                disabled={index === faqsList.length - 1}
+                                                                onClick={() => handleMoveFaq(index, 'down')}
+                                                                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white disabled:opacity-30 transition-colors"
+                                                                title="Move Down"
+                                                            >
+                                                                <ArrowDown className="h-4 w-4" />
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleRemoveFaq(index)}
+                                                                className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors ml-2"
+                                                                title="Delete FAQ"
+                                                            >
+                                                                <Trash2 className="h-4 w-4" />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="space-y-1.5">
+                                                        <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                                                            Question
+                                                        </label>
+                                                        <input
+                                                            type="text"
+                                                            value={faq.q}
+                                                            onChange={(e) => handleUpdateFaq(index, 'q', e.target.value)}
+                                                            placeholder="e.g. How does milestone delivery work?"
+                                                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-semibold text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500"
+                                                        />
+                                                    </div>
+
+                                                    <div className="space-y-1.5">
+                                                        <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                                                            Answer
+                                                        </label>
+                                                        <textarea
+                                                            rows={3}
+                                                            value={faq.a}
+                                                            onChange={(e) => handleUpdateFaq(index, 'a', e.target.value)}
+                                                            placeholder="Detailed explanation answering the customer inquiry..."
+                                                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs text-slate-800 dark:text-slate-200 leading-relaxed focus:ring-2 focus:ring-indigo-500"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                             )}
 

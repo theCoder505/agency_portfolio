@@ -17,23 +17,13 @@ class CategoryController extends Controller
      */
     public function index(Request $request): Response
     {
-        $search = $request->query('search', '');
-
         $categories = Category::withCount('portfolios')
-            ->when($search, function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('description', 'like', "%{$search}%");
-            })
             ->orderBy('order')
             ->orderBy('created_at', 'desc')
-            ->paginate(10)
-            ->withQueryString();
+            ->get();
 
         return Inertia::render('admin/categories/index', [
             'categories' => $categories,
-            'filters' => [
-                'search' => $search,
-            ],
         ]);
     }
 

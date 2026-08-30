@@ -21,24 +21,16 @@ class SubscriptionController extends Controller
     public function index(Request $request): Response
     {
         $user = Auth::user();
-        $status = $request->query('status', 'all');
 
-        $query = SaasSubscription::with('product')
-            ->where('user_id', $user->id);
-
-        if ($status !== 'all' && !empty($status)) {
-            $query->where('status', $status);
-        }
-
-        $subscriptions = $query->orderBy('created_at', 'desc')->paginate(10)->withQueryString();
+        $subscriptions = SaasSubscription::with('product')
+            ->where('user_id', $user->id)
+            ->orderBy('created_at', 'desc')
+            ->get();
 
         $appSettings = AppSetting::getAllGrouped();
 
         return Inertia::render('customer/subscriptions/index', [
             'subscriptions' => $subscriptions,
-            'filters' => [
-                'status' => $status,
-            ],
             'paymentSettings' => [
                 'currency_symbol' => $appSettings['currency_symbol'] ?? '৳',
                 'currency_code' => $appSettings['currency_code'] ?? 'BDT',

@@ -64,6 +64,8 @@ class SettingController extends Controller
                 $group = 'legal';
             } elseif (in_array($key, ['contact_email', 'contact_phone', 'address_line1', 'address_line2', 'google_map_embed_url'])) {
                 $group = 'contact';
+            } elseif (in_array($key, ['faqs_json', 'faqs'])) {
+                $group = 'faqs';
             }
 
             AppSetting::set($key, is_null($value) ? '' : (string)$value, $group);

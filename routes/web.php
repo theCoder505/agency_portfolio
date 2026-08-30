@@ -62,6 +62,10 @@ Route::middleware('auth:web')->prefix('customer')->name('customer.')->group(func
     Route::get('/invoices', [\App\Http\Controllers\Customer\InvoiceController::class, 'index'])->name('invoices.index');
     Route::get('/profile', [\App\Http\Controllers\Customer\ProfileController::class, 'index'])->name('profile.index');
     Route::put('/profile', [\App\Http\Controllers\Customer\ProfileController::class, 'update'])->name('profile.update');
+    Route::post('/profile/email/request-otp', [\App\Http\Controllers\Customer\ProfileController::class, 'requestEmailOtp'])->name('profile.email.request-otp');
+    Route::post('/profile/email/confirm', [\App\Http\Controllers\Customer\ProfileController::class, 'confirmEmailChange'])->name('profile.email.confirm');
+    Route::post('/profile/password/request-otp', [\App\Http\Controllers\Customer\ProfileController::class, 'requestPasswordOtp'])->name('profile.password.request-otp');
+    Route::post('/profile/password/confirm', [\App\Http\Controllers\Customer\ProfileController::class, 'confirmPasswordChange'])->name('profile.password.confirm');
     Route::put('/profile/password', [\App\Http\Controllers\Customer\ProfileController::class, 'updatePassword'])->name('profile.password');
 });
 

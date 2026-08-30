@@ -18,38 +18,15 @@ class SaasProductController extends Controller
      */
     public function index(Request $request): Response
     {
-        $search = $request->query('search', '');
-        $status = $request->query('status', 'all');
-
-        $query = SaasProduct::withCount('subscriptions');
-
-        if (!empty($search)) {
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('tagline', 'like', "%{$search}%")
-                  ->orWhere('badge', 'like', "%{$search}%");
-            });
-        }
-
-        if ($status === 'active') {
-            $query->where('is_active', true);
-        } elseif ($status === 'inactive') {
-            $query->where('is_active', false);
-        }
-
-        $products = $query->orderBy('order')
+        $products = SaasProduct::withCount('subscriptions')
+            ->orderBy('order')
             ->orderBy('created_at', 'desc')
-            ->paginate(10)
-            ->withQueryString();
+            ->get();
 
         $appSettings = AppSetting::getAllGrouped();
 
         return Inertia::render('admin/saas-products/index', [
             'products' => $products,
-            'filters' => [
-                'search' => $search,
-                'status' => $status,
-            ],
             'currencySymbol' => $appSettings['currency_symbol'] ?? '৳',
         ]);
     }

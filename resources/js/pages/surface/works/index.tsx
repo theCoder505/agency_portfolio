@@ -1,42 +1,71 @@
-import React, { useState } from 'react';
-import { Link, router } from '@inertiajs/react';
+import React, { useState, useMemo } from 'react';
+import { Link } from '@inertiajs/react';
 import { Category, Portfolio, PaginatedData } from '@/types';
 import { SurfaceLayout } from '@/layouts/surface-layout';
-import { Search, Filter, ExternalLink, Layers, Eye, Play, ArrowRight } from 'lucide-react';
+import { Pagination } from '@/components/ui/pagination';
+import { useClientDataTable } from '@/hooks/use-client-data-table';
+import { Search, ExternalLink, Layers, Eye, Play, ArrowRight, X } from 'lucide-react';
 
 interface WorksIndexProps {
-    portfolios: PaginatedData<Portfolio>;
+    portfolios: Portfolio[] | PaginatedData<Portfolio>;
     categories: Category[];
-    filters: {
-        category?: string;
-        search?: string;
-        type?: string;
-    };
 }
 
-export default function WorksIndex({ portfolios, categories, filters }: WorksIndexProps) {
-    const [search, setSearch] = useState(filters.search || '');
-    const [selectedCategory, setSelectedCategory] = useState(filters.category || 'all');
-    const [selectedType, setSelectedType] = useState(filters.type || 'all');
+export default function WorksIndex({ portfolios, categories }: WorksIndexProps) {
+    const [selectedCategory, setSelectedCategory] = useState('all');
+    const [selectedType, setSelectedType] = useState('all');
 
-    const handleFilterChange = (cat: string, type: string, searchTerm: string) => {
-        router.get(
-            '/works',
-            {
-                category: cat,
-                type: type,
-                search: searchTerm,
-            },
-            {
-                preserveState: true,
-                preserveScroll: true,
+    const allPortfoliosList = useMemo(() => {
+        return Array.isArray(portfolios) ? portfolios : portfolios?.data || [];
+    }, [portfolios]);
+
+    // Filter by Category and Type first
+    const filteredByCategoryAndType = useMemo(() => {
+        return allPortfoliosList.filter((project) => {
+            if (selectedCategory !== 'all' && project.category?.slug !== selectedCategory) {
+                return false;
             }
-        );
+            if (selectedType !== 'all' && project.item_type !== selectedType) {
+                return false;
+            }
+            return true;
+        });
+    }, [allPortfoliosList, selectedCategory, selectedType]);
+
+    // Instant Frontend Search & Pagination
+    const {
+        search,
+        setSearch,
+        clearSearch,
+        handleImmediateSearch,
+        currentPage,
+        setCurrentPage,
+        totalPages,
+        totalItems,
+        from,
+        to,
+        paginatedItems,
+    } = useClientDataTable<Portfolio>({
+        items: filteredByCategoryAndType,
+        pageSize: 12,
+        searchFields: ['title', 'short_description', 'client_name', 'tech_stacks', 'category.name'],
+    });
+
+    const handleCategoryChange = (slug: string) => {
+        setSelectedCategory(slug);
+        setCurrentPage(1);
     };
 
-    const handleSearchSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        handleFilterChange(selectedCategory, selectedType, search);
+    const handleTypeChange = (type: string) => {
+        setSelectedType(type);
+        setCurrentPage(1);
+    };
+
+    const handleResetFilters = () => {
+        clearSearch();
+        setSelectedCategory('all');
+        setSelectedType('all');
+        setCurrentPage(1);
     };
 
     return (
@@ -45,7 +74,7 @@ export default function WorksIndex({ portfolios, categories, filters }: WorksInd
             description="Explore CodeVenture Tech's complete catalog of high performance web applications, SaaS products, and custom websites."
         >
             {/* Header Banner */}
-            <section className="pt-12 pb-16 bg-slate-900/40 dark:bg-slate-950/60 border-b border-slate-200/80 dark:border-slate-850">
+            <section className="pt-12 pb-16 bg-slate-900/40 dark:bg-slate-950/60">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center max-w-3xl">
                     <div className="inline-flex items-center space-x-2 px-3 py-1.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-cyan-400 border border-indigo-500/20 text-xs font-bold mb-3">
                         <Layers className="h-3.5 w-3.5" />
@@ -59,21 +88,24 @@ export default function WorksIndex({ portfolios, categories, filters }: WorksInd
                     </p>
 
                     {/* Search Bar */}
-                    <form onSubmit={handleSearchSubmit} className="mt-8 max-w-xl mx-auto flex items-center relative">
+                    <form onSubmit={handleImmediateSearch} className="mt-8 max-w-xl mx-auto flex items-center relative">
                         <Search className="absolute left-4 h-5 w-5 text-slate-400" />
                         <input
                             type="text"
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             placeholder="Search by project name, client, or technology..."
-                            className="w-full pl-12 pr-28 py-3.5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm text-sm"
+                            className="w-full pl-12 pr-12 py-3.5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm text-sm"
                         />
-                        <button
-                            type="submit"
-                            className="absolute right-2 px-5 py-2 rounded-xl bg-slate-900 dark:bg-indigo-600 text-white font-bold text-xs hover:opacity-90 transition-opacity"
-                        >
-                            Search
-                        </button>
+                        {search && (
+                            <button
+                                type="button"
+                                onClick={clearSearch}
+                                className="absolute right-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                            >
+                                <X className="h-4 w-4" />
+                            </button>
+                        )}
                     </form>
                 </div>
             </section>
@@ -86,10 +118,7 @@ export default function WorksIndex({ portfolios, categories, filters }: WorksInd
                         {/* Categories */}
                         <div className="flex flex-wrap items-center gap-2">
                             <button
-                                onClick={() => {
-                                    setSelectedCategory('all');
-                                    handleFilterChange('all', selectedType, search);
-                                }}
+                                onClick={() => handleCategoryChange('all')}
                                 className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
                                     selectedCategory === 'all'
                                         ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-950 shadow-md'
@@ -101,10 +130,7 @@ export default function WorksIndex({ portfolios, categories, filters }: WorksInd
                             {categories.map((cat) => (
                                 <button
                                     key={cat.id}
-                                    onClick={() => {
-                                        setSelectedCategory(cat.slug);
-                                        handleFilterChange(cat.slug, selectedType, search);
-                                    }}
+                                    onClick={() => handleCategoryChange(cat.slug)}
                                     className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
                                         selectedCategory === cat.slug
                                             ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-950 shadow-md'
@@ -121,10 +147,7 @@ export default function WorksIndex({ portfolios, categories, filters }: WorksInd
                             <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Type:</span>
                             <select
                                 value={selectedType}
-                                onChange={(e) => {
-                                    setSelectedType(e.target.value);
-                                    handleFilterChange(selectedCategory, e.target.value, search);
-                                }}
+                                onChange={(e) => handleTypeChange(e.target.value)}
                                 className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-xs font-medium focus:outline-none focus:ring-1 focus:ring-indigo-500"
                             >
                                 <option value="all">All Types</option>
@@ -135,18 +158,13 @@ export default function WorksIndex({ portfolios, categories, filters }: WorksInd
                     </div>
 
                     {/* Projects Grid */}
-                    {portfolios.data.length === 0 ? (
+                    {paginatedItems.length === 0 ? (
                         <div className="text-center py-20 bg-slate-50 dark:bg-slate-900/40 rounded-3xl border border-dashed border-slate-300 dark:border-slate-800">
                             <Layers className="h-12 w-12 text-slate-400 mx-auto mb-3" />
                             <h3 className="text-lg font-bold text-slate-900 dark:text-white">No projects found</h3>
                             <p className="text-xs text-slate-500 mt-1">Try adjusting your search or category filter</p>
                             <button
-                                onClick={() => {
-                                    setSearch('');
-                                    setSelectedCategory('all');
-                                    setSelectedType('all');
-                                    handleFilterChange('all', 'all', '');
-                                }}
+                                onClick={handleResetFilters}
                                 className="mt-4 px-4 py-2 rounded-xl bg-indigo-600 text-white text-xs font-bold"
                             >
                                 Reset All Filters
@@ -154,7 +172,7 @@ export default function WorksIndex({ portfolios, categories, filters }: WorksInd
                         </div>
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                            {portfolios.data.map((project, idx) => {
+                            {paginatedItems.map((project, idx) => {
                                 const isDirect = project.item_type === 'direct_link';
                                 const targetUrl = isDirect ? project.direct_url || '#' : `/works/${project.slug}`;
 
@@ -182,7 +200,7 @@ export default function WorksIndex({ portfolios, categories, filters }: WorksInd
                                             <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/30 to-transparent opacity-60 group-hover:opacity-80 transition-opacity"></div>
 
                                             {/* Badges */}
-                                            <div className="absolute top-3.5 left-3.5 right-3.5 flex items-center justify-between pointer-events-none">
+                                             <div className="absolute top-3.5 left-3.5 right-3.5 flex items-center justify-between pointer-events-none">
                                                 {project.category && (
                                                     <span className="px-2.5 py-1 rounded-lg bg-slate-900/80 backdrop-blur-md text-white text-[11px] font-semibold border border-white/10">
                                                         {project.category.name}
@@ -278,25 +296,17 @@ export default function WorksIndex({ portfolios, categories, filters }: WorksInd
                     )}
 
                     {/* Pagination */}
-                    {portfolios.last_page > 1 && (
-                        <div className="mt-12 flex justify-center items-center space-x-2">
-                            {portfolios.links.map((link, idx) => (
-                                <Link
-                                    key={idx}
-                                    href={link.url || '#'}
-                                    preserveScroll
-                                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                                        link.active
-                                            ? 'bg-indigo-600 text-white shadow-md'
-                                            : !link.url
-                                            ? 'text-slate-400 pointer-events-none opacity-50'
-                                            : 'bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800'
-                                    }`}
-                                    dangerouslySetInnerHTML={{ __html: link.label }}
-                                />
-                            ))}
-                        </div>
-                    )}
+                    <div className="mt-12">
+                        <Pagination
+                            from={from}
+                            to={to}
+                            total={totalItems}
+                            currentPage={currentPage}
+                            lastPage={totalPages}
+                            onPageChange={setCurrentPage}
+                            itemLabel="projects"
+                        />
+                    </div>
                 </div>
             </section>
         </SurfaceLayout>

@@ -18,23 +18,16 @@ class InvoiceController extends Controller
     public function index(Request $request): Response
     {
         $user = Auth::user();
-        $status = $request->query('status', 'all');
 
-        $query = SubscriptionInvoice::with('subscription.product')
-            ->where('user_id', $user->id);
+        $invoices = SubscriptionInvoice::with('subscription.product')
+            ->where('user_id', $user->id)
+            ->orderBy('created_at', 'desc')
+            ->get();
 
-        if ($status !== 'all' && !empty($status)) {
-            $query->where('status', $status);
-        }
-
-        $invoices = $query->orderBy('created_at', 'desc')->paginate(10)->withQueryString();
         $appSettings = AppSetting::getAllGrouped();
 
         return Inertia::render('customer/invoices/index', [
             'invoices' => $invoices,
-            'filters' => [
-                'status' => $status,
-            ],
             'brandSettings' => [
                 'brand_name' => $appSettings['brand_name'] ?? 'CodeVenture Tech',
                 'contact_email' => $appSettings['contact_email'] ?? 'hello@codeventure.tech',

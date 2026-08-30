@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { router, Link } from '@inertiajs/react';
 import { AdminLayout } from '@/layouts/admin-layout';
 import { Contact, PaginatedData } from '@/types';
 import { ReplyEmailModal } from '@/components/admin/reply-email-modal';
 import { DateRangeFilter } from '@/components/admin/date-range-filter';
+import { Pagination } from '@/components/ui/pagination';
+import { useClientDataTable } from '@/hooks/use-client-data-table';
 import {
     Search,
     Trash2,
@@ -13,42 +15,77 @@ import {
     CheckCheck,
     Clock,
     Phone,
-    ShieldAlert
+    ShieldAlert,
+    X
 } from 'lucide-react';
 import { confirmAction, showToast } from '@/lib/swal';
 
 interface ContactIndexProps {
-    contacts: PaginatedData<Contact>;
-    filters: {
-        search?: string;
-        status?: string;
-        from_date?: string;
-        to_date?: string;
-    };
+    contacts: Contact[] | PaginatedData<Contact>;
 }
 
-export default function ContactIndex({ contacts, filters }: ContactIndexProps) {
+export default function ContactIndex({ contacts }: ContactIndexProps) {
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
-    const [search, setSearch] = useState(filters?.search ?? '');
-    const [status, setStatus] = useState(filters?.status ?? 'all');
+    const [status, setStatus] = useState('all');
+    const [fromDate, setFromDate] = useState('');
+    const [toDate, setToDate] = useState('');
     const [replyingContact, setReplyingContact] = useState<Contact | null>(null);
 
-    const handleFilterChange = (newStatus: string, newSearch: string, from?: string, to?: string) => {
-        router.get(
-            '/admin/contacts',
-            {
-                status: newStatus,
-                search: newSearch || undefined,
-                from_date: from || undefined,
-                to_date: to || undefined,
-            },
-            { preserveState: true, preserveScroll: true }
-        );
+    const allContactsList = useMemo(() => {
+        return Array.isArray(contacts) ? contacts : contacts?.data || [];
+    }, [contacts]);
+
+    // Multi-criteria filter
+    const filteredByFilters = useMemo(() => {
+        return allContactsList.filter((c) => {
+            if (status === 'unread' && c.is_read) return false;
+            if (status === 'read' && (!c.is_read || c.replied_at)) return false;
+            if (status === 'replied' && !c.replied_at) return false;
+
+            if (fromDate && toDate && c.created_at) {
+                const cDate = new Date(c.created_at).getTime();
+                const start = new Date(fromDate + ' 00:00:00').getTime();
+                const end = new Date(toDate + ' 23:59:59').getTime();
+                if (cDate < start || cDate > end) return false;
+            }
+            return true;
+        });
+    }, [allContactsList, status, fromDate, toDate]);
+
+    // Instant Frontend Search & Pagination
+    const {
+        search,
+        setSearch,
+        clearSearch,
+        handleImmediateSearch,
+        currentPage,
+        setCurrentPage,
+        totalPages,
+        totalItems,
+        from,
+        to,
+        paginatedItems,
+    } = useClientDataTable<Contact>({
+        items: filteredByFilters,
+        pageSize: 12,
+        searchFields: ['name', 'email', 'phone', 'subject', 'message', 'service_interested'],
+    });
+
+    const handleStatusChange = (st: string) => {
+        setStatus(st);
+        setCurrentPage(1);
     };
 
-    const handleSearchSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        handleFilterChange(status, search);
+    const handleDateApply = (fromVal: string, toVal: string) => {
+        setFromDate(fromVal);
+        setToDate(toVal);
+        setCurrentPage(1);
+    };
+
+    const handleDateClear = () => {
+        setFromDate('');
+        setToDate('');
+        setCurrentPage(1);
     };
 
     const toggleSelect = (id: number) => {
@@ -58,10 +95,10 @@ export default function ContactIndex({ contacts, filters }: ContactIndexProps) {
     };
 
     const toggleSelectAll = () => {
-        if (selectedIds.length === contacts.data.length) {
+        if (selectedIds.length === paginatedItems.length && paginatedItems.length > 0) {
             setSelectedIds([]);
         } else {
-            setSelectedIds(contacts.data.map((c) => c.id));
+            setSelectedIds(paginatedItems.map((c) => c.id));
         }
     };
 
@@ -130,24 +167,30 @@ export default function ContactIndex({ contacts, filters }: ContactIndexProps) {
                 {/* Toolbar */}
                 <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
                     <div className="flex flex-wrap items-center justify-between gap-4">
-                        <form onSubmit={handleSearchSubmit} className="relative w-full sm:w-72">
+                        <form onSubmit={handleImmediateSearch} className="relative w-full sm:w-72">
                             <Search className="absolute left-3 h-4 w-4 text-slate-400" />
                             <input
                                 type="text"
-                                value={search ?? ''}
+                                value={search}
                                 onChange={(e) => setSearch(e.target.value)}
                                 placeholder="Search by name, email, subject..."
-                                className="w-full pl-9 pr-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                className="w-full pl-9 pr-8 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500"
                             />
+                            {search && (
+                                <button
+                                    type="button"
+                                    onClick={clearSearch}
+                                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                                >
+                                    <X className="h-3.5 w-3.5" />
+                                </button>
+                            )}
                         </form>
 
                         <div className="flex flex-wrap items-center gap-3">
                             <select
                                 value={status ?? 'all'}
-                                onChange={(e) => {
-                                    setStatus(e.target.value);
-                                    handleFilterChange(e.target.value, search);
-                                }}
+                                onChange={(e) => handleStatusChange(e.target.value)}
                                 className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-xs font-semibold"
                             >
                                 <option value="all">All Inquiries</option>
@@ -157,10 +200,10 @@ export default function ContactIndex({ contacts, filters }: ContactIndexProps) {
                             </select>
 
                             <DateRangeFilter
-                                fromDate={filters?.from_date ?? ''}
-                                toDate={filters?.to_date ?? ''}
-                                onApply={(f, t) => handleFilterChange(status, search, f, t)}
-                                onClear={() => handleFilterChange(status, search, '', '')}
+                                fromDate={fromDate ?? ''}
+                                toDate={toDate ?? ''}
+                                onApply={handleDateApply}
+                                onClear={handleDateClear}
                             />
                         </div>
                     </div>
@@ -191,7 +234,7 @@ export default function ContactIndex({ contacts, filters }: ContactIndexProps) {
                                     <th className="p-4 w-10">
                                         <input
                                             type="checkbox"
-                                            checked={selectedIds.length === contacts.data.length && contacts.data.length > 0}
+                                            checked={selectedIds.length === paginatedItems.length && paginatedItems.length > 0}
                                             onChange={toggleSelectAll}
                                             className="rounded border-slate-300 dark:border-slate-700 text-indigo-600 focus:ring-indigo-500"
                                         />
@@ -205,14 +248,14 @@ export default function ContactIndex({ contacts, filters }: ContactIndexProps) {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                                {contacts.data.length === 0 ? (
+                                {paginatedItems.length === 0 ? (
                                     <tr>
                                         <td colSpan={7} className="text-center py-12 text-slate-400">
                                             No contact inquiries found.
                                         </td>
                                     </tr>
                                 ) : (
-                                    contacts.data.map((contact) => {
+                                    paginatedItems.map((contact) => {
                                         const isSelected = selectedIds.includes(contact.id);
 
                                         return (
@@ -329,30 +372,15 @@ export default function ContactIndex({ contacts, filters }: ContactIndexProps) {
                     </div>
 
                     {/* Pagination */}
-                    {contacts.last_page > 1 && (
-                        <div className="p-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
-                            <span className="text-slate-500">
-                                Showing {contacts.from} to {contacts.to} of {contacts.total} inquiries
-                            </span>
-                            <div className="flex items-center space-x-1">
-                                {contacts.links.map((link, idx) => (
-                                    <Link
-                                        key={idx}
-                                        href={link.url || '#'}
-                                        preserveScroll
-                                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                                            link.active
-                                                ? 'bg-indigo-600 text-white shadow-sm'
-                                                : !link.url
-                                                ? 'text-slate-400 pointer-events-none opacity-50'
-                                                : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200'
-                                        }`}
-                                        dangerouslySetInnerHTML={{ __html: link.label }}
-                                    />
-                                ))}
-                            </div>
-                        </div>
-                    )}
+                    <Pagination
+                        from={from}
+                        to={to}
+                        total={totalItems}
+                        currentPage={currentPage}
+                        lastPage={totalPages}
+                        onPageChange={setCurrentPage}
+                        itemLabel="inquiries"
+                    />
                 </div>
             </div>
 

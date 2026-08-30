@@ -51,7 +51,7 @@ export default function WorkDetail({ portfolio, relatedPortfolios }: WorkDetailP
             description={portfolio.short_description || `Case study for ${portfolio.title}`}
         >
             {/* Top Back Navigation Bar */}
-            <div className="bg-slate-900/30 dark:bg-slate-950/60 border-b border-slate-200/80 dark:border-slate-850 py-4">
+            <div className="bg-slate-900/30 dark:bg-slate-950/60 py-4">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
                     <Link
                         href="/works"
@@ -112,49 +112,59 @@ export default function WorkDetail({ portfolio, relatedPortfolios }: WorkDetailP
                                     </div>
                                 )}
                                 <div>
-                                    <div className="text-[11px] uppercase tracking-wider text-slate-600 dark:text-slate-300 font-bold">Architecture</div>
-                                    <div className="text-sm font-semibold text-indigo-600 dark:text-cyan-400 mt-0.5">Enterprise Full-Stack</div>
+                                    <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Client</span>
+                                    <span className="text-sm font-semibold text-slate-900 dark:text-white">{portfolio.client_name || 'Confidential Client'}</span>
+                                </div>
+                                <div>
+                                    <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Release Year</span>
+                                    <span className="text-sm font-semibold text-slate-900 dark:text-white">{portfolio.completed_year || '2026'}</span>
+                                </div>
+                                <div>
+                                    <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Platform SLA</span>
+                                    <span className="text-sm font-semibold text-emerald-500 font-mono">99.9% Uptime</span>
                                 </div>
                             </div>
 
-                            {/* Action Links */}
-                            <div className="flex flex-wrap items-center gap-4 pt-4">
-                                {portfolio.direct_url && (
+                            {/* Action CTAs */}
+                            <div className="pt-2 flex flex-wrap items-center gap-4">
+                                {portfolio.project_url && (
                                     <a
-                                        href={portfolio.direct_url}
+                                        href={portfolio.project_url}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="inline-flex items-center space-x-2 px-6 py-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-xl shadow-indigo-500/20 hover:shadow-indigo-500/35 transition-all hover:scale-105"
+                                        className="inline-flex items-center space-x-2 px-6 py-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs transition-all shadow-lg shadow-indigo-500/25"
                                     >
-                                        <span>Visit Live Application</span>
+                                        <span>Visit Live Website / App</span>
                                         <ExternalLink className="h-4 w-4" />
                                     </a>
                                 )}
-
-                                {portfolio.youtube_video_url && (
-                                    <button
-                                        onClick={() => setIsVideoOpen(true)}
+                                {portfolio.demo_url && (
+                                    <a
+                                        href={portfolio.demo_url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
                                         className="inline-flex items-center space-x-2 px-6 py-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-800 font-bold text-xs transition-all shadow-sm"
                                     >
-                                        <Play className="h-4 w-4 text-red-500 fill-current" />
-                                        <span>Watch Video Demo</span>
-                                    </button>
+                                        <span>Interactive Demo</span>
+                                        <Play className="h-3.5 w-3.5" />
+                                    </a>
                                 )}
                             </div>
                         </div>
 
-                        {/* Project Hero Banner Image */}
-                        <div className="lg:col-span-5">
+                        {/* Large Featured Mockup */}
+                        <div className="lg:col-span-6" data-aos="fade-left">
                             <div className="relative rounded-3xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-2xl bg-slate-950">
-                                {portfolio.thumbnail ? (
+                                {portfolio.featured_image ? (
                                     <img
-                                        src={portfolio.thumbnail}
+                                        src={portfolio.featured_image}
                                         alt={portfolio.title}
-                                        className="w-full h-auto object-cover"
+                                        className="w-full h-full object-cover"
                                     />
                                 ) : (
-                                    <div className="aspect-[16/10] flex items-center justify-center bg-slate-900 text-slate-400">
-                                        No preview available
+                                    <div className="aspect-[4/3] flex flex-col items-center justify-center text-slate-500 p-8 text-center">
+                                        <Layers className="h-16 w-16 mb-2 text-indigo-400" />
+                                        <span className="text-sm font-bold">High Precision Engineering View</span>
                                     </div>
                                 )}
                             </div>
@@ -165,7 +175,7 @@ export default function WorkDetail({ portfolio, relatedPortfolios }: WorkDetailP
 
             {/* Embedded YouTube Video (if attached) */}
             {youtubeId && (
-                <section className="py-12 bg-slate-900/30 dark:bg-slate-950/40 border-y border-slate-200/80 dark:border-slate-850">
+                <section className="py-12 bg-slate-900/30 dark:bg-slate-950/40">
                     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4 text-center">
                         <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center justify-center space-x-2">
                             <Play className="h-5 w-5 text-red-500 fill-current" />
@@ -234,7 +244,7 @@ export default function WorkDetail({ portfolio, relatedPortfolios }: WorkDetailP
 
             {/* Related Projects Carousel */}
             {relatedPortfolios && relatedPortfolios.length > 0 && (
-                <section className="py-16 bg-slate-50/70 dark:bg-slate-950/40 border-t border-slate-200/80 dark:border-slate-850">
+                <section className="py-16 bg-slate-50/70 dark:bg-slate-950/40">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="flex items-center justify-between mb-8">
                             <h3 className="text-2xl font-black text-slate-900 dark:text-white">

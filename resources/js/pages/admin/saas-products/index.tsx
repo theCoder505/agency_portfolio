@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import { AdminLayout } from '@/layouts/admin-layout';
 import { PaginatedData, SaasProduct } from '@/types';
@@ -13,37 +13,59 @@ import {
     XCircle,
     Star,
     Layers,
-    Sparkles
+    Sparkles,
+    X
 } from 'lucide-react';
 import { showConfirmDialog, showToast } from '@/lib/swal';
 import { formatCurrency } from '@/lib/formatters';
+import { Pagination } from '@/components/ui/pagination';
+import { useClientDataTable } from '@/hooks/use-client-data-table';
 
 interface SaasProductsIndexProps {
-    products: PaginatedData<SaasProduct>;
-    filters: {
-        search: string;
-        status: string;
-    };
-    currencySymbol: string;
+    products: SaasProduct[] | PaginatedData<SaasProduct>;
+    currencySymbol?: string;
 }
 
 export default function SaasProductsIndex({
     products,
-    filters,
-    currencySymbol,
+    currencySymbol = '৳',
 }: SaasProductsIndexProps) {
-    const [search, setSearch] = useState(filters.search || '');
-    const [status, setStatus] = useState(filters.status || 'all');
+    const [status, setStatus] = useState('all');
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
-    const handleSearch = (e: React.FormEvent) => {
-        e.preventDefault();
-        router.get('/admin/saas-products', { search, status }, { preserveState: true });
-    };
+    const allProductsList = useMemo(() => {
+        return Array.isArray(products) ? products : products?.data || [];
+    }, [products]);
+
+    // Status filter
+    const filteredByStatus = useMemo(() => {
+        if (status === 'active') return allProductsList.filter(p => p.is_active);
+        if (status === 'inactive') return allProductsList.filter(p => !p.is_active);
+        return allProductsList;
+    }, [allProductsList, status]);
+
+    // Instant Frontend Search & Pagination
+    const {
+        search,
+        setSearch,
+        clearSearch,
+        handleImmediateSearch,
+        currentPage,
+        setCurrentPage,
+        totalPages,
+        totalItems,
+        from,
+        to,
+        paginatedItems,
+    } = useClientDataTable<SaasProduct>({
+        items: filteredByStatus,
+        pageSize: 10,
+        searchFields: ['name', 'slug', 'tagline', 'badge'],
+    });
 
     const handleStatusFilter = (newStatus: string) => {
         setStatus(newStatus);
-        router.get('/admin/saas-products', { search, status: newStatus }, { preserveState: true });
+        setCurrentPage(1);
     };
 
     const handleDelete = async (id: number, name: string) => {
@@ -52,7 +74,12 @@ export default function SaasProductsIndex({
             `Are you sure you want to delete "${name}"? This action cannot be undone.`
         );
         if (confirmed) {
-            router.delete(`/admin/saas-products/${id}`);
+            router.delete(`/admin/saas-products/${id}`, {
+                preserveScroll: true,
+                onSuccess: () => {
+                    setSelectedIds((prev) => prev.filter((item) => item !== id));
+                },
+            });
         }
     };
 
@@ -65,16 +92,17 @@ export default function SaasProductsIndex({
         );
         if (confirmed) {
             router.post('/admin/saas-products/bulk-delete', { ids: selectedIds }, {
+                preserveScroll: true,
                 onSuccess: () => setSelectedIds([]),
             });
         }
     };
 
     const toggleSelectAll = () => {
-        if (selectedIds.length === products.data.length) {
+        if (selectedIds.length === paginatedItems.length && paginatedItems.length > 0) {
             setSelectedIds([]);
         } else {
-            setSelectedIds(products.data.map(p => p.id));
+            setSelectedIds(paginatedItems.map(p => p.id));
         }
     };
 
@@ -126,15 +154,24 @@ export default function SaasProductsIndex({
 
                 {/* Filters & Search */}
                 <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
-                    <form onSubmit={handleSearch} className="relative w-full sm:w-80">
+                    <form onSubmit={handleImmediateSearch} className="relative w-full sm:w-80">
                         <input
                             type="text"
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             placeholder="Search products..."
-                            className="w-full pl-9 pr-4 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs focus:ring-2 focus:ring-indigo-500"
+                            className="w-full pl-9 pr-9 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs focus:ring-2 focus:ring-indigo-500"
                         />
                         <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400" />
+                        {search && (
+                            <button
+                                type="button"
+                                onClick={clearSearch}
+                                className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                            >
+                                <X className="h-4 w-4" />
+                            </button>
+                        )}
                     </form>
 
                     <div className="flex items-center space-x-1.5 p-1 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs self-stretch sm:self-auto justify-center">
@@ -156,7 +193,7 @@ export default function SaasProductsIndex({
 
                 {/* Products Table Card */}
                 <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs overflow-hidden">
-                    {products.data.length === 0 ? (
+                    {paginatedItems.length === 0 ? (
                         <div className="p-12 text-center space-y-3">
                             <Package className="h-10 w-10 text-slate-400 mx-auto" />
                             <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300">No SaaS products found</h3>
@@ -177,76 +214,71 @@ export default function SaasProductsIndex({
                                         <th className="py-3 px-4 w-10">
                                             <input
                                                 type="checkbox"
-                                                checked={selectedIds.length === products.data.length && products.data.length > 0}
+                                                checked={selectedIds.length === paginatedItems.length && paginatedItems.length > 0}
                                                 onChange={toggleSelectAll}
-                                                className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                                                className="rounded border-slate-300 dark:border-slate-700 text-indigo-600 focus:ring-indigo-500"
                                             />
                                         </th>
-                                        <th className="py-3 px-4">Product Name & Tagline</th>
-                                        <th className="py-3 px-4">Monthly Price</th>
-                                        <th className="py-3 px-4">6-Month Price</th>
-                                        <th className="py-3 px-4">Yearly Price</th>
-                                        <th className="py-3 px-4">Active Orders</th>
+                                        <th className="py-3 px-4">Product Name</th>
+                                        <th className="py-3 px-4">Tagline & Features</th>
+                                        <th className="py-3 px-4">Monthly Plan</th>
+                                        <th className="py-3 px-4">Half Yearly Plan</th>
+                                        <th className="py-3 px-4">Yearly Plan</th>
+                                        <th className="py-3 px-4">Active Subs</th>
                                         <th className="py-3 px-4">Status</th>
                                         <th className="py-3 px-4 text-right">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                                    {products.data.map((product) => (
+                                    {paginatedItems.map((product) => (
                                         <tr key={product.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
                                             <td className="py-3.5 px-4">
                                                 <input
                                                     type="checkbox"
                                                     checked={selectedIds.includes(product.id)}
                                                     onChange={() => toggleSelect(product.id)}
-                                                    className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                                                    className="rounded border-slate-300 dark:border-slate-700 text-indigo-600 focus:ring-indigo-500"
                                                 />
                                             </td>
                                             <td className="py-3.5 px-4">
                                                 <div className="flex items-center space-x-3">
                                                     {product.thumbnail ? (
-                                                        <div className="h-10 w-14 rounded-xl overflow-hidden bg-slate-950 border border-slate-200 dark:border-slate-800 shrink-0">
-                                                            <img
-                                                                src={product.thumbnail}
-                                                                alt={product.name}
-                                                                className="h-full w-full object-cover"
-                                                            />
-                                                        </div>
+                                                        <img
+                                                            src={product.thumbnail}
+                                                            alt={product.name}
+                                                            className="h-8 w-8 rounded-lg object-contain bg-slate-100 dark:bg-slate-800 p-1 border border-slate-200 dark:border-slate-700"
+                                                        />
                                                     ) : (
-                                                        <div className="h-10 w-10 rounded-xl bg-indigo-50 dark:bg-slate-800 text-indigo-600 dark:text-cyan-400 flex items-center justify-center font-bold shrink-0">
-                                                            <Package className="h-4 w-4" />
+                                                        <div className="h-8 w-8 rounded-lg bg-indigo-50 dark:bg-slate-800 text-indigo-600 dark:text-cyan-400 font-bold flex items-center justify-center text-xs">
+                                                            {product.name.charAt(0)}
                                                         </div>
                                                     )}
                                                     <div>
-                                                        <div className="flex items-center space-x-1.5">
-                                                            <span className="font-bold text-slate-900 dark:text-white">{product.name}</span>
+                                                        <div className="font-bold text-slate-900 dark:text-white flex items-center space-x-1.5">
+                                                            <span>{product.name}</span>
                                                             {product.badge && (
-                                                                <span className="px-1.5 py-0.2 rounded bg-indigo-500/10 text-indigo-600 dark:text-cyan-400 text-[9px] font-bold">
+                                                                <span className="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-indigo-500/10 text-indigo-600 dark:text-cyan-400 border border-indigo-500/20">
                                                                     {product.badge}
                                                                 </span>
                                                             )}
-                                                            {product.is_featured && (
-                                                                <span className="px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-500 text-[9px] font-bold">
-                                                                    Featured
-                                                                </span>
-                                                            )}
                                                         </div>
-                                                        <div className="flex items-center space-x-1 mt-0.5">
-                                                            <span className="px-1 py-0.2 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 text-[9px] font-medium">Basic</span>
-                                                            <span className="px-1 py-0.2 rounded bg-indigo-100 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-300 text-[9px] font-bold">Std</span>
-                                                            <span className="px-1 py-0.2 rounded bg-purple-100 dark:bg-purple-950 text-purple-600 dark:text-purple-300 text-[9px] font-bold">Prem</span>
-                                                            <p className="text-[11px] text-slate-400 line-clamp-1 ml-1">{product.tagline || product.slug}</p>
-                                                        </div>
+                                                        <div className="text-[11px] text-slate-400 font-mono">/{product.slug}</div>
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td className="py-3.5 px-4 font-bold text-slate-900 dark:text-white">
+                                            <td className="py-3.5 px-4 max-w-xs">
+                                                <div className="text-slate-700 dark:text-slate-300 truncate">{product.tagline || '—'}</div>
+                                                <div className="text-[10px] text-slate-400">
+                                                    {Array.isArray(product.features) ? `${product.features.length} listed features` : '0 features'}
+                                                </div>
+                                            </td>
+                                            <td className="py-3.5 px-4 font-mono font-bold text-slate-900 dark:text-white">
                                                 {formatCurrency(product.monthly_price, product.currency || currencySymbol)}
                                             </td>
-                                            <td className="py-3.5 px-4 font-semibold text-slate-700 dark:text-slate-300">
+                                            <td className="py-3.5 px-4 font-mono font-bold text-slate-900 dark:text-white">
                                                 {formatCurrency(product.half_yearly_price, product.currency || currencySymbol)}
                                             </td>
-                                            <td className="py-3.5 px-4 font-semibold text-slate-700 dark:text-slate-300">
+                                            <td className="py-3.5 px-4 font-mono font-bold text-slate-900 dark:text-white">
                                                 {formatCurrency(product.yearly_price, product.currency || currencySymbol)}
                                             </td>
                                             <td className="py-3.5 px-4 font-bold text-indigo-600 dark:text-cyan-400">
@@ -285,6 +317,16 @@ export default function SaasProductsIndex({
                             </table>
                         </div>
                     )}
+
+                    <Pagination
+                        from={from}
+                        to={to}
+                        total={totalItems}
+                        currentPage={currentPage}
+                        lastPage={totalPages}
+                        onPageChange={setCurrentPage}
+                        itemLabel="products"
+                    />
                 </div>
             </div>
         </AdminLayout>

@@ -19,52 +19,17 @@ class PortfolioController extends Controller
      */
     public function index(Request $request): Response
     {
-        $search = $request->query('search', '');
-        $categoryId = $request->query('category_id', 'all');
-        $itemType = $request->query('item_type', 'all');
-        $fromDate = $request->query('from_date');
-        $toDate = $request->query('to_date');
-
-        $query = Portfolio::with('category');
-
-        if (!empty($search)) {
-            $query->where(function ($q) use ($search) {
-                $q->where('title', 'like', "%{$search}%")
-                  ->orWhere('client_name', 'like', "%{$search}%")
-                  ->orWhere('short_description', 'like', "%{$search}%");
-            });
-        }
-
-        if ($categoryId !== 'all' && !empty($categoryId)) {
-            $query->where('category_id', $categoryId);
-        }
-
-        if ($itemType !== 'all' && !empty($itemType)) {
-            $query->where('item_type', $itemType);
-        }
-
-        if ($fromDate && $toDate) {
-            $query->whereBetween('created_at', [$fromDate . ' 00:00:00', $toDate . ' 23:59:59']);
-        }
-
-        $portfolios = $query->orderBy('is_featured', 'desc')
+        $portfolios = Portfolio::with('category')
+            ->orderBy('is_featured', 'desc')
             ->orderBy('order')
             ->orderBy('created_at', 'desc')
-            ->paginate(10)
-            ->withQueryString();
+            ->get();
 
         $categories = Category::where('is_active', true)->orderBy('name')->get(['id', 'name']);
 
         return Inertia::render('admin/portfolios/index', [
             'portfolios' => $portfolios,
             'categories' => $categories,
-            'filters' => [
-                'search' => $search,
-                'category_id' => $categoryId,
-                'item_type' => $itemType,
-                'from_date' => $fromDate,
-                'to_date' => $toDate,
-            ],
         ]);
     }
 

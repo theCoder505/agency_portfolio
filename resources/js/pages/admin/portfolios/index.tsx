@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Link, router } from '@inertiajs/react';
 import { AdminLayout } from '@/layouts/admin-layout';
 import { Category, Portfolio, PaginatedData } from '@/types';
 import { DateRangeFilter } from '@/components/admin/date-range-filter';
+import { Pagination } from '@/components/ui/pagination';
+import { useClientDataTable } from '@/hooks/use-client-data-table';
 import {
     Plus,
     Search,
@@ -20,40 +22,79 @@ import {
 import { confirmAction, showToast } from '@/lib/swal';
 
 interface PortfolioIndexProps {
-    portfolios: PaginatedData<Portfolio>;
+    portfolios: Portfolio[] | PaginatedData<Portfolio>;
     categories: Category[];
-    filters: {
-        search?: string;
-        category_id?: string;
-        item_type?: string;
-        from_date?: string;
-        to_date?: string;
-    };
 }
 
-export default function PortfolioIndex({ portfolios, categories, filters }: PortfolioIndexProps) {
+export default function PortfolioIndex({ portfolios, categories }: PortfolioIndexProps) {
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
-    const [search, setSearch] = useState(filters?.search ?? '');
-    const [categoryId, setCategoryId] = useState(filters?.category_id ?? 'all');
-    const [itemType, setItemType] = useState(filters?.item_type ?? 'all');
+    const [categoryId, setCategoryId] = useState('all');
+    const [itemType, setItemType] = useState('all');
+    const [fromDate, setFromDate] = useState('');
+    const [toDate, setToDate] = useState('');
 
-    const handleFilterChange = (newCat: string, newType: string, newSearch: string, from?: string, to?: string) => {
-        router.get(
-            '/admin/portfolios',
-            {
-                category_id: newCat,
-                item_type: newType,
-                search: newSearch || undefined,
-                from_date: from || undefined,
-                to_date: to || undefined,
-            },
-            { preserveState: true, preserveScroll: true }
-        );
+    const allPortfoliosList = useMemo(() => {
+        return Array.isArray(portfolios) ? portfolios : portfolios?.data || [];
+    }, [portfolios]);
+
+    // Multi-criteria filter for category, itemType, and date range
+    const filteredByFilters = useMemo(() => {
+        return allPortfoliosList.filter((item) => {
+            if (categoryId !== 'all' && String(item.category_id) !== String(categoryId)) {
+                return false;
+            }
+            if (itemType !== 'all' && item.item_type !== itemType) {
+                return false;
+            }
+            if (fromDate && toDate && item.created_at) {
+                const itemDate = new Date(item.created_at).getTime();
+                const start = new Date(fromDate + ' 00:00:00').getTime();
+                const end = new Date(toDate + ' 23:59:59').getTime();
+                if (itemDate < start || itemDate > end) return false;
+            }
+            return true;
+        });
+    }, [allPortfoliosList, categoryId, itemType, fromDate, toDate]);
+
+    // Instant Frontend Search & Pagination
+    const {
+        search,
+        setSearch,
+        clearSearch,
+        handleImmediateSearch,
+        currentPage,
+        setCurrentPage,
+        totalPages,
+        totalItems,
+        from,
+        to,
+        paginatedItems,
+    } = useClientDataTable<Portfolio>({
+        items: filteredByFilters,
+        pageSize: 10,
+        searchFields: ['title', 'client_name', 'short_description', 'category.name', 'tech_stacks'],
+    });
+
+    const handleCategoryChange = (cat: string) => {
+        setCategoryId(cat);
+        setCurrentPage(1);
     };
 
-    const handleSearchSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        handleFilterChange(categoryId, itemType, search);
+    const handleItemTypeChange = (type: string) => {
+        setItemType(type);
+        setCurrentPage(1);
+    };
+
+    const handleDateApply = (fromVal: string, toVal: string) => {
+        setFromDate(fromVal);
+        setToDate(toVal);
+        setCurrentPage(1);
+    };
+
+    const handleDateClear = () => {
+        setFromDate('');
+        setToDate('');
+        setCurrentPage(1);
     };
 
     // Toggle single selection
@@ -65,10 +106,10 @@ export default function PortfolioIndex({ portfolios, categories, filters }: Port
 
     // Select all on current page
     const toggleSelectAll = () => {
-        if (selectedIds.length === portfolios.data.length) {
+        if (selectedIds.length === paginatedItems.length && paginatedItems.length > 0) {
             setSelectedIds([]);
         } else {
-            setSelectedIds(portfolios.data.map((p) => p.id));
+            setSelectedIds(paginatedItems.map((p) => p.id));
         }
     };
 
@@ -144,25 +185,31 @@ export default function PortfolioIndex({ portfolios, categories, filters }: Port
                 <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
                     <div className="flex flex-wrap items-center justify-between gap-4">
                         {/* Search */}
-                        <form onSubmit={handleSearchSubmit} className="flex items-center relative w-full sm:w-72">
+                        <form onSubmit={handleImmediateSearch} className="flex items-center relative w-full sm:w-72">
                             <Search className="absolute left-3 h-4 w-4 text-slate-400" />
                             <input
                                 type="text"
-                                value={search ?? ''}
+                                value={search}
                                 onChange={(e) => setSearch(e.target.value)}
                                 placeholder="Search projects..."
-                                className="w-full pl-9 pr-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                className="w-full pl-9 pr-8 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500"
                             />
+                            {search && (
+                                <button
+                                    type="button"
+                                    onClick={clearSearch}
+                                    className="absolute right-2.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                                >
+                                    <X className="h-3.5 w-3.5" />
+                                </button>
+                            )}
                         </form>
 
                         {/* Category & Type Selectors */}
                         <div className="flex flex-wrap items-center gap-3">
                             <select
                                 value={categoryId ?? 'all'}
-                                onChange={(e) => {
-                                    setCategoryId(e.target.value);
-                                    handleFilterChange(e.target.value, itemType, search);
-                                }}
+                                onChange={(e) => handleCategoryChange(e.target.value)}
                                 className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-xs font-semibold"
                             >
                                 <option value="all">All Categories</option>
@@ -175,10 +222,7 @@ export default function PortfolioIndex({ portfolios, categories, filters }: Port
 
                             <select
                                 value={itemType ?? 'all'}
-                                onChange={(e) => {
-                                    setItemType(e.target.value);
-                                    handleFilterChange(categoryId, e.target.value, search);
-                                }}
+                                onChange={(e) => handleItemTypeChange(e.target.value)}
                                 className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-xs font-semibold"
                             >
                                 <option value="all">All Item Types</option>
@@ -188,10 +232,10 @@ export default function PortfolioIndex({ portfolios, categories, filters }: Port
 
                             {/* Date Filter */}
                             <DateRangeFilter
-                                fromDate={filters?.from_date ?? ''}
-                                toDate={filters?.to_date ?? ''}
-                                onApply={(f, t) => handleFilterChange(categoryId, itemType, search, f, t)}
-                                onClear={() => handleFilterChange(categoryId, itemType, search, '', '')}
+                                fromDate={fromDate}
+                                toDate={toDate}
+                                onApply={handleDateApply}
+                                onClear={handleDateClear}
                             />
                         </div>
                     </div>
@@ -213,7 +257,7 @@ export default function PortfolioIndex({ portfolios, categories, filters }: Port
                     )}
                 </div>
 
-                {/* Shadcn Styled Data Table */}
+                {/* Data Table */}
                 <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left text-xs">
@@ -222,7 +266,7 @@ export default function PortfolioIndex({ portfolios, categories, filters }: Port
                                     <th className="p-4 w-10">
                                         <input
                                             type="checkbox"
-                                            checked={selectedIds.length === portfolios.data.length && portfolios.data.length > 0}
+                                            checked={selectedIds.length === paginatedItems.length && paginatedItems.length > 0}
                                             onChange={toggleSelectAll}
                                             className="rounded border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-indigo-600 focus:ring-indigo-500"
                                         />
@@ -236,14 +280,14 @@ export default function PortfolioIndex({ portfolios, categories, filters }: Port
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                                {portfolios.data.length === 0 ? (
+                                {paginatedItems.length === 0 ? (
                                     <tr>
                                         <td colSpan={7} className="text-center py-12 text-slate-400">
                                             No portfolio products found.
                                         </td>
                                     </tr>
                                 ) : (
-                                    portfolios.data.map((portfolio) => {
+                                    paginatedItems.map((portfolio) => {
                                         const isSelected = selectedIds.includes(portfolio.id);
                                         const isDirect = portfolio.item_type === 'direct_link';
 
@@ -368,31 +412,15 @@ export default function PortfolioIndex({ portfolios, categories, filters }: Port
                         </table>
                     </div>
 
-                    {/* Pagination */}
-                    {portfolios.last_page > 1 && (
-                        <div className="p-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
-                            <span className="text-slate-500">
-                                Showing {portfolios.from} to {portfolios.to} of {portfolios.total} projects
-                            </span>
-                            <div className="flex items-center space-x-1">
-                                {portfolios.links.map((link, idx) => (
-                                    <Link
-                                        key={idx}
-                                        href={link.url || '#'}
-                                        preserveScroll
-                                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                                            link.active
-                                                ? 'bg-indigo-600 text-white shadow-sm'
-                                                : !link.url
-                                                ? 'text-slate-400 pointer-events-none opacity-50'
-                                                : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200'
-                                        }`}
-                                        dangerouslySetInnerHTML={{ __html: link.label }}
-                                    />
-                                ))}
-                            </div>
-                        </div>
-                    )}
+                    <Pagination
+                        from={from}
+                        to={to}
+                        total={totalItems}
+                        currentPage={currentPage}
+                        lastPage={totalPages}
+                        onPageChange={setCurrentPage}
+                        itemLabel="projects"
+                    />
                 </div>
             </div>
         </AdminLayout>

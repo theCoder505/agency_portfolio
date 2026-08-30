@@ -70,7 +70,7 @@ export default function BlogShowPage({ blog, relatedBlogs }: BlogShowPageProps) 
         >
             <div className="min-h-screen bg-slate-50 dark:bg-slate-950 transition-colors duration-300 pb-20">
                 {/* Article Header & Breadcrumbs */}
-                <header className="relative pt-8 pb-12 overflow-hidden border-b border-slate-200/80 dark:border-slate-800/80">
+                <header className="relative pt-8 pb-12 overflow-hidden">
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-96 bg-gradient-to-b from-indigo-500/10 dark:from-indigo-500/15 to-transparent rounded-full blur-3xl pointer-events-none" />
 
                     <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">

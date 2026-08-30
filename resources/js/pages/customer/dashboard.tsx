@@ -24,11 +24,15 @@ import {
     FolderGit2,
     PlusCircle,
     Github,
-    HardDrive
+    HardDrive,
+    Search,
+    X
 } from 'lucide-react';
 import { showToast } from '@/lib/swal';
 import { formatCurrency } from '@/lib/formatters';
 import { getCustomOrderUrl } from '@/lib/utils';
+import { useClientDataTable } from '@/hooks/use-client-data-table';
+import { Pagination } from '@/components/ui/pagination';
 
 interface DashboardProps {
     kpis: {
@@ -70,6 +74,12 @@ export default function CustomerDashboard({
     const currency = paymentSettings.currency_symbol || '৳';
 
     const [visibleCredentials, setVisibleCredentials] = useState<Record<number, boolean>>({});
+
+    const invsTable = useClientDataTable<SubscriptionInvoice>({
+        data: recentInvoices,
+        searchFields: (inv) => [inv.invoice_number, inv.subscription?.product?.name, inv.payment_method, inv.transaction_id, inv.status],
+        initialPageSize: 5,
+    });
 
     const toggleCredentials = (subId: number) => {
         setVisibleCredentials(prev => ({ ...prev, [subId]: !prev[subId] }));
@@ -513,7 +523,7 @@ export default function CustomerDashboard({
 
                 {/* RECENT INVOICES SECTION */}
                 <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-6 sm:p-7 shadow-sm space-y-4">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <div className="flex items-center space-x-2">
                             <Receipt className="h-5 w-5 text-indigo-600 dark:text-cyan-400" />
                             <h2 className="text-base font-bold text-slate-900 dark:text-white">
@@ -521,57 +531,97 @@ export default function CustomerDashboard({
                             </h2>
                         </div>
 
-                        <Link
-                            href="/customer/invoices"
-                            className="text-xs font-bold text-indigo-600 dark:text-cyan-400 hover:underline"
-                        >
-                            View All Invoices
-                        </Link>
+                        <div className="flex items-center space-x-3">
+                            {recentInvoices.length > 0 && (
+                                <div className="relative w-48 sm:w-56">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+                                    <input
+                                        type="text"
+                                        value={invsTable.search}
+                                        onChange={(e) => invsTable.setSearch(e.target.value)}
+                                        placeholder="Search..."
+                                        className="w-full pl-8 pr-8 py-1 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-xs focus:ring-1 focus:ring-indigo-500"
+                                    />
+                                    {invsTable.search && (
+                                        <button
+                                            type="button"
+                                            onClick={invsTable.clearSearch}
+                                            className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                                        >
+                                            <X className="h-3 w-3" />
+                                        </button>
+                                    )}
+                                </div>
+                            )}
+
+                            <Link
+                                href="/customer/invoices"
+                                className="text-xs font-bold text-indigo-600 dark:text-cyan-400 hover:underline shrink-0"
+                            >
+                                View All
+                            </Link>
+                        </div>
                     </div>
 
                     {recentInvoices.length === 0 ? (
                         <div className="text-center py-6 text-xs text-slate-400">
                             No invoices generated yet.
                         </div>
-                    ) : (
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left text-xs">
-                                <thead>
-                                    <tr className="border-b border-slate-100 dark:border-slate-800 text-slate-400 font-bold uppercase text-[10px]">
-                                        <th className="pb-3">Invoice #</th>
-                                        <th className="pb-3">SaaS Package</th>
-                                        <th className="pb-3">Amount</th>
-                                        <th className="pb-3">Payment Method</th>
-                                        <th className="pb-3">Transaction ID</th>
-                                        <th className="pb-3">Status</th>
-                                        <th className="pb-3 text-right">Date</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                                    {recentInvoices.map((inv) => (
-                                        <tr key={inv.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
-                                            <td className="py-3 font-mono font-bold text-indigo-600 dark:text-cyan-400">{inv.invoice_number}</td>
-                                            <td className="py-3 font-semibold text-slate-900 dark:text-white">{inv.subscription?.product?.name || 'SaaS Product'}</td>
-                                            <td className="py-3 font-bold">{formatCurrency(inv.amount, inv.currency || currency)}</td>
-                                            <td className="py-3 uppercase font-mono">{inv.payment_method}</td>
-                                            <td className="py-3 font-mono">{inv.transaction_id || 'N/A'}</td>
-                                            <td className="py-3">
-                                                <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
-                                                    inv.status === 'paid'
-                                                        ? 'bg-emerald-500/10 text-emerald-500'
-                                                        : inv.status === 'pending'
-                                                        ? 'bg-amber-500/10 text-amber-500'
-                                                        : 'bg-rose-500/10 text-rose-500'
-                                                }`}>
-                                                    {inv.status.toUpperCase()}
-                                                </span>
-                                            </td>
-                                            <td className="py-3 text-right text-slate-400">{new Date(inv.created_at).toLocaleDateString()}</td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                    ) : invsTable.paginatedData.length === 0 ? (
+                        <div className="text-center py-6 text-xs text-slate-400">
+                            No invoices matching &ldquo;{invsTable.search}&rdquo;
                         </div>
+                    ) : (
+                        <>
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left text-xs">
+                                    <thead>
+                                        <tr className="border-b border-slate-100 dark:border-slate-800 text-slate-400 font-bold uppercase text-[10px]">
+                                            <th className="pb-3">Invoice #</th>
+                                            <th className="pb-3">SaaS Package</th>
+                                            <th className="pb-3">Amount</th>
+                                            <th className="pb-3">Payment Method</th>
+                                            <th className="pb-3">Transaction ID</th>
+                                            <th className="pb-3">Status</th>
+                                            <th className="pb-3 text-right">Date</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                        {invsTable.paginatedData.map((inv) => (
+                                            <tr key={inv.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                                                <td className="py-3 font-mono font-bold text-indigo-600 dark:text-cyan-400">{inv.invoice_number}</td>
+                                                <td className="py-3 font-semibold text-slate-900 dark:text-white">{inv.subscription?.product?.name || 'SaaS Product'}</td>
+                                                <td className="py-3 font-bold">{formatCurrency(inv.amount, inv.currency || currency)}</td>
+                                                <td className="py-3 uppercase font-mono">{inv.payment_method}</td>
+                                                <td className="py-3 font-mono">{inv.transaction_id || 'N/A'}</td>
+                                                <td className="py-3">
+                                                    <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
+                                                        inv.status === 'paid'
+                                                            ? 'bg-emerald-500/10 text-emerald-500'
+                                                            : inv.status === 'pending'
+                                                            ? 'bg-amber-500/10 text-amber-500'
+                                                            : 'bg-rose-500/10 text-rose-500'
+                                                    }`}>
+                                                        {inv.status.toUpperCase()}
+                                                    </span>
+                                                </td>
+                                                <td className="py-3 text-right text-slate-400">{new Date(inv.created_at).toLocaleDateString()}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <Pagination
+                                currentPage={invsTable.currentPage}
+                                totalPages={invsTable.totalPages}
+                                total={invsTable.total}
+                                from={invsTable.from}
+                                to={invsTable.to}
+                                onPageChange={invsTable.setCurrentPage}
+                                itemLabel="invoices"
+                            />
+                        </>
                     )}
                 </div>
             </div>

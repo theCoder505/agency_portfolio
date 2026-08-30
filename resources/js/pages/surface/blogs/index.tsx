@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
-import { Link, router } from '@inertiajs/react';
+import React, { useState, useMemo } from 'react';
+import { Link } from '@inertiajs/react';
 import { SurfaceLayout } from '@/layouts/surface-layout';
 import { Blog, Category, PaginatedData } from '@/types';
+import { Pagination } from '@/components/ui/pagination';
+import { useClientDataTable } from '@/hooks/use-client-data-table';
 import {
     Search,
     BookOpen,
@@ -12,28 +14,58 @@ import {
     ArrowRight,
     Flame,
     Compass,
+    X,
 } from 'lucide-react';
 
 interface BlogIndexPageProps {
-    blogs: PaginatedData<Blog>;
+    blogs: Blog[] | PaginatedData<Blog>;
     featuredBlog: Blog | null;
     categories: (Category & { blogs_count?: number })[];
-    filters: {
-        category?: string;
-        search?: string;
-        tag?: string;
-    };
 }
 
 export default function BlogIndexPage({
     blogs,
     featuredBlog,
     categories,
-    filters,
 }: BlogIndexPageProps) {
-    const [search, setSearch] = useState(filters.search || '');
-    const activeCategory = filters.category || 'all';
-    const activeTag = filters.tag || '';
+    const [activeCategory, setActiveCategory] = useState('all');
+    const [activeTag, setActiveTag] = useState('');
+
+    const allBlogsList = useMemo(() => {
+        return Array.isArray(blogs) ? blogs : blogs?.data || [];
+    }, [blogs]);
+
+    // Filter by Category and Tag
+    const filteredByCategoryAndTag = useMemo(() => {
+        return allBlogsList.filter((blog) => {
+            if (activeCategory !== 'all' && blog.category?.slug !== activeCategory) {
+                return false;
+            }
+            if (activeTag && (!blog.tags || !blog.tags.includes(activeTag))) {
+                return false;
+            }
+            return true;
+        });
+    }, [allBlogsList, activeCategory, activeTag]);
+
+    // Instant Frontend Search & Pagination
+    const {
+        search,
+        setSearch,
+        clearSearch,
+        handleImmediateSearch,
+        currentPage,
+        setCurrentPage,
+        totalPages,
+        totalItems,
+        from,
+        to,
+        paginatedItems,
+    } = useClientDataTable<Blog>({
+        items: filteredByCategoryAndTag,
+        pageSize: 9,
+        searchFields: ['title', 'short_description', 'author_name', 'tags', 'category.name', 'content'],
+    });
 
     // Calculate approximate read time (200 words/min)
     const getReadTime = (content?: string | null, excerpt?: string | null) => {
@@ -44,42 +76,21 @@ export default function BlogIndexPage({
         return `${Math.max(1, minutes)} min read`;
     };
 
-    const handleSearchSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        router.get(
-            '/blogs',
-            {
-                search: search || undefined,
-                category: activeCategory !== 'all' ? activeCategory : undefined,
-                tag: activeTag || undefined,
-            },
-            { preserveState: true }
-        );
-    };
-
     const handleCategoryClick = (catSlug: string) => {
-        router.get(
-            '/blogs',
-            {
-                category: catSlug !== 'all' ? catSlug : undefined,
-                search: search || undefined,
-                tag: activeTag || undefined,
-            },
-            { preserveState: true }
-        );
+        setActiveCategory(catSlug);
+        setCurrentPage(1);
     };
 
     const handleTagClick = (t: string) => {
-        const newTag = activeTag === t ? undefined : t;
-        router.get(
-            '/blogs',
-            {
-                tag: newTag,
-                category: activeCategory !== 'all' ? activeCategory : undefined,
-                search: search || undefined,
-            },
-            { preserveState: true }
-        );
+        setActiveTag(prev => prev === t ? '' : t);
+        setCurrentPage(1);
+    };
+
+    const handleResetAll = () => {
+        clearSearch();
+        setActiveCategory('all');
+        setActiveTag('');
+        setCurrentPage(1);
     };
 
     // Calculate total count of all blogs across categories
@@ -92,7 +103,7 @@ export default function BlogIndexPage({
         >
             <div className="min-h-screen bg-slate-50 dark:bg-slate-950 transition-colors duration-300">
                 {/* Hero Header Section */}
-                <section className="relative pt-12 pb-16 overflow-hidden border-b border-slate-200/80 dark:border-slate-800/80">
+                <section className="relative pt-12 pb-16 overflow-hidden">
                     {/* Background Gradients & Glows */}
                     <div className="absolute top-0 left-1/3 w-[500px] h-[500px] bg-indigo-500/10 dark:bg-indigo-500/15 rounded-full blur-3xl pointer-events-none" />
                     <div className="absolute bottom-0 right-1/4 w-[450px] h-[450px] bg-cyan-500/10 dark:bg-cyan-500/15 rounded-full blur-3xl pointer-events-none" />
@@ -122,7 +133,7 @@ export default function BlogIndexPage({
 
                             {/* Search Bar */}
                             <div className="lg:col-span-5" data-aos="fade-up" data-aos-delay="100">
-                                <form onSubmit={handleSearchSubmit} className="relative">
+                                <form onSubmit={handleImmediateSearch} className="relative">
                                     <div className="relative flex items-center">
                                         <Search className="absolute left-4 h-5 w-5 text-slate-400 pointer-events-none" />
                                         <input
@@ -130,14 +141,17 @@ export default function BlogIndexPage({
                                             placeholder="Search topics, frameworks, tutorials..."
                                             value={search}
                                             onChange={(e) => setSearch(e.target.value)}
-                                            className="w-full pl-12 pr-28 py-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm text-slate-900 dark:text-white placeholder-slate-400 shadow-lg shadow-indigo-500/5 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                                            className="w-full pl-12 pr-12 py-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm text-slate-900 dark:text-white placeholder-slate-400 shadow-lg shadow-indigo-500/5 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
                                         />
-                                        <button
-                                            type="submit"
-                                            className="absolute right-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl shadow-md transition-all active:scale-95"
-                                        >
-                                            Search
-                                        </button>
+                                        {search && (
+                                            <button
+                                                type="button"
+                                                onClick={clearSearch}
+                                                className="absolute right-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                                            >
+                                                <X className="h-4 w-4" />
+                                            </button>
+                                        )}
                                     </div>
                                 </form>
                             </div>
@@ -161,7 +175,7 @@ export default function BlogIndexPage({
                                 <Compass className="h-3.5 w-3.5" />
                                 <span>All Articles</span>
                                 <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
-                                    {totalBlogsCount || blogs.total}
+                                    {totalBlogsCount || allBlogsList.length}
                                 </span>
                             </button>
 
@@ -305,12 +319,12 @@ export default function BlogIndexPage({
                                     </span>
                                 </h2>
                                 <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-                                    Showing {blogs.data.length} of {blogs.total} total publications
+                                    Showing {paginatedItems.length} of {totalItems} total publications
                                 </p>
                             </div>
                         </div>
 
-                        {blogs.data.length === 0 ? (
+                        {paginatedItems.length === 0 ? (
                             <div
                                 data-aos="fade-up"
                                 className="text-center py-20 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-8"
@@ -321,7 +335,7 @@ export default function BlogIndexPage({
                                     We couldn't find any articles matching your search query. Try clearing the search or exploring another category.
                                 </p>
                                 <button
-                                    onClick={() => handleCategoryClick('all')}
+                                    onClick={handleResetAll}
                                     className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl shadow transition-all"
                                 >
                                     Reset Filters
@@ -329,7 +343,7 @@ export default function BlogIndexPage({
                             </div>
                         ) : (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                                {blogs.data.map((blog, idx) => (
+                                {paginatedItems.map((blog, idx) => (
                                     <article
                                         key={blog.id}
                                         data-aos="fade-up"
@@ -452,28 +466,17 @@ export default function BlogIndexPage({
                         )}
 
                         {/* Pagination Links */}
-                        {blogs.links && blogs.links.length > 3 && (
-                            <div
-                                data-aos="fade-up"
-                                className="pt-8 flex items-center justify-center space-x-1.5"
-                            >
-                                {blogs.links.map((link, idx) => (
-                                    <Link
-                                        key={idx}
-                                        href={link.url || '#'}
-                                        preserveScroll
-                                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                                            link.active
-                                                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/25'
-                                                : link.url
-                                                ? 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-indigo-500'
-                                                : 'text-slate-400 pointer-events-none opacity-50'
-                                        }`}
-                                        dangerouslySetInnerHTML={{ __html: link.label }}
-                                    />
-                                ))}
-                            </div>
-                        )}
+                        <div className="pt-8">
+                            <Pagination
+                                from={from}
+                                to={to}
+                                total={totalItems}
+                                currentPage={currentPage}
+                                lastPage={totalPages}
+                                onPageChange={setCurrentPage}
+                                itemLabel="articles"
+                            />
+                        </div>
                     </div>
 
                     {/* Bottom CTA Banner */}

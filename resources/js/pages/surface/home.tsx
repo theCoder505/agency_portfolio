@@ -27,7 +27,9 @@ import {
     Eye,
     Clock,
     Calendar,
-    ArrowUpRight
+    ArrowUpRight,
+    HelpCircle,
+    ChevronDown
 } from 'lucide-react';
 
 interface HomePageProps {
@@ -57,6 +59,42 @@ export default function Home({
 }: HomePageProps) {
     const { app_settings } = usePage<SharedData>().props;
     const [isVideoOpen, setIsVideoOpen] = useState(false);
+    const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
+
+    const defaultFaqs = [
+        {
+            q: 'What services and technologies does CodeVenture Tech specialize in?',
+            a: 'We engineer high-performance web applications, enterprise SaaS platforms, AI streaming agents, custom cloud portals, and bespoke modern websites using React, Next.js, Laravel, TypeScript, Tailwind CSS, PostgreSQL, and cloud infrastructure.',
+        },
+        {
+            q: 'How does the custom project workflow and delivery milestones operate?',
+            a: 'Every custom project is structured into transparent, trackable milestones with deliverables and budget breakdowns. You can track progress in real-time, review deliverables, request revisions, and release milestone funds securely from your dedicated client portal.',
+        },
+        {
+            q: 'How do subscription packages and payment processing work for SaaS products?',
+            a: 'You can subscribe to our ready-to-deploy enterprise SaaS platforms with flexible monthly or yearly billing cycles. We support instant local payment verification via bKash and Nagad with Transaction ID validation, as well as enterprise invoicing.',
+        },
+        {
+            q: 'Do you provide post-launch maintenance, cloud hosting, and SLA support?',
+            a: 'Yes! All our software products and custom web systems come with ongoing maintenance, high-availability cloud deployment (99.99% uptime), automated database backups, custom domain and SSL provisioning, and priority SLA technical support.',
+        },
+        {
+            q: 'How fast can CodeVenture Tech start on my project?',
+            a: 'Once you submit a project inquiry or custom order brief, our senior engineering leads review your requirements and provide an architectural roadmap, deliverable estimates, and a kick-off schedule within 24 hours.',
+        },
+    ];
+
+    let faqs = defaultFaqs;
+    if (app_settings?.faqs_json) {
+        try {
+            const parsed = JSON.parse(app_settings.faqs_json);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+                faqs = parsed;
+            }
+        } catch (e) {
+            // fallback
+        }
+    }
 
     const featuredVideo = app_settings?.featured_youtube_video || 'https://www.youtube.com/watch?v=LXb3EKWsInQ';
     const currency = app_settings?.currency_symbol || '৳';
@@ -156,7 +194,7 @@ export default function Home({
 
             {/* FEATURED SAAS PRODUCTS SHOWCASE SECTION */}
             {saasProducts && saasProducts.length > 0 && (
-                <section className="py-24 bg-white dark:bg-slate-900/60 border-y border-slate-200/80 dark:border-slate-800/80 relative">
+                <section className="py-24 bg-white dark:bg-slate-900/60 relative">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-16" data-aos="fade-up">
                             <div className="space-y-2">
@@ -350,7 +388,7 @@ export async function bootstrapPlatform(config: AppConfig) {
 
             {/* LATEST INSIGHTS & BLOGS SECTION - 12 ARTICLES SHOWCASE */}
             {blogs && blogs.length > 0 && (
-                <section className="py-24 bg-slate-100/60 dark:bg-slate-900/30 border-t border-slate-200/80 dark:border-slate-800/80 relative">
+                <section className="py-24 bg-slate-100/60 dark:bg-slate-900/30 relative">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         {/* Section Header */}
                         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-12" data-aos="fade-up">
@@ -481,6 +519,63 @@ export async function bootstrapPlatform(config: AppConfig) {
 
             {/* TRUSTPILOT REVIEWS SWIPER CAROUSEL */}
             <TrustpilotCarousel reviews={reviews} settings={app_settings} />
+
+            {/* DYNAMIC FREQUENTLY ASKED QUESTIONS */}
+            {faqs.length > 0 && (
+                <section id="faq" className="py-24 bg-slate-50/70 dark:bg-slate-950/40 relative">
+                    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <div className="text-center max-w-2xl mx-auto mb-16" data-aos="fade-up">
+                            <div className="inline-flex items-center space-x-2 px-3 py-1.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-cyan-400 border border-indigo-500/20 text-xs font-bold mb-3">
+                                <HelpCircle className="h-3.5 w-3.5" />
+                                <span>Answers & Knowledge</span>
+                            </div>
+                            <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-slate-900 dark:text-white">
+                                Frequently Asked Questions
+                            </h2>
+                            <p className="mt-3 text-sm sm:text-base text-slate-600 dark:text-slate-400">
+                                Everything you need to know about our engineering process, pricing, delivery milestones, and SLA guarantees.
+                            </p>
+                        </div>
+
+                        <div className="space-y-4">
+                            {faqs.map((faq, idx) => {
+                                const isOpen = openFaqIndex === idx;
+                                return (
+                                    <div
+                                        key={idx}
+                                        data-aos="fade-up"
+                                        data-aos-delay={`${(idx % 5) * 60}`}
+                                        className={`rounded-2xl transition-all duration-200 overflow-hidden border ${
+                                            isOpen
+                                                ? 'bg-white dark:bg-slate-900 border-indigo-500/50 shadow-lg shadow-indigo-500/5'
+                                                : 'bg-white/70 dark:bg-slate-900/60 border-slate-200/80 dark:border-slate-800/80 hover:border-slate-300 dark:hover:border-slate-700'
+                                        }`}
+                                    >
+                                        <button
+                                            type="button"
+                                            onClick={() => setOpenFaqIndex(isOpen ? null : idx)}
+                                            className="w-full px-6 py-5 text-left flex items-center justify-between gap-4"
+                                        >
+                                            <span className="font-bold text-sm sm:text-base text-slate-900 dark:text-white">
+                                                {faq.q}
+                                            </span>
+                                            <div className={`p-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 transition-transform duration-200 flex-shrink-0 ${isOpen ? 'rotate-180 bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-cyan-400' : ''}`}>
+                                                <ChevronDown className="h-4 w-4" />
+                                            </div>
+                                        </button>
+
+                                        {isOpen && (
+                                            <div className="px-6 pb-6 pt-1 text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed border-t border-slate-100 dark:border-slate-800/60 animate-in fade-in">
+                                                {faq.a}
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </section>
+            )}
 
             {/* FAST CALL TO ACTION BANNER */}
             <section className="py-20 relative overflow-hidden bg-gradient-to-r from-indigo-900 via-purple-900 to-slate-950 text-white">

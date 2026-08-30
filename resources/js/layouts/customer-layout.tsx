@@ -85,9 +85,27 @@ export const CustomerLayout: React.FC<CustomerLayoutProps> = ({
             {/* Mobile Top Header */}
             <div className="md:hidden flex items-center justify-between p-4 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex-shrink-0 z-30">
                 <Link href="/customer/dashboard" className="flex items-center space-x-2.5 min-w-0">
-                    <div className="h-8 w-8 rounded-lg bg-gradient-to-tr from-indigo-600 to-cyan-500 flex items-center justify-center text-white font-bold text-xs">
-                        <Sparkles className="h-4 w-4" />
-                    </div>
+                    {app_settings?.favicon ? (
+                        <div className="h-8 w-8 rounded-lg bg-slate-100 dark:bg-slate-800 p-1.5 flex items-center justify-center overflow-hidden flex-shrink-0 border border-slate-200 dark:border-slate-700">
+                            <img
+                                src={app_settings.favicon}
+                                alt={brandName}
+                                className="h-full w-full object-contain"
+                            />
+                        </div>
+                    ) : app_settings?.logo ? (
+                        <div className="h-8 w-8 rounded-lg bg-slate-100 dark:bg-slate-800 p-1 flex items-center justify-center overflow-hidden flex-shrink-0 border border-slate-200 dark:border-slate-700">
+                            <img
+                                src={app_settings.logo}
+                                alt={brandName}
+                                className="h-full w-full object-contain"
+                            />
+                        </div>
+                    ) : (
+                        <div className="h-8 w-8 rounded-lg bg-gradient-to-tr from-indigo-600 to-cyan-500 flex items-center justify-center text-white font-bold text-xs">
+                            <Sparkles className="h-4 w-4" />
+                        </div>
+                    )}
                     <div className="min-w-0">
                         <span className="font-bold text-sm tracking-tight truncate text-slate-900 dark:text-white block">
                             {brandName}
@@ -125,11 +143,29 @@ export const CustomerLayout: React.FC<CustomerLayoutProps> = ({
                 {/* Brand Header */}
                 <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between flex-shrink-0">
                     <Link href="/customer/dashboard" className="flex items-center space-x-3 group min-w-0">
-                        <div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-cyan-400 p-[2px] shadow-sm">
-                            <div className="h-full w-full bg-slate-950 rounded-[10px] flex items-center justify-center text-cyan-300">
-                                <Sparkles className="h-5 w-5" />
+                        {app_settings?.favicon ? (
+                            <div className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-slate-800 p-2 flex items-center justify-center overflow-hidden flex-shrink-0 border border-slate-200 dark:border-slate-700 shadow-xs group-hover:border-indigo-500/50 transition-colors">
+                                <img
+                                    src={app_settings.favicon}
+                                    alt={brandName}
+                                    className="h-full w-full object-contain transition-transform group-hover:scale-105"
+                                />
                             </div>
-                        </div>
+                        ) : app_settings?.logo ? (
+                            <div className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-slate-800 p-1 flex items-center justify-center overflow-hidden flex-shrink-0 border border-slate-200 dark:border-slate-700 shadow-xs group-hover:border-indigo-500/50 transition-colors">
+                                <img
+                                    src={app_settings.logo}
+                                    alt={brandName}
+                                    className="h-full w-full object-contain transition-transform group-hover:scale-105"
+                                />
+                            </div>
+                        ) : (
+                            <div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-cyan-400 p-[2px] shadow-sm group-hover:shadow-indigo-500/20 transition-all">
+                                <div className="h-full w-full bg-slate-950 rounded-[10px] flex items-center justify-center text-cyan-300">
+                                    <Sparkles className="h-5 w-5" />
+                                </div>
+                            </div>
+                        )}
                         <div className="min-w-0">
                             <h1 className="text-sm font-black tracking-tight text-slate-900 dark:text-white truncate">
                                 {brandName}

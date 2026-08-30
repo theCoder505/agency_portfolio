@@ -1,48 +1,87 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { router, Link } from '@inertiajs/react';
 import { AdminLayout } from '@/layouts/admin-layout';
 import { VisitorLog, PaginatedData } from '@/types';
 import { DateRangeFilter } from '@/components/admin/date-range-filter';
+import { Pagination } from '@/components/ui/pagination';
+import { useClientDataTable } from '@/hooks/use-client-data-table';
 import {
     Search,
     Trash2,
+    X
 } from 'lucide-react';
 import { confirmAction } from '@/lib/swal';
 
 interface VisitorLogIndexProps {
-    logs: PaginatedData<VisitorLog>;
-    filters: {
-        search?: string;
-        device?: string;
-        browser?: string;
-        from_date?: string;
-        to_date?: string;
-    };
+    logs: VisitorLog[] | PaginatedData<VisitorLog>;
 }
 
-export default function VisitorLogIndex({ logs, filters }: VisitorLogIndexProps) {
+export default function VisitorLogIndex({ logs }: VisitorLogIndexProps) {
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
-    const [search, setSearch] = useState(filters?.search ?? '');
-    const [device, setDevice] = useState(filters?.device ?? 'all');
-    const [browser, setBrowser] = useState(filters?.browser ?? 'all');
+    const [device, setDevice] = useState('all');
+    const [browser, setBrowser] = useState('all');
+    const [fromDate, setFromDate] = useState('');
+    const [toDate, setToDate] = useState('');
 
-    const handleFilterChange = (newDevice: string, newBrowser: string, newSearch: string, from?: string, to?: string) => {
-        router.get(
-            '/admin/visitor-logs',
-            {
-                device: newDevice,
-                browser: newBrowser,
-                search: newSearch || undefined,
-                from_date: from || undefined,
-                to_date: to || undefined,
-            },
-            { preserveState: true, preserveScroll: true }
-        );
+    const allLogsList = useMemo(() => {
+        return Array.isArray(logs) ? logs : logs?.data || [];
+    }, [logs]);
+
+    // Multi-criteria filter
+    const filteredByFilters = useMemo(() => {
+        return allLogsList.filter((log) => {
+            if (device !== 'all' && log.device_type !== device) return false;
+            if (browser !== 'all' && log.browser !== browser) return false;
+
+            if (fromDate && toDate && log.created_at) {
+                const logDate = new Date(log.created_at).getTime();
+                const start = new Date(fromDate + ' 00:00:00').getTime();
+                const end = new Date(toDate + ' 23:59:59').getTime();
+                if (logDate < start || logDate > end) return false;
+            }
+            return true;
+        });
+    }, [allLogsList, device, browser, fromDate, toDate]);
+
+    // Instant Frontend Search & Pagination
+    const {
+        search,
+        setSearch,
+        clearSearch,
+        handleImmediateSearch,
+        currentPage,
+        setCurrentPage,
+        totalPages,
+        totalItems,
+        from,
+        to,
+        paginatedItems,
+    } = useClientDataTable<VisitorLog>({
+        items: filteredByFilters,
+        pageSize: 20,
+        searchFields: ['ip_address', 'url', 'referer', 'device_type', 'browser', 'platform', 'portfolio.title'],
+    });
+
+    const handleDeviceChange = (dev: string) => {
+        setDevice(dev);
+        setCurrentPage(1);
     };
 
-    const handleSearchSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        handleFilterChange(device, browser, search);
+    const handleBrowserChange = (br: string) => {
+        setBrowser(br);
+        setCurrentPage(1);
+    };
+
+    const handleDateApply = (fromVal: string, toVal: string) => {
+        setFromDate(fromVal);
+        setToDate(toVal);
+        setCurrentPage(1);
+    };
+
+    const handleDateClear = () => {
+        setFromDate('');
+        setToDate('');
+        setCurrentPage(1);
     };
 
     const toggleSelect = (id: number) => {
@@ -52,10 +91,10 @@ export default function VisitorLogIndex({ logs, filters }: VisitorLogIndexProps)
     };
 
     const toggleSelectAll = () => {
-        if (selectedIds.length === logs.data.length) {
+        if (selectedIds.length === paginatedItems.length && paginatedItems.length > 0) {
             setSelectedIds([]);
         } else {
-            setSelectedIds(logs.data.map((l) => l.id));
+            setSelectedIds(paginatedItems.map((l) => l.id));
         }
     };
 
@@ -139,24 +178,30 @@ export default function VisitorLogIndex({ logs, filters }: VisitorLogIndexProps)
                 {/* Toolbar */}
                 <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
                     <div className="flex flex-wrap items-center justify-between gap-4">
-                        <form onSubmit={handleSearchSubmit} className="relative w-full sm:w-72">
+                        <form onSubmit={handleImmediateSearch} className="relative w-full sm:w-72">
                             <Search className="absolute left-3 h-4 w-4 text-slate-400" />
                             <input
                                 type="text"
-                                value={search ?? ''}
+                                value={search}
                                 onChange={(e) => setSearch(e.target.value)}
                                 placeholder="Search by IP, URL, or referer..."
-                                className="w-full pl-9 pr-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                className="w-full pl-9 pr-8 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500"
                             />
+                            {search && (
+                                <button
+                                    type="button"
+                                    onClick={clearSearch}
+                                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                                >
+                                    <X className="h-3.5 w-3.5" />
+                                </button>
+                            )}
                         </form>
 
                         <div className="flex flex-wrap items-center gap-3">
                             <select
                                 value={device ?? 'all'}
-                                onChange={(e) => {
-                                    setDevice(e.target.value);
-                                    handleFilterChange(e.target.value, browser, search);
-                                }}
+                                onChange={(e) => handleDeviceChange(e.target.value)}
                                 className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-xs font-semibold"
                             >
                                 <option value="all">All Devices</option>
@@ -167,10 +212,7 @@ export default function VisitorLogIndex({ logs, filters }: VisitorLogIndexProps)
 
                             <select
                                 value={browser ?? 'all'}
-                                onChange={(e) => {
-                                    setBrowser(e.target.value);
-                                    handleFilterChange(device, e.target.value, search);
-                                }}
+                                onChange={(e) => handleBrowserChange(e.target.value)}
                                 className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-xs font-semibold"
                             >
                                 <option value="all">All Browsers</option>
@@ -181,10 +223,10 @@ export default function VisitorLogIndex({ logs, filters }: VisitorLogIndexProps)
                             </select>
 
                             <DateRangeFilter
-                                fromDate={filters?.from_date ?? ''}
-                                toDate={filters?.to_date ?? ''}
-                                onApply={(f, t) => handleFilterChange(device, browser, search, f, t)}
-                                onClear={() => handleFilterChange(device, browser, search, '', '')}
+                                fromDate={fromDate ?? ''}
+                                toDate={toDate ?? ''}
+                                onApply={handleDateApply}
+                                onClear={handleDateClear}
                             />
                         </div>
                     </div>
@@ -215,7 +257,7 @@ export default function VisitorLogIndex({ logs, filters }: VisitorLogIndexProps)
                                     <th className="p-4 w-10">
                                         <input
                                             type="checkbox"
-                                            checked={selectedIds.length === logs.data.length && logs.data.length > 0}
+                                            checked={selectedIds.length === paginatedItems.length && paginatedItems.length > 0}
                                             onChange={toggleSelectAll}
                                             className="rounded border-slate-300 dark:border-slate-700 text-indigo-600 focus:ring-indigo-500"
                                         />
@@ -230,14 +272,14 @@ export default function VisitorLogIndex({ logs, filters }: VisitorLogIndexProps)
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                                {logs.data.length === 0 ? (
+                                {paginatedItems.length === 0 ? (
                                     <tr>
                                         <td colSpan={8} className="text-center py-12 text-slate-400">
                                             No visitor logs recorded.
                                         </td>
                                     </tr>
                                 ) : (
-                                    logs.data.map((log) => {
+                                    paginatedItems.map((log) => {
                                         const isSelected = selectedIds.includes(log.id);
 
                                         return (
@@ -317,30 +359,15 @@ export default function VisitorLogIndex({ logs, filters }: VisitorLogIndexProps)
                     </div>
 
                     {/* Pagination */}
-                    {logs.last_page > 1 && (
-                        <div className="p-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
-                            <span className="text-slate-500">
-                                Showing {logs.from} to {logs.to} of {logs.total} visitor logs
-                            </span>
-                            <div className="flex items-center space-x-1">
-                                {logs.links.map((link, idx) => (
-                                    <Link
-                                        key={idx}
-                                        href={link.url || '#'}
-                                        preserveScroll
-                                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                                            link.active
-                                                ? 'bg-indigo-600 text-white shadow-sm'
-                                                : !link.url
-                                                ? 'text-slate-400 pointer-events-none opacity-50'
-                                                : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200'
-                                        }`}
-                                        dangerouslySetInnerHTML={{ __html: link.label }}
-                                    />
-                                ))}
-                            </div>
-                        </div>
-                    )}
+                    <Pagination
+                        from={from}
+                        to={to}
+                        total={totalItems}
+                        currentPage={currentPage}
+                        lastPage={totalPages}
+                        onPageChange={setCurrentPage}
+                        itemLabel="visitor logs"
+                    />
                 </div>
             </div>
         </AdminLayout>
