@@ -115,7 +115,7 @@ export const ProjectReportModal: React.FC<ProjectReportModalProps> = ({
             // Allow DOM and inlined background SVG assets to settle
             await new Promise((resolve) => setTimeout(resolve, 300));
 
-            const targetElement = renderContainer.firstElementChild as HTMLElement || renderContainer;
+            const targetElement = document.getElementById('pdf-statement-doc') || renderContainer;
 
             const opt = {
                 margin: [10, 8, 10, 8],
@@ -138,7 +138,10 @@ export const ProjectReportModal: React.FC<ProjectReportModalProps> = ({
                     format: 'a4',
                     orientation: 'portrait',
                 },
-                pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+                pagebreak: {
+                    mode: ['css', 'legacy'],
+                    avoid: ['.pdf-avoid-break', 'tr', 'table', '.pdf-card', '.pdf-section']
+                }
             };
 
             await html2pdf().set(opt).from(targetElement).save();
@@ -196,38 +199,51 @@ export const ProjectReportModal: React.FC<ProjectReportModalProps> = ({
                 {/* ON-SCREEN PREVIEW DOCUMENT BODY (FULL WIDTH SCROLLABLE) */}
                 <div id="printable-statement" className="p-6 sm:p-10 space-y-6 bg-white dark:bg-slate-900 overflow-y-auto flex-1 w-full relative">
                     {/* WATERMARK BACKGROUND (PREVIEW ONLY) */}
-                    <div className="absolute inset-0 pointer-events-none flex items-center justify-center opacity-[0.035] dark:opacity-[0.05] overflow-hidden">
-                        <svg className="w-[520px] h-[520px] -rotate-12 fill-current text-indigo-600" viewBox="0 0 40 42" xmlns="http://www.w3.org/2000/svg">
-                            <path fillRule="evenodd" clipRule="evenodd" d="M17.2 5.63325L8.6 0.855469L0 5.63325V32.1434L16.2 41.1434L32.4 32.1434V23.699L40 19.4767V9.85547L31.4 5.07769L22.8 9.85547V18.2999L17.2 21.411V5.63325ZM38 18.2999L32.4 21.411V15.2545L38 12.1434V18.2999ZM36.9409 10.4439L31.4 13.5221L25.8591 10.4439L31.4 7.36561L36.9409 10.4439ZM24.8 18.2999V12.1434L30.4 15.2545V21.411L24.8 18.2999ZM23.8 20.0323L29.3409 23.1105L16.2 30.411L10.6591 27.3328L23.8 20.0323ZM7.6 27.9212L15.2 32.1434V38.2999L2 30.9666V7.92116L7.6 11.0323V27.9212ZM8.6 9.29991L3.05913 6.22165L8.6 3.14339L14.1409 6.22165L8.6 9.29991ZM30.4 24.8101L17.2 32.1434V38.2999L30.4 30.9666V24.8101ZM9.6 11.0323L15.2 7.92117V22.5221L9.6 25.6333V11.0323Z" />
-                        </svg>
+                    <div className="absolute inset-0 pointer-events-none flex items-center justify-center overflow-hidden select-none z-0">
+                        {brandSettings.logo ? (
+                            <img
+                                src={brandSettings.logo}
+                                alt="Brand Watermark"
+                                className="w-[450px] max-w-[80%] max-h-[300px] object-contain opacity-50 dark:opacity-50 pointer-events-none"
+                            />
+                        ) : (
+                            <div className="text-6xl font-black text-indigo-600 opacity-50 dark:opacity-50 uppercase tracking-wider">
+                                {brandSettings.brand_name || 'CodeVenture'}
+                            </div>
+                        )}
                     </div>
 
                     {/* HEADER WITH BRAND LOGO & BRAND NAME AT START (FULL WIDTH) */}
                     <div className="flex flex-col sm:flex-row justify-between items-start gap-6 pb-6 border-b border-slate-200 dark:border-slate-800 w-full relative z-10">
                         <div className="space-y-2">
-                            <div className="flex items-center space-x-3.5">
-                                {brandSettings.logo ? (
+                            {brandSettings.logo ? (
+                                <div>
                                     <img
                                         src={brandSettings.logo}
                                         alt={brandSettings.brand_name || 'Brand Logo'}
-                                        className="h-12 w-auto max-w-[150px] object-contain rounded-lg shrink-0"
+                                        className="h-12 w-auto max-w-[240px] object-contain rounded-lg"
                                     />
-                                ) : (
-                                    <div className="h-12 w-12 rounded-2xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-cyan-400 text-white flex items-center justify-center font-black shadow-md shrink-0">
-                                        <svg className="w-7 h-7 fill-current" viewBox="0 0 40 42" xmlns="http://www.w3.org/2000/svg">
-                                            <path fillRule="evenodd" clipRule="evenodd" d="M17.2 5.63325L8.6 0.855469L0 5.63325V32.1434L16.2 41.1434L32.4 32.1434V23.699L40 19.4767V9.85547L31.4 5.07769L22.8 9.85547V18.2999L17.2 21.411V5.63325ZM38 18.2999L32.4 21.411V15.2545L38 12.1434V18.2999ZM36.9409 10.4439L31.4 13.5221L25.8591 10.4439L31.4 7.36561L36.9409 10.4439ZM24.8 18.2999V12.1434L30.4 15.2545V21.411L24.8 18.2999ZM23.8 20.0323L29.3409 23.1105L16.2 30.411L10.6591 27.3328L23.8 20.0323ZM7.6 27.9212L15.2 32.1434V38.2999L2 30.9666V7.92116L7.6 11.0323V27.9212ZM8.6 9.29991L3.05913 6.22165L8.6 3.14339L14.1409 6.22165L8.6 9.29991ZM30.4 24.8101L17.2 32.1434V38.2999L30.4 30.9666V24.8101ZM9.6 11.0323L15.2 7.92117V22.5221L9.6 25.6333V11.0323Z" />
-                                        </svg>
-                                    </div>
-                                )}
-                                <div>
-                                    <h1 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 dark:text-white">
-                                        {brandSettings.brand_name || 'CodeVenture Tech'}
-                                    </h1>
-                                    <p className="text-xs text-slate-500 font-medium">
+                                    <p className="text-xs text-slate-500 font-medium mt-1">
                                         Enterprise Bespoke Software &amp; Cloud Solutions
                                     </p>
                                 </div>
-                            </div>
+                            ) : (
+                                <div className="flex items-center space-x-3.5">
+                                    <div className="h-12 w-12 rounded-2xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-cyan-400 text-white flex items-center justify-center font-black shadow-md shrink-0">
+                                        <svg className="w-7 h-7 fill-current" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h1 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 dark:text-white">
+                                            {brandSettings.brand_name || 'CodeVenture Tech'}
+                                        </h1>
+                                        <p className="text-xs text-slate-500 font-medium">
+                                            Enterprise Bespoke Software &amp; Cloud Solutions
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
                             <div className="text-xs text-slate-500 pt-1 space-y-0.5">
                                 <p>{brandSettings.address_line1}</p>
                                 {brandSettings.address_line2 && <p>{brandSettings.address_line2}</p>}
@@ -653,38 +669,103 @@ function generateStandaloneReportHtml(
             `;
         }).join('');
 
-    // SVG Watermark data URI cleanly inlined
-    const watermarkSvgUri = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 42' width='440' height='440'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M17.2 5.63325L8.6 0.855469L0 5.63325V32.1434L16.2 41.1434L32.4 32.1434V23.699L40 19.4767V9.85547L31.4 5.07769L22.8 9.85547V18.2999L17.2 21.411V5.63325ZM38 18.2999L32.4 21.411V15.2545L38 12.1434V18.2999ZM36.9409 10.4439L31.4 13.5221L25.8591 10.4439L31.4 7.36561L36.9409 10.4439ZM24.8 18.2999V12.1434L30.4 15.2545V21.411L24.8 18.2999ZM23.8 20.0323L29.3409 23.1105L16.2 30.411L10.6591 27.3328L23.8 20.0323ZM7.6 27.9212L15.2 32.1434V38.2999L2 30.9666V7.92116L7.6 11.0323V27.9212ZM8.6 9.29991L3.05913 6.22165L8.6 3.14339L14.1409 6.22165L8.6 9.29991ZM30.4 24.8101L17.2 32.1434V38.2999L30.4 30.9666V24.8101ZM9.6 11.0323L15.2 7.92117V22.5221L9.6 25.6333V11.0323Z' fill='%234f46e5' fill-opacity='0.04' /%3E%3C/svg%3E";
-
     return `
-    <div id="pdf-statement-doc" style="width: 750px; box-sizing: border-box; padding: 24px 28px; background-color: #ffffff; background-image: url('${watermarkSvgUri}'); background-repeat: no-repeat; background-position: center 300px; background-size: 450px auto; color: #0f172a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 11px; line-height: 1.45; text-align: left;">
+    <div id="pdf-statement-doc" style="position: relative; width: 750px; box-sizing: border-box; padding: 24px 28px; background-color: #ffffff; color: #0f172a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 11px; line-height: 1.45; text-align: left; overflow: hidden;">
+        <style>
+            * {
+                box-sizing: border-box;
+            }
+            .pdf-avoid-break,
+            .pdf-card,
+            .pdf-section,
+            tr,
+            table,
+            tbody,
+            thead {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+            .page-break-before {
+                page-break-before: always !important;
+                break-before: page !important;
+            }
+        </style>
+
+        <!-- MULTI-PAGE LOGO WATERMARK LAYERS (GUARANTEED HTML2CANVAS CAPTURE ON EVERY PAGE) -->
+        <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; z-index: 99;">
+            <!-- Page 1 Watermark (Middle) -->
+            <div style="position: absolute; top: 400px; left: 50%; transform: translate(-50%, -50%); opacity: 0.5; text-align: center; width: 440px;">
+                ${brandSettings.logo ? `
+                    <img src="${brandSettings.logo}" alt="Watermark" style="width: 380px; max-height: 200px; object-fit: contain; display: inline-block; opacity: 0.5;" />
+                ` : `
+                    <div style="font-size: 40px; font-weight: 900; color: #4f46e5; letter-spacing: -1px; text-transform: uppercase; opacity: 0.5;">
+                        ${brandName}
+                    </div>
+                `}
+            </div>
+            <!-- Page 2 Watermark (Middle) -->
+            <div style="position: absolute; top: 1470px; left: 50%; transform: translate(-50%, -50%); opacity: 0.5; text-align: center; width: 440px;">
+                ${brandSettings.logo ? `
+                    <img src="${brandSettings.logo}" alt="Watermark" style="width: 380px; max-height: 200px; object-fit: contain; display: inline-block; opacity: 0.5;" />
+                ` : `
+                    <div style="font-size: 40px; font-weight: 900; color: #4f46e5; letter-spacing: -1px; text-transform: uppercase; opacity: 0.5;">
+                        ${brandName}
+                    </div>
+                `}
+            </div>
+            <!-- Page 3 Watermark (Middle) -->
+            <div style="position: absolute; top: 2540px; left: 50%; transform: translate(-50%, -50%); opacity: 0.5; text-align: center; width: 440px;">
+                ${brandSettings.logo ? `
+                    <img src="${brandSettings.logo}" alt="Watermark" style="width: 380px; max-height: 200px; object-fit: contain; display: inline-block; opacity: 0.5;" />
+                ` : `
+                    <div style="font-size: 40px; font-weight: 900; color: #4f46e5; letter-spacing: -1px; text-transform: uppercase; opacity: 0.5;">
+                        ${brandName}
+                    </div>
+                `}
+            </div>
+            <!-- Page 4 Watermark (Middle) -->
+            <div style="position: absolute; top: 3610px; left: 50%; transform: translate(-50%, -50%); opacity: 0.5; text-align: center; width: 440px;">
+                ${brandSettings.logo ? `
+                    <img src="${brandSettings.logo}" alt="Watermark" style="width: 380px; max-height: 200px; object-fit: contain; display: inline-block; opacity: 0.5;" />
+                ` : `
+                    <div style="font-size: 40px; font-weight: 900; color: #4f46e5; letter-spacing: -1px; text-transform: uppercase; opacity: 0.5;">
+                        ${brandName}
+                    </div>
+                `}
+            </div>
+        </div>
         <!-- BRAND LOGO & HEADER AT START (FULL WIDTH) -->
-        <table style="width: 100%; border-collapse: collapse; table-layout: fixed; margin: 0 0 16px 0; border-bottom: 2px solid #e2e8f0; padding-bottom: 14px;">
+        <table class="pdf-avoid-break pdf-card" style="width: 100%; border-collapse: collapse; table-layout: fixed; margin: 0 0 16px 0; border-bottom: 2px solid #e2e8f0; padding-bottom: 14px; page-break-inside: avoid !important; break-inside: avoid !important;">
             <tr>
-                <td style="vertical-align: top; width: 60%; padding: 0 10px 14px 0; text-align: left;">
-                    <table style="width: 100%; border-collapse: collapse; table-layout: fixed;">
-                        <tr>
-                            <td style="vertical-align: middle; width: 48px; padding: 0 10px 0 0;">
-                                ${brandSettings.logo ? `
-                                    <img src="${brandSettings.logo}" alt="Logo" style="height: 40px; width: auto; max-width: 120px; object-fit: contain; display: block;" />
-                                ` : `
-                                    <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #4f46e5, #9333ea, #06b6d4); border-radius: 10px; text-align: center; line-height: 40px; display: inline-block;">
-                                        <svg width="22" height="22" viewBox="0 0 40 42" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; display: inline-block;">
-                                            <path fill-rule="evenodd" clip-rule="evenodd" d="M17.2 5.63325L8.6 0.855469L0 5.63325V32.1434L16.2 41.1434L32.4 32.1434V23.699L40 19.4767V9.85547L31.4 5.07769L22.8 9.85547V18.2999L17.2 21.411V5.63325ZM38 18.2999L32.4 21.411V15.2545L38 12.1434V18.2999ZM36.9409 10.4439L31.4 13.5221L25.8591 10.4439L31.4 7.36561L36.9409 10.4439ZM24.8 18.2999V12.1434L30.4 15.2545V21.411L24.8 18.2999ZM23.8 20.0323L29.3409 23.1105L16.2 30.411L10.6591 27.3328L23.8 20.0323ZM7.6 27.9212L15.2 32.1434V38.2999L2 30.9666V7.92116L7.6 11.0323V27.9212ZM8.6 9.29991L3.05913 6.22165L8.6 3.14339L14.1409 6.22165L8.6 9.29991ZM30.4 24.8101L17.2 32.1434V38.2999L30.4 30.9666V24.8101ZM9.6 11.0323L15.2 7.92117V22.5221L9.6 25.6333V11.0323Z" fill="#ffffff" />
+                <td style="vertical-align: top; width: 58%; padding: 0 10px 14px 0; text-align: left;">
+                    ${brandSettings.logo ? `
+                        <div style="margin-bottom: 3px;">
+                            <img src="${brandSettings.logo}" alt="${brandName}" style="height: 38px; width: auto; max-width: 240px; object-fit: contain; display: block;" />
+                        </div>
+                        <div style="font-size: 10px; color: #64748b; font-weight: 500; margin-top: 2px;">
+                            Enterprise Bespoke Software &amp; Cloud Solutions
+                        </div>
+                    ` : `
+                        <table style="width: 100%; border-collapse: collapse; table-layout: fixed;">
+                            <tr>
+                                <td style="vertical-align: middle; width: 42px; padding: 0 8px 0 0;">
+                                    <div style="width: 36px; height: 36px; background: linear-gradient(135deg, #4f46e5, #9333ea, #06b6d4); border-radius: 8px; text-align: center; line-height: 36px; display: inline-block;">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; display: inline-block;">
+                                            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
                                         </svg>
                                     </div>
-                                `}
-                            </td>
-                            <td style="vertical-align: middle; padding: 0;">
-                                <div style="font-size: 18px; font-weight: 900; color: #0f172a; letter-spacing: -0.5px; line-height: 1.15;">
-                                    ${brandName}
-                                </div>
-                                <div style="font-size: 10px; color: #64748b; font-weight: 500; margin-top: 1px;">
-                                    Enterprise Bespoke Software &amp; Cloud Solutions
-                                </div>
-                            </td>
-                        </tr>
-                    </table>
+                                </td>
+                                <td style="vertical-align: middle; padding: 0;">
+                                    <div style="font-size: 18px; font-weight: 900; color: #0f172a; letter-spacing: -0.5px; line-height: 1.15;">
+                                        ${brandName}
+                                    </div>
+                                    <div style="font-size: 10px; color: #64748b; font-weight: 500; margin-top: 1px;">
+                                        Enterprise Bespoke Software &amp; Cloud Solutions
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    `}
                     <div style="font-size: 9.5px; color: #64748b; margin-top: 6px; line-height: 1.4;">
                         <div>${addressLine1}</div>
                         ${addressLine2 ? `<div>${addressLine2}</div>` : ''}
@@ -711,7 +792,7 @@ function generateStandaloneReportHtml(
         </table>
 
         <!-- CLIENT & PROJECT SPECIFICATIONS OVERVIEW (FULL WIDTH) -->
-        <div style="width: 100%; box-sizing: border-box; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 16px; margin-bottom: 14px;">
+        <div class="pdf-avoid-break pdf-card" style="width: 100%; box-sizing: border-box; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 16px; margin-bottom: 14px; page-break-inside: avoid !important; break-inside: avoid !important;">
             <table style="width: 100%; border-collapse: collapse; table-layout: fixed;">
                 <tr>
                     <td style="width: 50%; vertical-align: top; padding: 0 10px 0 0; text-align: left;">
@@ -736,7 +817,7 @@ function generateStandaloneReportHtml(
 
         <!-- DELIVERABLE REPOSITORIES & URLS (IF ANY, FULL WIDTH) -->
         ${(order.github_repo_url || order.drive_link || order.live_demo_url) ? `
-        <div style="width: 100%; box-sizing: border-box; background-color: #f5f3ff; border: 1px solid #e0e7ff; border-radius: 10px; padding: 10px 14px; margin-bottom: 14px;">
+        <div class="pdf-avoid-break pdf-card" style="width: 100%; box-sizing: border-box; background-color: #f5f3ff; border: 1px solid #e0e7ff; border-radius: 10px; padding: 10px 14px; margin-bottom: 14px; page-break-inside: avoid !important; break-inside: avoid !important;">
             <div style="font-size: 8.5px; font-weight: 700; color: #4f46e5; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">Project Deliverable Repositories &amp; Links</div>
             <table style="width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 9.5px;">
                 <tr>
@@ -762,7 +843,7 @@ function generateStandaloneReportHtml(
 
         <!-- FULL PROJECT TECHNICAL SPECIFICATIONS (FULL WIDTH) -->
         ${order.requirements ? `
-        <div style="width: 100%; box-sizing: border-box; margin-bottom: 14px;">
+        <div class="pdf-avoid-break pdf-card" style="width: 100%; box-sizing: border-box; margin-bottom: 14px; page-break-inside: avoid !important; break-inside: avoid !important;">
             <div style="font-size: 8.5px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px;">Agreed Scope &amp; Technical Specifications</div>
             <div style="width: 100%; box-sizing: border-box; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 16px; font-size: 10.5px; color: #334155; line-height: 1.5; white-space: pre-line; word-break: break-word;">
                 ${order.requirements}
@@ -772,7 +853,7 @@ function generateStandaloneReportHtml(
 
         <!-- REFERENCE LINKS (IF ANY, FULL WIDTH) -->
         ${order.reference_links ? `
-        <div style="width: 100%; box-sizing: border-box; margin-bottom: 14px;">
+        <div class="pdf-avoid-break pdf-card" style="width: 100%; box-sizing: border-box; margin-bottom: 14px; page-break-inside: avoid !important; break-inside: avoid !important;">
             <div style="font-size: 8.5px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px;">Reference Links &amp; Attachments</div>
             <div style="width: 100%; box-sizing: border-box; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 14px; font-size: 9.5px; color: #475569; line-height: 1.45; white-space: pre-line; word-break: break-word;">
                 ${order.reference_links}
@@ -781,12 +862,12 @@ function generateStandaloneReportHtml(
         ` : ''}
 
         <!-- ITEMIZED MILESTONES & PAYMENTS LEDGER TABLE (FULL WIDTH) -->
-        <div style="width: 100%; box-sizing: border-box; margin-bottom: 14px;">
+        <div class="pdf-avoid-break pdf-card" style="width: 100%; box-sizing: border-box; margin-bottom: 14px; page-break-inside: avoid !important; break-inside: avoid !important;">
             <div style="font-size: 8.5px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px;">Milestone Deliverables &amp; Payment Ledger</div>
             <div style="width: 100%; box-sizing: border-box; border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden;">
                 <table style="width: 100%; border-collapse: collapse; table-layout: fixed;">
                     <thead>
-                        <tr style="background-color: #f1f5f9; border-bottom: 1px solid #e2e8f0;">
+                        <tr class="pdf-avoid-break" style="background-color: #f1f5f9; border-bottom: 1px solid #e2e8f0; page-break-inside: avoid !important; break-inside: avoid !important;">
                             <th style="width: 5%; padding: 8px 6px 8px 10px; font-size: 9px; font-weight: 700; color: #334155; text-transform: uppercase; text-align: left;">#</th>
                             <th style="width: 33%; padding: 8px 8px; font-size: 9px; font-weight: 700; color: #334155; text-transform: uppercase; text-align: left;">Milestone Title &amp; Deliverables</th>
                             <th style="width: 13%; padding: 8px 8px; font-size: 9px; font-weight: 700; color: #334155; text-transform: uppercase; text-align: left;">Due Date</th>
@@ -803,10 +884,10 @@ function generateStandaloneReportHtml(
         </div>
 
         <!-- FINANCIAL SETTLEMENT SUMMARY (FULL WIDTH 2-COLUMN GRID) -->
-        <table style="width: 100%; border-collapse: collapse; table-layout: fixed; margin-top: 2px; margin-bottom: 14px;">
+        <table class="pdf-avoid-break pdf-card" style="width: 100%; border-collapse: collapse; table-layout: fixed; margin-top: 2px; margin-bottom: 14px; page-break-inside: avoid !important; break-inside: avoid !important;">
             <tr>
                 <td style="vertical-align: top; width: 50%; padding: 0 8px 0 0;">
-                    <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 14px; box-sizing: border-box;">
+                    <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 14px; box-sizing: border-box; page-break-inside: avoid !important; break-inside: avoid !important;">
                         <div style="font-size: 10px; font-weight: 700; color: #059669; margin-bottom: 3px;">✓ Verified Statement Confirmation</div>
                         <div style="font-size: 9.5px; color: #64748b; line-height: 1.45;">
                             This document serves as an authorized, verified deal confirmation and financial ledger for Order #${order.order_number}. All recorded payments are guaranteed and protected by ${brandName} agreements.
@@ -817,7 +898,7 @@ function generateStandaloneReportHtml(
                     </div>
                 </td>
                 <td style="vertical-align: top; width: 50%; padding: 0 0 0 8px;">
-                    <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 14px; box-sizing: border-box;">
+                    <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 14px; box-sizing: border-box; page-break-inside: avoid !important; break-inside: avoid !important;">
                         <table style="width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 9.5px;">
                             <tr>
                                 <td style="color: #64748b; padding: 2px 0;">Agreed Total Contract Price:</td>
@@ -856,7 +937,7 @@ function generateStandaloneReportHtml(
         </table>
 
         <!-- OFFICIAL FOOTER (NO SIGNATURE) -->
-        <table style="width: 100%; border-collapse: collapse; table-layout: fixed; margin-top: 14px; border-top: 1px solid #e2e8f0; padding-top: 10px;">
+        <table class="pdf-avoid-break" style="width: 100%; border-collapse: collapse; table-layout: fixed; margin-top: 14px; border-top: 1px solid #e2e8f0; padding-top: 10px; page-break-inside: avoid !important; break-inside: avoid !important;">
             <tr>
                 <td style="vertical-align: middle; width: 60%; text-align: left; padding: 4px 0;">
                     <div style="font-weight: 700; font-size: 9.5px; color: #0f172a;">${brandName}</div>
