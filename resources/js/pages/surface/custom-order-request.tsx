@@ -16,9 +16,13 @@ import {
     Mail,
     Phone,
     Github,
-    CreditCard
+    CreditCard,
+    Eye,
+    EyeOff
 } from 'lucide-react';
 import { showToast } from '@/lib/swal';
+import { getCurrencySymbol, CURRENCY_OPTIONS } from '@/lib/formatters';
+import { WhatsAppIcon } from '@/components/icons/whatsapp-icon';
 
 interface CustomOrderRequestProps {
     appSettings: AppSettings;
@@ -27,8 +31,8 @@ interface CustomOrderRequestProps {
 }
 
 export default function CustomOrderRequest({
-    defaultCurrency = 'USD',
-    currencySymbol = '$',
+    defaultCurrency = 'BDT',
+    currencySymbol = '৳',
 }: CustomOrderRequestProps) {
     const { auth } = usePage<SharedData>().props;
     const user = auth?.user;
@@ -48,23 +52,45 @@ export default function CustomOrderRequest({
         'Other Bespoke Software',
     ];
 
-    const budgetRanges = [
-        { label: '< $500', value: 450 },
-        { label: '$500 - $1,500', value: 1000 },
-        { label: '$1,500 - $3,000', value: 2200 },
-        { label: '$3,000 - $5,000', value: 4000 },
-        { label: '$5,000 - $10,000', value: 7500 },
-        { label: '$10,000+', value: 12000 },
-    ];
+    const budgetRangesByCurrency: Record<string, { label: string; value: number }[]> = {
+        BDT: [
+            { label: '< ৳ 25,000', value: 20000 },
+            { label: '৳ 25k - ৳ 50k', value: 40000 },
+            { label: '৳ 50k - ৳ 100k', value: 80000 },
+            { label: '৳ 100k - ৳ 200k', value: 150000 },
+            { label: '৳ 200k - ৳ 500k', value: 300000 },
+            { label: '৳ 500,000+', value: 500000 },
+        ],
+        USD: [
+            { label: '< $500', value: 450 },
+            { label: '$500 - $1,500', value: 1000 },
+            { label: '$1,500 - $3,000', value: 2200 },
+            { label: '$3,000 - $5,000', value: 4000 },
+            { label: '$5,000 - $10,000', value: 7500 },
+            { label: '$10,000+', value: 12000 },
+        ],
+        EUR: [
+            { label: '< €500', value: 450 },
+            { label: '€500 - €1,500', value: 1000 },
+            { label: '€1,500 - €3,000', value: 2200 },
+            { label: '€3,000 - €5,000', value: 4000 },
+            { label: '€5,000 - €10,000', value: 7500 },
+            { label: '€10,000+', value: 12000 },
+        ],
+    };
 
     const { data, setData, post, processing, errors } = useForm({
         title: '',
         category: categories[0],
+        currency: defaultCurrency || 'BDT',
         estimated_budget: '' as string | number,
         target_deadline: '',
         requirements: '',
         reference_links: '',
         attachments: [] as File[],
+        // Contact details
+        client_whatsapp: (user?.whatsapp_number || user?.phone || '') as string,
+        client_email: user?.email || '',
         // Guest Auth
         name: user?.name || '',
         email: user?.email || '',
@@ -204,52 +230,78 @@ export default function CustomOrderRequest({
                             {errors.category && <p className="text-rose-500 text-xs mt-1">{errors.category}</p>}
                         </div>
 
-                        {/* Estimated Budget & Deadline */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                        {/* Currency & Estimated Budget & Deadline */}
+                        <div className="space-y-4">
                             <div>
-                                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">
-                                    Target Budget ({defaultCurrency}) (Optional)
+                                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5 flex items-center justify-between">
+                                    <span>Preferred Currency</span>
+                                    <span className="text-[10px] text-indigo-500 font-bold">Normally by default: BDT (৳)</span>
                                 </label>
-                                <div className="relative">
-                                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">
-                                        {currencySymbol}
-                                    </span>
-                                    <input
-                                        type="number"
-                                        min="0"
-                                        step="any"
-                                        value={data.estimated_budget}
-                                        onChange={(e) => setData('estimated_budget', e.target.value)}
-                                        placeholder="e.g. 2500"
-                                        className="w-full pl-8 pr-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-medium"
-                                    />
-                                </div>
-                                <div className="flex flex-wrap gap-1.5 mt-2">
-                                    {budgetRanges.map((r) => (
+                                <div className="grid grid-cols-3 gap-2">
+                                    {CURRENCY_OPTIONS.map((cur) => (
                                         <button
+                                            key={cur.code}
                                             type="button"
-                                            key={r.label}
-                                            onClick={() => setData('estimated_budget', r.value)}
-                                            className="px-2 py-1 rounded-lg text-[11px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-indigo-500 hover:text-white transition-colors"
+                                            onClick={() => setData('currency', cur.code)}
+                                            className={`py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-1.5 border ${
+                                                data.currency === cur.code
+                                                    ? 'bg-indigo-600 border-indigo-600 text-white shadow-xs'
+                                                    : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-slate-300'
+                                            }`}
                                         >
-                                            {r.label}
+                                            <span className="font-mono">{cur.symbol}</span>
+                                            <span>{cur.code}</span>
                                         </button>
                                     ))}
                                 </div>
-                                {errors.estimated_budget && <p className="text-rose-500 text-xs mt-1">{errors.estimated_budget}</p>}
                             </div>
 
-                            <div>
-                                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">
-                                    Target Delivery Deadline (Optional)
-                                </label>
-                                <input
-                                    type="date"
-                                    value={data.target_deadline}
-                                    onChange={(e) => setData('target_deadline', e.target.value)}
-                                    className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-medium"
-                                />
-                                {errors.target_deadline && <p className="text-rose-500 text-xs mt-1">{errors.target_deadline}</p>}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                                <div>
+                                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">
+                                        Target Budget ({data.currency}) (Optional)
+                                    </label>
+                                    <div className="relative">
+                                        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">
+                                            {getCurrencySymbol(data.currency)}
+                                        </span>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            step="any"
+                                            value={data.estimated_budget}
+                                            onChange={(e) => setData('estimated_budget', e.target.value)}
+                                            placeholder="e.g. 50000"
+                                            className="w-full pl-9 pr-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-medium"
+                                        />
+                                    </div>
+                                    <div className="flex flex-wrap gap-1.5 mt-2">
+                                        {(budgetRangesByCurrency[data.currency] || budgetRangesByCurrency['BDT']).map((r) => (
+                                            <button
+                                                type="button"
+                                                key={r.label}
+                                                onClick={() => setData('estimated_budget', r.value)}
+                                                className="px-2 py-1 rounded-lg text-[11px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-indigo-500 hover:text-white transition-colors"
+                                            >
+                                                {r.label}
+                                            </button>
+                                        ))}
+                                    </div>
+                                    {errors.estimated_budget && <p className="text-rose-500 text-xs mt-1">{errors.estimated_budget}</p>}
+                                </div>
+
+                                <div>
+                                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">
+                                        Target Delivery Deadline (Optional)
+                                    </label>
+                                    <input
+                                        type="date"
+                                        value={data.target_deadline}
+                                        onChange={(e) => setData('target_deadline', e.target.value)}
+                                        className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-medium"
+                                    />
+                                    {errors.target_deadline && <p className="text-rose-500 text-xs mt-1">{errors.target_deadline}</p>}
+                                </div>
                             </div>
                         </div>
 
@@ -358,23 +410,61 @@ export default function CustomOrderRequest({
                         </div>
 
                         {user ? (
-                            <div className="p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200/60 dark:border-indigo-800 flex items-center justify-between">
-                                <div className="flex items-center space-x-3">
-                                    <div className="h-10 w-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold text-sm">
-                                        {user.name.substring(0, 2).toUpperCase()}
+                            <div className="space-y-4">
+                                <div className="p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200/60 dark:border-indigo-800 flex items-center justify-between">
+                                    <div className="flex items-center space-x-3">
+                                        <div className="h-10 w-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold text-sm">
+                                            {user.name.substring(0, 2).toUpperCase()}
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-bold text-slate-900 dark:text-white">
+                                                {user.name}
+                                            </p>
+                                            <p className="text-xs text-slate-500 dark:text-slate-400">
+                                                {user.email} &bull; {user.phone || 'No phone'}
+                                            </p>
+                                        </div>
                                     </div>
+                                    <span className="text-xs font-bold text-emerald-500 bg-emerald-500/10 px-3 py-1 rounded-full">
+                                        Authenticated
+                                    </span>
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
-                                        <p className="text-sm font-bold text-slate-900 dark:text-white">
-                                            {user.name}
-                                        </p>
-                                        <p className="text-xs text-slate-500 dark:text-slate-400">
-                                            {user.email} &bull; {user.phone || 'No phone'}
-                                        </p>
+                                        <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2 flex items-center space-x-1.5">
+                                            <WhatsAppIcon className="h-3.5 w-3.5 text-emerald-500" />
+                                            <span>WhatsApp Number (For Direct Project Chat)</span>
+                                        </label>
+                                        <div className="relative">
+                                            <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                                            <input
+                                                type="text"
+                                                value={data.client_whatsapp}
+                                                onChange={(e) => setData('client_whatsapp', e.target.value)}
+                                                placeholder="e.g. +880 1700-000000 or +1 555-0192"
+                                                className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs font-medium focus:ring-2 focus:ring-emerald-500"
+                                            />
+                                        </div>
+                                        <p className="text-[11px] text-slate-400 mt-1">Our engineers will communicate with you directly on WhatsApp.</p>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">
+                                            Contact Email Address
+                                        </label>
+                                        <div className="relative">
+                                            <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                                            <input
+                                                type="email"
+                                                value={data.client_email}
+                                                onChange={(e) => setData('client_email', e.target.value)}
+                                                placeholder={user.email}
+                                                className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs font-medium focus:ring-2 focus:ring-indigo-500"
+                                            />
+                                        </div>
                                     </div>
                                 </div>
-                                <span className="text-xs font-bold text-emerald-500 bg-emerald-500/10 px-3 py-1 rounded-full">
-                                    Logged In
-                                </span>
                             </div>
                         ) : (
                             <div className="space-y-4">
@@ -418,18 +508,22 @@ export default function CustomOrderRequest({
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">
-                                            Phone / WhatsApp <span className="text-rose-500">*</span>
+                                        <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2 flex items-center space-x-1.5">
+                                            <WhatsAppIcon className="h-3.5 w-3.5 text-emerald-500" />
+                                            <span>WhatsApp Number (For Quick Chat) <span className="text-rose-500">*</span></span>
                                         </label>
                                         <div className="relative">
                                             <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                                             <input
                                                 type="text"
-                                                value={data.phone}
-                                                onChange={(e) => setData('phone', e.target.value)}
-                                                placeholder="+1 (555) 000-0000"
+                                                value={data.client_whatsapp || data.phone}
+                                                onChange={(e) => {
+                                                    setData('client_whatsapp', e.target.value);
+                                                    setData('phone', e.target.value);
+                                                }}
+                                                placeholder="e.g. +880 1700-000000 or +1 (555) 000-0000"
                                                 required
-                                                className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-sm font-medium focus:ring-2 focus:ring-indigo-500"
+                                                className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-sm font-medium focus:ring-2 focus:ring-emerald-500"
                                             />
                                         </div>
                                         {errors.phone && <p className="text-rose-500 text-xs mt-1">{errors.phone}</p>}
@@ -468,10 +562,12 @@ export default function CustomOrderRequest({
                                         />
                                         <button
                                             type="button"
+                                            tabIndex={-1}
                                             onClick={() => setShowPassword(!showPassword)}
-                                            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                                            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors focus:outline-none"
+                                            aria-label={showPassword ? 'Hide password' : 'Show password'}
                                         >
-                                            {showPassword ? 'Hide' : 'Show'}
+                                            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                         </button>
                                     </div>
                                     <p className="text-[11px] text-slate-400 mt-1">
@@ -484,7 +580,7 @@ export default function CustomOrderRequest({
                     </div>
 
                     {/* SUBMIT BUTTON & WORKFLOW BANNER */}
-                    <div className="bg-gradient-to-r from-indigo-900/40 via-purple-900/30 to-cyan-900/40 rounded-3xl border border-indigo-500/20 p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-6">
+                    <div className="bg-gradient-to-r from-indigo-900 via-purple-900 to-cyan-900 dark:from-indigo-900/40 dark:via-purple-900/30 dark:to-cyan-900/40 rounded-3xl border border-indigo-500/20 p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-6">
                         <div className="space-y-1 text-center sm:text-left">
                             <h3 className="text-base font-bold text-white flex items-center justify-center sm:justify-start space-x-2">
                                 <CheckCircle className="h-5 w-5 text-emerald-400" />

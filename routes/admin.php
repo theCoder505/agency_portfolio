@@ -37,14 +37,23 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('custom-orders', [CustomOrderController::class, 'store'])->name('custom-orders.store');
         Route::get('custom-orders/{id}', [CustomOrderController::class, 'show'])->name('custom-orders.show');
         Route::put('custom-orders/{id}', [CustomOrderController::class, 'update'])->name('custom-orders.update');
+        Route::post('custom-orders/{id}/deliverables', [CustomOrderController::class, 'updateDeliverables'])->name('custom-orders.deliverables');
+        Route::put('custom-orders/{id}/deliverables', [CustomOrderController::class, 'updateDeliverables'])->name('custom-orders.deliverables.put');
+        Route::post('custom-orders/{id}/update-budget', [CustomOrderController::class, 'updateBudget'])->name('custom-orders.update-budget');
         Route::post('custom-orders/{id}/accept', [CustomOrderController::class, 'accept'])->name('custom-orders.accept');
         Route::post('custom-orders/{id}/deny', [CustomOrderController::class, 'deny'])->name('custom-orders.deny');
+        Route::post('custom-orders/{id}/complete', [CustomOrderController::class, 'complete'])->name('custom-orders.complete');
+        Route::post('custom-orders/{id}/budget-requests/approve', [CustomOrderController::class, 'approveBudgetRequest'])->name('custom-orders.budget-requests.approve');
+        Route::post('custom-orders/{id}/budget-requests/decline', [CustomOrderController::class, 'declineBudgetRequest'])->name('custom-orders.budget-requests.decline');
+        Route::get('custom-orders/{id}/report', [CustomOrderController::class, 'showReport'])->name('custom-orders.report');
+        Route::post('custom-orders/{id}/reviews/{reviewId}/toggle-featured', [CustomOrderController::class, 'toggleReviewFeatured'])->name('custom-orders.reviews.toggle-featured');
         Route::delete('custom-orders/{id}', [CustomOrderController::class, 'destroy'])->name('custom-orders.destroy');
 
         // Milestone management inside custom order
         Route::post('custom-orders/{id}/milestones', [CustomOrderMilestoneController::class, 'store'])->name('custom-orders.milestones.store');
         Route::put('custom-orders/{id}/milestones/{milestoneId}', [CustomOrderMilestoneController::class, 'update'])->name('custom-orders.milestones.update');
         Route::post('custom-orders/{id}/milestones/{milestoneId}/status', [CustomOrderMilestoneController::class, 'updateStatus'])->name('custom-orders.milestones.status');
+        Route::post('custom-orders/{id}/milestones/{milestoneId}/refund', [CustomOrderController::class, 'refundMilestone'])->name('custom-orders.milestones.refund');
         Route::delete('custom-orders/{id}/milestones/{milestoneId}', [CustomOrderMilestoneController::class, 'destroy'])->name('custom-orders.milestones.destroy');
 
         // SaaS Products Management
@@ -97,6 +106,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::resource('team', TeamController::class)->except(['show']);
 
         // Reviews Management (Trustpilot & Direct)
+        Route::post('reviews/{review}/toggle-featured', [ReviewController::class, 'toggleFeatured'])->name('reviews.toggle-featured');
         Route::resource('reviews', ReviewController::class)->except(['show']);
 
         // Admin Profile & OTP Security

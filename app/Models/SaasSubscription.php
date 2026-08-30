@@ -24,6 +24,8 @@ class SaasSubscription extends Model
         'status',
         'payment_method',
         'sender_number',
+        'client_whatsapp',
+        'client_email',
         'transaction_id',
         'payment_notes',
         'domain',

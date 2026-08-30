@@ -1,4 +1,4 @@
-import React, { FormEventHandler } from 'react';
+import React, { useState, FormEventHandler } from 'react';
 import { useForm, usePage } from '@inertiajs/react';
 import { CustomerLayout } from '@/layouts/customer-layout';
 import { User, SharedData } from '@/types';
@@ -10,7 +10,9 @@ import {
     MapPin,
     Lock,
     Save,
-    Shield
+    Shield,
+    Eye,
+    EyeOff
 } from 'lucide-react';
 
 interface ProfileProps {
@@ -18,6 +20,10 @@ interface ProfileProps {
 }
 
 export default function CustomerProfile({ user }: ProfileProps) {
+    const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+    const [showNewPassword, setShowNewPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
     const profileForm = useForm({
         name: user.name || '',
         phone: user.phone || '',
@@ -173,13 +179,24 @@ export default function CustomerProfile({ user }: ProfileProps) {
                             <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                                 Current Password *
                             </label>
-                            <input
-                                type="password"
-                                required
-                                value={passwordForm.data.current_password}
-                                onChange={(e) => passwordForm.setData('current_password', e.target.value)}
-                                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-xs focus:ring-2 focus:ring-indigo-500"
-                            />
+                            <div className="relative">
+                                <input
+                                    type={showCurrentPassword ? 'text' : 'password'}
+                                    required
+                                    value={passwordForm.data.current_password}
+                                    onChange={(e) => passwordForm.setData('current_password', e.target.value)}
+                                    className="w-full px-3.5 pr-10 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-xs focus:ring-2 focus:ring-indigo-500"
+                                />
+                                <button
+                                    type="button"
+                                    tabIndex={-1}
+                                    onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors focus:outline-none"
+                                    aria-label={showCurrentPassword ? 'Hide current password' : 'Show current password'}
+                                >
+                                    {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                </button>
+                            </div>
                             {passwordForm.errors.current_password && <p className="text-red-500 text-[10px] mt-1">{passwordForm.errors.current_password}</p>}
                         </div>
 
@@ -187,13 +204,24 @@ export default function CustomerProfile({ user }: ProfileProps) {
                             <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                                 New Password *
                             </label>
-                            <input
-                                type="password"
-                                required
-                                value={passwordForm.data.password}
-                                onChange={(e) => passwordForm.setData('password', e.target.value)}
-                                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-xs focus:ring-2 focus:ring-indigo-500"
-                            />
+                            <div className="relative">
+                                <input
+                                    type={showNewPassword ? 'text' : 'password'}
+                                    required
+                                    value={passwordForm.data.password}
+                                    onChange={(e) => passwordForm.setData('password', e.target.value)}
+                                    className="w-full px-3.5 pr-10 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-xs focus:ring-2 focus:ring-indigo-500"
+                                />
+                                <button
+                                    type="button"
+                                    tabIndex={-1}
+                                    onClick={() => setShowNewPassword(!showNewPassword)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors focus:outline-none"
+                                    aria-label={showNewPassword ? 'Hide new password' : 'Show new password'}
+                                >
+                                    {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                </button>
+                            </div>
                             {passwordForm.errors.password && <p className="text-red-500 text-[10px] mt-1">{passwordForm.errors.password}</p>}
                         </div>
 
@@ -201,13 +229,24 @@ export default function CustomerProfile({ user }: ProfileProps) {
                             <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                                 Confirm New Password *
                             </label>
-                            <input
-                                type="password"
-                                required
-                                value={passwordForm.data.password_confirmation}
-                                onChange={(e) => passwordForm.setData('password_confirmation', e.target.value)}
-                                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-xs focus:ring-2 focus:ring-indigo-500"
-                            />
+                            <div className="relative">
+                                <input
+                                    type={showConfirmPassword ? 'text' : 'password'}
+                                    required
+                                    value={passwordForm.data.password_confirmation}
+                                    onChange={(e) => passwordForm.setData('password_confirmation', e.target.value)}
+                                    className="w-full px-3.5 pr-10 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-xs focus:ring-2 focus:ring-indigo-500"
+                                />
+                                <button
+                                    type="button"
+                                    tabIndex={-1}
+                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors focus:outline-none"
+                                    aria-label={showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'}
+                                >
+                                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                </button>
+                            </div>
                         </div>
 
                         <div className="flex justify-end pt-2">

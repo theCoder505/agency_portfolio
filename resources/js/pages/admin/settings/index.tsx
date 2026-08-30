@@ -309,7 +309,63 @@ export default function SettingsIndex({ settings }: SettingsIndexProps) {
                                         bKash, Nagad & SaaS Billing Gateway Configuration
                                     </h3>
 
-                                    {/* Currency Settings */}
+                                    {/* Currency Presets & Settings */}
+                                    <div className="space-y-3 p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/80 dark:border-slate-800">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                                                Default Platform Currency Preset
+                                            </span>
+                                            <span className="text-[10px] text-indigo-500 font-bold">Default: BDT (৳)</span>
+                                        </div>
+                                        <div className="grid grid-cols-3 gap-2">
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setCurrencyCode('BDT');
+                                                    setCurrencySymbol('৳');
+                                                }}
+                                                className={`py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-1.5 border ${
+                                                    currencyCode === 'BDT'
+                                                        ? 'bg-indigo-600 border-indigo-600 text-white shadow-xs'
+                                                        : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-slate-300'
+                                                }`}
+                                            >
+                                                <span className="font-mono">৳</span>
+                                                <span>BDT (৳)</span>
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setCurrencyCode('USD');
+                                                    setCurrencySymbol('$');
+                                                }}
+                                                className={`py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-1.5 border ${
+                                                    currencyCode === 'USD'
+                                                        ? 'bg-indigo-600 border-indigo-600 text-white shadow-xs'
+                                                        : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-slate-300'
+                                                }`}
+                                            >
+                                                <span className="font-mono">$</span>
+                                                <span>USD ($)</span>
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setCurrencyCode('EUR');
+                                                    setCurrencySymbol('€');
+                                                }}
+                                                className={`py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-1.5 border ${
+                                                    currencyCode === 'EUR'
+                                                        ? 'bg-indigo-600 border-indigo-600 text-white shadow-xs'
+                                                        : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-slate-300'
+                                                }`}
+                                            >
+                                                <span className="font-mono">€</span>
+                                                <span>EUR (€)</span>
+                                            </button>
+                                        </div>
+                                    </div>
+
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div className="space-y-1.5">
                                             <label className="text-xs font-bold text-slate-700 dark:text-slate-300">

@@ -23,6 +23,7 @@ import {
     Save
 } from 'lucide-react';
 import { showConfirmDialog, showToast } from '@/lib/swal';
+import { WhatsAppIcon } from '@/components/icons/whatsapp-icon';
 
 interface SubscriptionShowProps {
     subscription: SaasSubscription;
@@ -72,16 +73,15 @@ export default function SubscriptionShow({
         setTimeout(() => setCopiedLabel(null), 2500);
     };
 
-    const handleApprove: FormEventHandler = (e) => {
+    const handleApprove: FormEventHandler = async (e) => {
         e.preventDefault();
-        showConfirmDialog(
+        const confirmed = await showConfirmDialog(
             'Approve & Activate Subscription?',
             `This will mark Order #${subscription.order_number} as Active and provide credentials/domain access to customer ${subscription.user?.name}.`
-        ).then((res) => {
-            if (res.isConfirmed) {
-                approvalForm.post(`/admin/subscriptions/${subscription.id}/approve`);
-            }
-        });
+        );
+        if (confirmed) {
+            approvalForm.post(`/admin/subscriptions/${subscription.id}/approve`);
+        }
     };
 
     const handleReject: FormEventHandler = (e) => {
@@ -137,27 +137,74 @@ export default function SubscriptionShow({
                     <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-6 shadow-xs space-y-4">
                         <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center space-x-1.5 border-b border-slate-100 dark:border-slate-800 pb-3">
                             <User className="h-4 w-4 text-indigo-600 dark:text-cyan-400" />
-                            <span>Customer Information</span>
+                            <span>Customer Information & Communication</span>
                         </h2>
 
-                        <div className="space-y-2 text-xs">
-                            <div className="flex justify-between">
-                                <span className="text-slate-400">Full Name:</span>
-                                <span className="font-bold text-slate-900 dark:text-white">{subscription.user?.name}</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span className="text-slate-400">Email:</span>
-                                <span className="font-mono text-slate-800 dark:text-slate-200">{subscription.user?.email}</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span className="text-slate-400">Phone:</span>
-                                <span className="font-mono font-bold text-slate-800 dark:text-slate-200">{subscription.user?.phone || 'N/A'}</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span className="text-slate-400">Company:</span>
-                                <span className="text-slate-800 dark:text-slate-200">{subscription.user?.company_name || 'Individual'}</span>
-                            </div>
-                        </div>
+                        {(() => {
+                            const clientWhatsapp = subscription.client_whatsapp || subscription.user?.whatsapp_number || subscription.user?.phone || '';
+                            const clientEmail = subscription.client_email || subscription.user?.email || '';
+                            const cleanWhatsapp = clientWhatsapp.replace(/[^0-9]/g, '');
+                            const whatsappPrompt = `Hello ${subscription.user?.name || 'Customer'}, this is CodeVenture Tech regarding your SaaS subscription #${subscription.order_number} for ${subscription.product?.name || 'Software'}.`;
+                            const whatsappUrl = cleanWhatsapp ? `https://wa.me/${cleanWhatsapp}?text=${encodeURIComponent(whatsappPrompt)}` : '';
+
+                            return (
+                                <div className="space-y-3 text-xs">
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-slate-400">Full Name:</span>
+                                        <span className="font-bold text-slate-900 dark:text-white">{subscription.user?.name}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-slate-400">Email:</span>
+                                        <a href={`mailto:${clientEmail}`} className="font-mono text-indigo-600 dark:text-cyan-400 hover:underline">
+                                            {clientEmail}
+                                        </a>
+                                    </div>
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-slate-400 flex items-center space-x-1">
+                                            <WhatsAppIcon className="h-3 w-3 text-emerald-500" />
+                                            <span>WhatsApp:</span>
+                                        </span>
+                                        <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">
+                                            {clientWhatsapp || 'N/A'}
+                                        </span>
+                                    </div>
+                                    {subscription.user?.phone && subscription.user?.phone !== clientWhatsapp && (
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-slate-400">Alternative Phone:</span>
+                                            <span className="font-mono text-slate-700 dark:text-slate-300">{subscription.user?.phone}</span>
+                                        </div>
+                                    )}
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-slate-400">Company:</span>
+                                        <span className="text-slate-800 dark:text-slate-200">{subscription.user?.company_name || 'Individual'}</span>
+                                    </div>
+
+                                    {/* Action Buttons */}
+                                    <div className="pt-2 flex flex-wrap items-center gap-2 border-t border-slate-100 dark:border-slate-800">
+                                        {whatsappUrl && (
+                                            <a
+                                                href={whatsappUrl}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-2xs transition-all"
+                                            >
+                                                <WhatsAppIcon className="h-3.5 w-3.5" />
+                                                <span>Chat on WhatsApp</span>
+                                            </a>
+                                        )}
+                                        {clientEmail && (
+                                            <a
+                                                href={`mailto:${clientEmail}?subject=${encodeURIComponent(`[CodeVenture Tech] Subscription #${subscription.order_number} Update`)}`}
+                                                className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 text-xs font-semibold"
+                                            >
+                                                <Mail className="h-3.5 w-3.5 text-indigo-500" />
+                                                <span>Email Client</span>
+                                            </a>
+                                        )}
+                                    </div>
+                                </div>
+                            );
+                        })()}
 
                         {subscription.payment_notes && (
                             <div className="mt-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200/60 dark:border-slate-800 text-[11px] text-slate-600 dark:text-slate-400">

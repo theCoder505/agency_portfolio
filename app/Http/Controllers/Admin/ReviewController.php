@@ -133,4 +133,15 @@ class ReviewController extends Controller
 
         return back()->with('success', 'Review deleted successfully.');
     }
+
+    /**
+     * Toggle whether the review is featured on the frontend homepage carousel.
+     */
+    public function toggleFeatured(Review $review): RedirectResponse
+    {
+        $review->is_featured = !$review->is_featured;
+        $review->save();
+
+        return back()->with('success', $review->is_featured ? 'Review is now featured on the homepage carousel.' : 'Review is now hidden from the homepage carousel.');
+    }
 }

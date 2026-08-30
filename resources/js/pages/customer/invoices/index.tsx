@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import { CustomerLayout } from '@/layouts/customer-layout';
 import { PaginatedData, SubscriptionInvoice } from '@/types';
+import { formatCurrency } from '@/lib/formatters';
 import {
     Receipt,
     Printer,
@@ -126,7 +127,7 @@ export default function InvoicesIndex({
                                                 {inv.type}
                                             </td>
                                             <td className="py-4 px-4 font-black text-slate-900 dark:text-white">
-                                                {currency}{inv.amount.toLocaleString()}
+                                                {formatCurrency(inv.amount, inv.currency || currency)}
                                             </td>
                                             <td className="py-4 px-4 uppercase font-mono font-semibold">
                                                 {inv.payment_method}

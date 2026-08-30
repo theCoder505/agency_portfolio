@@ -1,5 +1,5 @@
 import React from 'react';
-import { Head, Link, router } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import { CustomerLayout } from '@/layouts/customer-layout';
 import { CustomOrder, PaginatedData } from '@/types';
 import {
@@ -7,15 +7,12 @@ import {
     PlusCircle,
     Clock,
     CheckCircle2,
-    AlertCircle,
     ArrowRight,
-    DollarSign,
     Layers,
-    Github,
-    HardDrive,
-    ExternalLink,
-    Filter,
-    Calendar
+    Calendar,
+    AlertTriangle,
+    Coins,
+    RotateCcw
 } from 'lucide-react';
 
 interface CustomOrderIndexProps {
@@ -34,12 +31,12 @@ export default function CustomOrderIndex({
     orders,
     kpis,
     activeStatus = 'all',
-    currencySymbol = '$',
+    currencySymbol = '৳',
 }: CustomOrderIndexProps) {
     const filterTabs = [
         { label: 'All Orders', value: 'all', count: kpis.total },
         { label: 'Under Review', value: 'pending', count: kpis.pending },
-        { label: 'In Progress / Accepted', value: 'in_progress', count: kpis.in_progress },
+        { label: 'Active Development', value: 'in_progress', count: kpis.in_progress },
         { label: 'Completed', value: 'completed', count: kpis.completed },
     ];
 
@@ -60,7 +57,7 @@ export default function CustomOrderIndex({
                             Custom Projects & Milestones
                         </h1>
                         <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-                            Track your bespoke product requests, milestone payments, and codebase deliverables.
+                            Track your bespoke product requests, milestone payments, codebase deliverables, and project settlements.
                         </p>
                     </div>
 
@@ -168,11 +165,12 @@ export default function CustomOrderIndex({
                             const milestonesCount = order.milestones?.length || 0;
                             const collectedAmount = order.total_collected_amount || 0;
                             const agreedPrice = order.agreed_price || order.estimated_budget || 0;
+                            const progress = order.progress_percentage ?? (agreedPrice > 0 ? Math.min(100, Math.round((collectedAmount / agreedPrice) * 100)) : 0);
 
                             return (
                                 <div
                                     key={order.id}
-                                    className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-6 shadow-xs hover:border-indigo-500/40 transition-all group"
+                                    className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-6 shadow-xs hover:border-indigo-500/40 transition-all group space-y-4"
                                 >
                                     <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                                         <div className="space-y-3 min-w-0 flex-1">
@@ -191,6 +189,27 @@ export default function CustomOrderIndex({
                                                 }`}>
                                                     {badge.label}
                                                 </span>
+
+                                                {/* Overdue Badge */}
+                                                {order.is_late && (
+                                                    <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 flex items-center space-x-1">
+                                                        <AlertTriangle className="h-3 w-3" />
+                                                        <span>
+                                                            {order.status === 'completed'
+                                                                ? `Delivered ${order.days_overdue}d late`
+                                                                : `Overdue ${order.days_overdue} days`}
+                                                        </span>
+                                                    </span>
+                                                )}
+
+                                                {/* Pending Budget Request Badge */}
+                                                {order.has_pending_budget_request && (
+                                                    <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 flex items-center space-x-1">
+                                                        <Coins className="h-3 w-3" />
+                                                        <span>Budget Revision Pending</span>
+                                                    </span>
+                                                )}
+
                                                 {order.category && (
                                                     <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
                                                         &bull; {order.category}
@@ -212,7 +231,7 @@ export default function CustomOrderIndex({
                                                 {order.target_deadline && (
                                                     <span className="flex items-center space-x-1.5 text-indigo-600 dark:text-cyan-400 font-semibold">
                                                         <Clock className="h-3.5 w-3.5" />
-                                                        <span>Due: {new Date(order.target_deadline).toLocaleDateString()}</span>
+                                                        <span>Target: {new Date(order.target_deadline).toLocaleDateString()}</span>
                                                     </span>
                                                 )}
                                                 <span className="flex items-center space-x-1.5">
@@ -228,7 +247,7 @@ export default function CustomOrderIndex({
                                                 <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
                                                     Agreed Amount
                                                 </span>
-                                                <span className="text-lg font-black text-slate-900 dark:text-white block">
+                                                <span className="text-lg font-black text-slate-900 dark:text-white block font-mono">
                                                     {order.currency} {agreedPrice.toLocaleString()}
                                                 </span>
                                                 <span className="text-xs font-semibold text-emerald-500 block">
@@ -243,6 +262,24 @@ export default function CustomOrderIndex({
                                                 <span>Open Workspace</span>
                                                 <ArrowRight className="h-4 w-4" />
                                             </Link>
+                                        </div>
+                                    </div>
+
+                                    {/* SETTLEMENT PROGRESS BAR */}
+                                    <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-1.5">
+                                        <div className="flex items-center justify-between text-[11px] font-bold">
+                                            <span className="text-slate-500 dark:text-slate-400">
+                                                Payment Settlement Progress
+                                            </span>
+                                            <span className="text-indigo-600 dark:text-cyan-400 font-mono">
+                                                {progress}% Settled ({order.currency} {collectedAmount.toLocaleString()} of {order.currency} {agreedPrice.toLocaleString()})
+                                            </span>
+                                        </div>
+                                        <div className="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                                            <div
+                                                className="h-full bg-gradient-to-r from-indigo-500 to-emerald-400 rounded-full transition-all"
+                                                style={{ width: `${Math.max(3, progress)}%` }}
+                                            />
                                         </div>
                                     </div>
                                 </div>

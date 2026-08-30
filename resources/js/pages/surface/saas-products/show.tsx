@@ -58,7 +58,7 @@ export default function SaasProductShowPage({
     const activeImage = allImages[activeImageIndex] || product.thumbnail || null;
 
     const brandName = app_settings?.brand_name || 'CodeVenture Tech';
-    const currency = paymentSettings.currency_symbol || '৳';
+    const currency = product.currency || paymentSettings.currency_symbol || '৳';
 
     // Packages
     const packages = product.packages || {

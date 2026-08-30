@@ -13,12 +13,12 @@ interface ResetPasswordProps {
     email: string;
 }
 
-interface ResetPasswordForm {
+type ResetPasswordForm = {
     token: string;
     email: string;
     password: string;
     password_confirmation: string;
-}
+};
 
 export default function ResetPassword({ token, email }: ResetPasswordProps) {
     const { data, setData, post, processing, errors, reset } = useForm<ResetPasswordForm>({
@@ -64,7 +64,6 @@ export default function ResetPassword({ token, email }: ResetPasswordProps) {
                             name="password"
                             autoComplete="new-password"
                             value={data.password}
-                            className="mt-1 block w-full"
                             autoFocus
                             onChange={(e) => setData('password', e.target.value)}
                             placeholder="Password"
@@ -80,7 +79,6 @@ export default function ResetPassword({ token, email }: ResetPasswordProps) {
                             name="password_confirmation"
                             autoComplete="new-password"
                             value={data.password_confirmation}
-                            className="mt-1 block w-full"
                             onChange={(e) => setData('password_confirmation', e.target.value)}
                             placeholder="Confirm password"
                         />

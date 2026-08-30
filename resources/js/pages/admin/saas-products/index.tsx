@@ -16,6 +16,7 @@ import {
     Sparkles
 } from 'lucide-react';
 import { showConfirmDialog, showToast } from '@/lib/swal';
+import { formatCurrency } from '@/lib/formatters';
 
 interface SaasProductsIndexProps {
     products: PaginatedData<SaasProduct>;
@@ -45,30 +46,28 @@ export default function SaasProductsIndex({
         router.get('/admin/saas-products', { search, status: newStatus }, { preserveState: true });
     };
 
-    const handleDelete = (id: number, name: string) => {
-        showConfirmDialog(
+    const handleDelete = async (id: number, name: string) => {
+        const confirmed = await showConfirmDialog(
             'Delete SaaS Product?',
             `Are you sure you want to delete "${name}"? This action cannot be undone.`
-        ).then((result) => {
-            if (result.isConfirmed) {
-                router.delete(`/admin/saas-products/${id}`);
-            }
-        });
+        );
+        if (confirmed) {
+            router.delete(`/admin/saas-products/${id}`);
+        }
     };
 
-    const handleBulkDelete = () => {
+    const handleBulkDelete = async () => {
         if (selectedIds.length === 0) return;
 
-        showConfirmDialog(
+        const confirmed = await showConfirmDialog(
             'Delete Selected Products?',
             `Are you sure you want to delete ${selectedIds.length} SaaS products?`
-        ).then((result) => {
-            if (result.isConfirmed) {
-                router.post('/admin/saas-products/bulk-delete', { ids: selectedIds }, {
-                    onSuccess: () => setSelectedIds([]),
-                });
-            }
-        });
+        );
+        if (confirmed) {
+            router.post('/admin/saas-products/bulk-delete', { ids: selectedIds }, {
+                onSuccess: () => setSelectedIds([]),
+            });
+        }
     };
 
     const toggleSelectAll = () => {
@@ -242,13 +241,13 @@ export default function SaasProductsIndex({
                                                 </div>
                                             </td>
                                             <td className="py-3.5 px-4 font-bold text-slate-900 dark:text-white">
-                                                {currencySymbol}{product.monthly_price.toLocaleString()}
+                                                {formatCurrency(product.monthly_price, product.currency || currencySymbol)}
                                             </td>
                                             <td className="py-3.5 px-4 font-semibold text-slate-700 dark:text-slate-300">
-                                                {currencySymbol}{product.half_yearly_price.toLocaleString()}
+                                                {formatCurrency(product.half_yearly_price, product.currency || currencySymbol)}
                                             </td>
                                             <td className="py-3.5 px-4 font-semibold text-slate-700 dark:text-slate-300">
-                                                {currencySymbol}{product.yearly_price.toLocaleString()}
+                                                {formatCurrency(product.yearly_price, product.currency || currencySymbol)}
                                             </td>
                                             <td className="py-3.5 px-4 font-bold text-indigo-600 dark:text-cyan-400">
                                                 {product.subscriptions_count || 0}

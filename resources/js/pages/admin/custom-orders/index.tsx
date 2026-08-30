@@ -18,9 +18,13 @@ import {
     Mail,
     ArrowUpRight,
     Filter,
-    XCircle
+    XCircle,
+    AlertTriangle,
+    Coins,
+    RotateCcw
 } from 'lucide-react';
 import { showConfirmDialog, showToast } from '@/lib/swal';
+import { WhatsAppIcon } from '@/components/icons/whatsapp-icon';
 
 interface CustomOrderIndexProps {
     orders: PaginatedData<CustomOrder>;
@@ -30,7 +34,10 @@ interface CustomOrderIndexProps {
         in_progress: number;
         completed: number;
         denied: number;
+        overdue?: number;
+        pending_budgets?: number;
         total_collected: number;
+        total_refunded?: number;
     };
     filters: {
         search: string;
@@ -43,7 +50,7 @@ export default function CustomOrderAdminIndex({
     orders,
     kpis,
     filters,
-    currencySymbol = '$',
+    currencySymbol = '৳',
 }: CustomOrderIndexProps) {
     const [search, setSearch] = useState(filters.search || '');
 
@@ -56,23 +63,23 @@ export default function CustomOrderAdminIndex({
         router.get('/admin/custom-orders', { search: filters.search, status: st }, { preserveState: true });
     };
 
-    const handleDelete = (order: CustomOrder) => {
-        showConfirmDialog(
+    const handleDelete = async (order: CustomOrder) => {
+        const confirmed = await showConfirmDialog(
             'Delete Custom Order?',
             `Are you sure you want to permanently delete order #${order.order_number}? All milestones and payment records will be removed.`,
             'Delete Order'
-        ).then((result) => {
-            if (result.isConfirmed) {
-                router.delete(`/admin/custom-orders/${order.id}`);
-            }
-        });
+        );
+        if (confirmed) {
+            router.delete(`/admin/custom-orders/${order.id}`);
+        }
     };
 
     const statusTabs = [
         { label: 'All Orders', value: 'all', count: kpis.total },
         { label: 'Pending Review', value: 'pending', count: kpis.pending, badgeColor: 'bg-amber-500 text-slate-950' },
-        { label: 'In Progress / Accepted', value: 'in_progress', count: kpis.in_progress },
+        { label: 'Active Development', value: 'in_progress', count: kpis.in_progress },
         { label: 'Completed', value: 'completed', count: kpis.completed },
+        { label: 'Overdue / Late', value: 'overdue', count: kpis.overdue || 0, badgeColor: 'bg-rose-500 text-white' },
         { label: 'Denied', value: 'denied', count: kpis.denied },
     ];
 
@@ -89,7 +96,7 @@ export default function CustomOrderAdminIndex({
                             Custom Product Orders & Milestones
                         </h1>
                         <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-                            Review custom project proposals, structure payment milestones, share payment channels, and deliver source code.
+                            Review custom project proposals, structure payment milestones, track settled payments, and deliver source code.
                         </p>
                     </div>
 
@@ -103,7 +110,7 @@ export default function CustomOrderAdminIndex({
                 </div>
 
                 {/* KPI METRIC CARDS */}
-                <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+                <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
                     <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs">
                         <div className="flex items-center justify-between text-xs font-bold text-slate-500 dark:text-slate-400">
                             <span>Total Orders</span>
@@ -126,11 +133,21 @@ export default function CustomOrderAdminIndex({
 
                     <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs">
                         <div className="flex items-center justify-between text-xs font-bold text-slate-500 dark:text-slate-400">
-                            <span>Active Development</span>
+                            <span>In Development</span>
                             <Layers className="h-4 w-4 text-blue-500" />
                         </div>
                         <p className="text-2xl font-black text-blue-500 mt-2">
                             {kpis.in_progress}
+                        </p>
+                    </div>
+
+                    <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs">
+                        <div className="flex items-center justify-between text-xs font-bold text-slate-500 dark:text-slate-400">
+                            <span>Late / Overdue</span>
+                            <AlertTriangle className="h-4 w-4 text-rose-500" />
+                        </div>
+                        <p className="text-2xl font-black text-rose-500 mt-2">
+                            {kpis.overdue || 0}
                         </p>
                     </div>
 
@@ -144,12 +161,12 @@ export default function CustomOrderAdminIndex({
                         </p>
                     </div>
 
-                    <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs col-span-2 lg:col-span-1">
+                    <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs">
                         <div className="flex items-center justify-between text-xs font-bold text-slate-500 dark:text-slate-400">
-                            <span>Revenue Collected</span>
+                            <span>Revenue Settled</span>
                             <DollarSign className="h-4 w-4 text-emerald-500" />
                         </div>
-                        <p className="text-2xl font-black text-slate-900 dark:text-white mt-2 truncate">
+                        <p className="text-xl font-black text-slate-900 dark:text-white mt-2 truncate">
                             {currencySymbol}{kpis.total_collected.toLocaleString()}
                         </p>
                     </div>
@@ -212,7 +229,7 @@ export default function CustomOrderAdminIndex({
                                         <th className="py-3 px-3">Project Title & Category</th>
                                         <th className="py-3 px-3">Client</th>
                                         <th className="py-3 px-3">Agreed / Budget</th>
-                                        <th className="py-3 px-3">Milestones & Collected</th>
+                                        <th className="py-3 px-3">Milestones & Settlement</th>
                                         <th className="py-3 px-3">Status</th>
                                         <th className="py-3 px-3 text-right">Actions</th>
                                     </tr>
@@ -223,6 +240,7 @@ export default function CustomOrderAdminIndex({
                                         const agreedPrice = order.agreed_price || order.estimated_budget || 0;
                                         const collected = order.total_collected_amount || 0;
                                         const milestonesCount = order.milestones?.length || 0;
+                                        const progress = order.progress_percentage ?? (agreedPrice > 0 ? Math.min(100, Math.round((collected / agreedPrice) * 100)) : 0);
 
                                         return (
                                             <tr key={order.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
@@ -234,6 +252,12 @@ export default function CustomOrderAdminIndex({
                                                     <span className="block text-[10px] font-normal text-slate-400">
                                                         {new Date(order.created_at).toLocaleDateString()}
                                                     </span>
+                                                    {order.has_pending_budget_request && (
+                                                        <span className="inline-flex items-center space-x-1 px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-600 font-bold text-[10px] mt-1 border border-amber-500/20">
+                                                            <Coins className="h-3 w-3" />
+                                                            <span>Budget Req</span>
+                                                        </span>
+                                                    )}
                                                 </td>
 
                                                 {/* Project Title */}
@@ -244,41 +268,86 @@ export default function CustomOrderAdminIndex({
                                                     >
                                                         {order.title}
                                                     </Link>
-                                                    <span className="text-[11px] text-slate-500 dark:text-slate-400">
-                                                        {order.category || 'Custom Software'}
-                                                    </span>
+                                                    <div className="flex items-center space-x-1 text-[11px] text-slate-500 dark:text-slate-400">
+                                                        <span>{order.category || 'Custom Software'}</span>
+                                                        {order.is_late && (
+                                                            <span className="text-[10px] font-bold text-rose-500 bg-rose-50 dark:bg-rose-950/60 px-1 rounded">
+                                                                Overdue {order.days_overdue}d
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                 </td>
 
-                                                {/* Client */}
+                                                {/* Client & Fast Chat */}
                                                 <td className="py-3.5 px-3">
-                                                    <span className="font-semibold text-slate-800 dark:text-slate-200 block">
-                                                        {order.user?.name || 'Guest / Direct'}
-                                                    </span>
-                                                    <span className="text-[11px] text-slate-400 block font-mono">
-                                                        {order.user?.email}
-                                                    </span>
+                                                    {(() => {
+                                                        const clientWhatsapp = order.client_whatsapp || order.user?.whatsapp_number || order.user?.phone || '';
+                                                        const clientEmail = order.client_email || order.user?.email || '';
+                                                        const cleanWhatsapp = clientWhatsapp.replace(/[^0-9]/g, '');
+                                                        const whatsappPrompt = `Hello ${order.user?.name || 'Client'}, this is CodeVenture Tech regarding your project #${order.order_number} (${order.title}).`;
+                                                        const whatsappUrl = cleanWhatsapp ? `https://wa.me/${cleanWhatsapp}?text=${encodeURIComponent(whatsappPrompt)}` : '';
+
+                                                        return (
+                                                            <div className="space-y-1">
+                                                                <span className="font-semibold text-slate-800 dark:text-slate-200 block">
+                                                                    {order.user?.name || 'Guest / Direct'}
+                                                                </span>
+                                                                <div className="flex items-center space-x-1.5">
+                                                                    {clientEmail && (
+                                                                        <a
+                                                                            href={`mailto:${clientEmail}?subject=${encodeURIComponent(`[CodeVenture Tech] Project #${order.order_number}`)}`}
+                                                                            className="text-[11px] text-slate-400 hover:text-indigo-600 dark:hover:text-cyan-400 font-mono truncate max-w-[130px] inline-flex items-center space-x-1"
+                                                                            title={`Email: ${clientEmail}`}
+                                                                        >
+                                                                            <Mail className="h-3 w-3 shrink-0" />
+                                                                            <span className="truncate">{clientEmail}</span>
+                                                                        </a>
+                                                                    )}
+                                                                    {whatsappUrl && (
+                                                                        <a
+                                                                            href={whatsappUrl}
+                                                                            target="_blank"
+                                                                            rel="noopener noreferrer"
+                                                                            className="p-1 rounded-md bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-600 hover:text-white transition-all shadow-2xs"
+                                                                            title={`WhatsApp: ${clientWhatsapp}`}
+                                                                        >
+                                                                            <WhatsAppIcon className="h-3.5 w-3.5" />
+                                                                        </a>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })()}
                                                 </td>
 
                                                 {/* Agreed / Budget */}
                                                 <td className="py-3.5 px-3">
-                                                    <span className="font-black text-slate-900 dark:text-white text-sm block">
+                                                    <span className="font-black text-slate-900 dark:text-white text-sm block font-mono">
                                                         {order.currency} {agreedPrice.toLocaleString()}
                                                     </span>
                                                     {order.target_deadline && (
                                                         <span className="text-[10px] text-indigo-500 font-semibold block">
-                                                            Due: {new Date(order.target_deadline).toLocaleDateString()}
+                                                            Target: {new Date(order.target_deadline).toLocaleDateString()}
                                                         </span>
                                                     )}
                                                 </td>
 
-                                                {/* Milestones & Collected */}
-                                                <td className="py-3.5 px-3">
-                                                    <span className="font-semibold text-slate-700 dark:text-slate-300 block">
-                                                        {milestonesCount} Milestone(s)
-                                                    </span>
-                                                    <span className="text-[11px] font-bold text-emerald-500 block">
-                                                        Collected: {order.currency} {collected.toLocaleString()}
-                                                    </span>
+                                                {/* Milestones & Progress */}
+                                                <td className="py-3.5 px-3 space-y-1">
+                                                    <div className="flex items-center justify-between text-[11px]">
+                                                        <span className="font-semibold text-slate-700 dark:text-slate-300">
+                                                            {milestonesCount} Milestones
+                                                        </span>
+                                                        <span className="font-mono text-emerald-500 font-bold">
+                                                            {progress}% Paid
+                                                        </span>
+                                                    </div>
+                                                    <div className="h-1.5 w-32 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                                                        <div
+                                                            className="h-full bg-emerald-500 rounded-full transition-all"
+                                                            style={{ width: `${progress}%` }}
+                                                        />
+                                                    </div>
                                                 </td>
 
                                                 {/* Status Badge */}

@@ -15,8 +15,11 @@ import {
     Copy,
     Globe,
     DollarSign,
+    Mail,
+    Phone,
 } from 'lucide-react';
 import { showConfirmDialog, showToast } from '@/lib/swal';
+import { WhatsAppIcon } from '@/components/icons/whatsapp-icon';
 
 interface SubscriptionsIndexProps {
     subscriptions: PaginatedData<SaasSubscription>;
@@ -59,15 +62,14 @@ export default function SubscriptionsIndex({
         showToast(`${label} copied!`, 'success');
     };
 
-    const handleDelete = (id: number, orderNum: string) => {
-        showConfirmDialog(
+    const handleDelete = async (id: number, orderNum: string) => {
+        const confirmed = await showConfirmDialog(
             'Delete Subscription Order?',
             `Are you sure you want to delete order "${orderNum}"?`
-        ).then((res) => {
-            if (res.isConfirmed) {
-                router.delete(`/admin/subscriptions/${id}`);
-            }
-        });
+        );
+        if (confirmed) {
+            router.delete(`/admin/subscriptions/${id}`);
+        }
     };
 
     return (
@@ -201,8 +203,42 @@ export default function SubscriptionsIndex({
                                                 {sub.order_number}
                                             </td>
                                             <td className="py-3.5 px-4">
-                                                <div className="font-bold text-slate-900 dark:text-white">{sub.user?.name || 'Customer'}</div>
-                                                <div className="text-[11px] text-slate-400">{sub.user?.email} • {sub.user?.phone || 'No phone'}</div>
+                                                {(() => {
+                                                    const clientWhatsapp = sub.client_whatsapp || sub.user?.whatsapp_number || sub.user?.phone || '';
+                                                    const clientEmail = sub.client_email || sub.user?.email || '';
+                                                    const cleanWhatsapp = clientWhatsapp.replace(/[^0-9]/g, '');
+                                                    const whatsappPrompt = `Hello ${sub.user?.name || 'Customer'}, this is CodeVenture Tech regarding your SaaS subscription #${sub.order_number} for ${sub.product?.name || 'Software'}.`;
+                                                    const whatsappUrl = cleanWhatsapp ? `https://wa.me/${cleanWhatsapp}?text=${encodeURIComponent(whatsappPrompt)}` : '';
+
+                                                    return (
+                                                        <div className="space-y-1">
+                                                            <div className="font-bold text-slate-900 dark:text-white">{sub.user?.name || 'Customer'}</div>
+                                                            <div className="flex items-center space-x-1.5">
+                                                                {clientEmail && (
+                                                                    <a
+                                                                        href={`mailto:${clientEmail}?subject=${encodeURIComponent(`[CodeVenture Tech] Subscription #${sub.order_number}`)}`}
+                                                                        className="text-[11px] text-slate-400 hover:text-indigo-600 dark:hover:text-cyan-400 font-mono truncate max-w-[130px] inline-flex items-center space-x-1"
+                                                                        title={`Email: ${clientEmail}`}
+                                                                    >
+                                                                        <Mail className="h-3 w-3 shrink-0" />
+                                                                        <span className="truncate">{clientEmail}</span>
+                                                                    </a>
+                                                                )}
+                                                                {whatsappUrl && (
+                                                                    <a
+                                                                        href={whatsappUrl}
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                        className="p-1 rounded-md bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-600 hover:text-white transition-all shadow-2xs"
+                                                                        title={`WhatsApp: ${clientWhatsapp}`}
+                                                                    >
+                                                                        <WhatsAppIcon className="h-3.5 w-3.5" />
+                                                                    </a>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })()}
                                             </td>
                                             <td className="py-3.5 px-4">
                                                 <div className="font-bold text-slate-800 dark:text-slate-200">{sub.product?.name || 'SaaS Product'}</div>

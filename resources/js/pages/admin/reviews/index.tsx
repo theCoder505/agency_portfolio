@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { router, Link } from '@inertiajs/react';
 import { AdminLayout } from '@/layouts/admin-layout';
 import { Review, PaginatedData } from '@/types';
-import { Plus, Edit, Trash2, Star, Search, ShieldCheck } from 'lucide-react';
-import { confirmAction } from '@/lib/swal';
+import { Plus, Edit, Trash2, Star, Search, ShieldCheck, Eye, EyeOff } from 'lucide-react';
+import { confirmAction, showToast } from '@/lib/swal';
 
 interface ReviewIndexProps {
     reviews: PaginatedData<Review>;
@@ -16,6 +16,15 @@ export default function ReviewIndex({ reviews, filters }: ReviewIndexProps) {
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
         router.get('/admin/reviews', { search }, { preserveState: true, preserveScroll: true });
+    };
+
+    const handleToggleFeatured = (review: Review) => {
+        router.post(`/admin/reviews/${review.id}/toggle-featured`, {}, {
+            preserveScroll: true,
+            onSuccess: () => {
+                showToast(`Review visibility updated!`, 'success');
+            },
+        });
     };
 
     const handleDelete = async (review: Review) => {
@@ -122,13 +131,28 @@ export default function ReviewIndex({ reviews, filters }: ReviewIndexProps) {
                                             </span>
                                         </td>
                                         <td className="p-4">
-                                            {review.is_featured ? (
-                                                <span className="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-500 font-bold text-[10px]">
-                                                    Carousel Active
-                                                </span>
-                                            ) : (
-                                                <span className="text-slate-400">—</span>
-                                            )}
+                                            <button
+                                                type="button"
+                                                onClick={() => handleToggleFeatured(review)}
+                                                className={`px-2.5 py-1 rounded-full text-[10px] font-bold flex items-center space-x-1.5 transition-all ${
+                                                    review.is_featured
+                                                        ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20'
+                                                        : 'bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'
+                                                }`}
+                                                title={review.is_featured ? 'Click to hide from frontend showcase' : 'Click to show on frontend showcase'}
+                                            >
+                                                {review.is_featured ? (
+                                                    <>
+                                                        <Eye className="h-3 w-3" />
+                                                        <span>Showcase Active</span>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <EyeOff className="h-3 w-3" />
+                                                        <span>Hidden (Disabled)</span>
+                                                    </>
+                                                )}
+                                            </button>
                                         </td>
                                         <td className="p-4 text-right">
                                             <div className="flex items-center justify-end space-x-2">

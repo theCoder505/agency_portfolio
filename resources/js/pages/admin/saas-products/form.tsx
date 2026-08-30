@@ -3,6 +3,7 @@ import { Head, Link, router } from '@inertiajs/react';
 import { AdminLayout } from '@/layouts/admin-layout';
 import { SaasProduct, SaasPackages, SaasPackageTier } from '@/types';
 import { ImageUploader } from '@/components/admin/image-uploader';
+import { getCurrencySymbol, CURRENCY_OPTIONS } from '@/lib/formatters';
 import {
     Package,
     Save,
@@ -17,7 +18,8 @@ import {
     Shield,
     Check,
     X,
-    Star
+    Star,
+    Coins
 } from 'lucide-react';
 import { showToast } from '@/lib/swal';
 
@@ -30,7 +32,7 @@ interface SaasProductFormProps {
 export default function SaasProductForm({
     product,
     isEdit,
-    currencySymbol,
+    currencySymbol: defaultCurrencySymbol = '৳',
 }: SaasProductFormProps) {
     // Basic Details State
     const [name, setName] = useState(product?.name || '');
@@ -39,9 +41,12 @@ export default function SaasProductForm({
     const [description, setDescription] = useState(product?.description || '');
     const [icon, setIcon] = useState(product?.icon || 'Database');
     const [badge, setBadge] = useState(product?.badge || '');
+    const [currency, setCurrency] = useState<'BDT' | 'USD' | 'EUR'>((product?.currency as any) || 'BDT');
     const [order, setOrder] = useState(product?.order ?? 0);
     const [isFeatured, setIsFeatured] = useState(product?.is_featured ?? false);
     const [isActive, setIsActive] = useState(product?.is_active ?? true);
+
+    const activeCurrencySymbol = getCurrencySymbol(currency);
 
     // Baseline fallback pricing
     const [monthlyPrice, setMonthlyPrice] = useState(product?.monthly_price ?? 2999);
@@ -196,6 +201,7 @@ export default function SaasProductForm({
         formData.append('monthly_price', String(monthlyPrice));
         formData.append('half_yearly_price', String(halfYearlyPrice));
         formData.append('yearly_price', String(yearlyPrice));
+        formData.append('currency', currency);
         formData.append('has_monthly', hasMonthly ? '1' : '0');
         formData.append('has_half_yearly', hasHalfYearly ? '1' : '0');
         formData.append('has_yearly', hasYearly ? '1' : '0');
@@ -342,6 +348,30 @@ export default function SaasProductForm({
                                     placeholder="e.g. Most Popular, AI-Powered, Enterprise"
                                     className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500"
                                 />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1 flex items-center justify-between">
+                                    <span>Product Currency</span>
+                                    <span className="text-[10px] text-indigo-500 font-bold">Default: BDT (৳)</span>
+                                </label>
+                                <div className="grid grid-cols-3 gap-2">
+                                    {CURRENCY_OPTIONS.map((cur) => (
+                                        <button
+                                            key={cur.code}
+                                            type="button"
+                                            onClick={() => setCurrency(cur.code)}
+                                            className={`px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-1.5 border ${
+                                                currency === cur.code
+                                                    ? 'bg-indigo-600 border-indigo-600 text-white shadow-xs'
+                                                    : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-slate-300'
+                                            }`}
+                                        >
+                                            <span className="font-mono">{cur.symbol}</span>
+                                            <span>{cur.code}</span>
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
                         </div>
 
@@ -498,7 +528,7 @@ export default function SaasProductForm({
 
                                         <div>
                                             <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                                                Monthly Price ({currencySymbol})
+                                                Monthly Price ({activeCurrencySymbol})
                                             </label>
                                             <input
                                                 type="number"
@@ -511,7 +541,7 @@ export default function SaasProductForm({
 
                                         <div>
                                             <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                                                Yearly Price ({currencySymbol})
+                                                Yearly Price ({activeCurrencySymbol})
                                             </label>
                                             <input
                                                 type="number"

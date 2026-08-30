@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Str;
 
 class CustomOrder extends Model
@@ -20,7 +21,14 @@ class CustomOrder extends Model
         'category',
         'estimated_budget',
         'agreed_price',
+        'proposed_budget',
+        'proposed_currency',
+        'proposed_budget_notes',
+        'proposed_budget_at',
+        'budget_update_status',
         'currency',
+        'client_whatsapp',
+        'client_email',
         'target_deadline',
         'requirements',
         'reference_links',
@@ -38,6 +46,8 @@ class CustomOrder extends Model
     protected $casts = [
         'estimated_budget' => 'float',
         'agreed_price' => 'float',
+        'proposed_budget' => 'float',
+        'proposed_budget_at' => 'datetime',
         'attachments' => 'array',
         'target_deadline' => 'date',
         'accepted_at' => 'datetime',
@@ -46,11 +56,20 @@ class CustomOrder extends Model
 
     protected $appends = [
         'total_milestones_amount',
+        'total_active_milestones_amount',
+        'unallocated_milestone_amount',
         'total_collected_amount',
         'total_processing_amount',
         'total_pending_amount',
+        'total_refunded_amount',
+        'remaining_balance',
         'progress_percentage',
         'status_badge',
+        'is_late',
+        'days_overdue',
+        'late_milestones_count',
+        'has_pending_budget_request',
+        'is_fully_paid',
     ];
 
     protected static function boot()
@@ -74,12 +93,34 @@ class CustomOrder extends Model
         return $this->hasMany(CustomOrderMilestone::class, 'custom_order_id')->orderBy('order', 'asc')->orderBy('id', 'asc');
     }
 
+    public function review(): HasOne
+    {
+        return $this->hasOne(Review::class, 'custom_order_id');
+    }
+
     /**
      * Compute the sum of all milestones settled amounts.
      */
     public function getTotalMilestonesAmountAttribute(): float
     {
         return (float) $this->milestones->sum('amount');
+    }
+
+    /**
+     * Compute the sum of all active (not returned/refunded) milestones.
+     */
+    public function getTotalActiveMilestonesAmountAttribute(): float
+    {
+        return (float) $this->milestones->where('payment_status', '!=', 'refunded')->sum('amount');
+    }
+
+    /**
+     * Compute remaining milestone amount that can still be created for this order based on agreed main price.
+     */
+    public function getUnallocatedMilestoneAmountAttribute(): float
+    {
+        $agreedPrice = (float) ($this->agreed_price ?: $this->milestones->sum('amount') ?: $this->estimated_budget ?: 0);
+        return max(0, $agreedPrice - $this->total_active_milestones_amount);
     }
 
     /**
@@ -107,25 +148,112 @@ class CustomOrder extends Model
     }
 
     /**
-     * Compute completion progress percentage based on collected milestones vs total agreed/milestones amount.
+     * Compute the sum of refunded / returned amounts.
+     */
+    public function getTotalRefundedAmountAttribute(): float
+    {
+        return (float) $this->milestones->sum(function ($m) {
+            return (float) ($m->refund_amount ?: ($m->payment_status === 'refunded' ? $m->amount : 0));
+        });
+    }
+
+    /**
+     * Compute remaining balance due.
+     */
+    public function getRemainingBalanceAttribute(): float
+    {
+        $agreed = (float) ($this->agreed_price ?: $this->milestones->sum('amount') ?: $this->estimated_budget);
+        return max(0, $agreed - $this->total_collected_amount);
+    }
+
+    /**
+     * Compute completion progress percentage strictly according to completed payment relative to agreed price.
      */
     public function getProgressPercentageAttribute(): int
     {
-        $totalMilestones = $this->milestones->count();
-        if ($totalMilestones === 0) {
+        if ($this->status === 'completed') {
+            return 100;
+        }
+
+        $agreedPrice = (float) ($this->agreed_price ?: $this->milestones->sum('amount') ?: $this->estimated_budget);
+        if ($agreedPrice <= 0) {
             return match ($this->status) {
-                'completed' => 100,
                 'in_progress', 'accepted' => 20,
                 'denied', 'cancelled' => 0,
                 default => 5,
             };
         }
 
-        $collectedCount = $this->milestones->where('payment_status', 'collected')->count();
-        $processingCount = $this->milestones->where('payment_status', 'paid-and-bank-processing')->count();
+        $collectedAmount = (float) $this->milestones->where('payment_status', 'collected')->sum('amount');
+        $calc = ($collectedAmount / $agreedPrice) * 100;
+        return min(100, max(0, (int) round($calc)));
+    }
 
-        $calc = (($collectedCount * 100) + ($processingCount * 50)) / $totalMilestones;
-        return min(100, (int) round($calc));
+    /**
+     * Check if project is late / overdue.
+     */
+    public function getIsLateAttribute(): bool
+    {
+        if (in_array($this->status, ['cancelled', 'denied'])) {
+            return false;
+        }
+        if ($this->status === 'completed' && $this->completed_at && $this->target_deadline) {
+            return Carbon::parse($this->completed_at)->startOfDay()->greaterThan(Carbon::parse($this->target_deadline)->startOfDay());
+        }
+        if ($this->target_deadline && $this->status !== 'completed') {
+            return Carbon::today()->greaterThan(Carbon::parse($this->target_deadline)->startOfDay());
+        }
+        return false;
+    }
+
+    /**
+     * Number of days overdue.
+     */
+    public function getDaysOverdueAttribute(): int
+    {
+        if (!$this->target_deadline) {
+            return 0;
+        }
+        $deadline = Carbon::parse($this->target_deadline)->startOfDay();
+        if ($this->status === 'completed' && $this->completed_at) {
+            $completed = Carbon::parse($this->completed_at)->startOfDay();
+            return $completed->greaterThan($deadline) ? $completed->diffInDays($deadline) : 0;
+        }
+        $today = Carbon::today();
+        return $today->greaterThan($deadline) ? $today->diffInDays($deadline) : 0;
+    }
+
+    /**
+     * Count of overdue milestones.
+     */
+    public function getLateMilestonesCountAttribute(): int
+    {
+        $today = Carbon::today();
+        return $this->milestones->filter(function ($m) use ($today) {
+            return $m->due_date && 
+                   !in_array($m->payment_status, ['collected', 'refunded']) &&
+                   $today->greaterThan(Carbon::parse($m->due_date)->startOfDay());
+        })->count();
+    }
+
+    /**
+     * Has a pending client budget update request.
+     */
+    public function getHasPendingBudgetRequestAttribute(): bool
+    {
+        return $this->budget_update_status === 'pending' && $this->proposed_budget !== null;
+    }
+
+    /**
+     * Check if project payment is 100% fully settled.
+     */
+    public function getIsFullyPaidAttribute(): bool
+    {
+        $agreed = (float) ($this->agreed_price ?: $this->milestones->sum('amount') ?: $this->estimated_budget);
+        if ($agreed <= 0) {
+            return false;
+        }
+        return $this->total_collected_amount >= $agreed && $this->remaining_balance <= 0;
     }
 
     /**

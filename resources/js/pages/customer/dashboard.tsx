@@ -27,6 +27,7 @@ import {
     HardDrive
 } from 'lucide-react';
 import { showToast } from '@/lib/swal';
+import { formatCurrency } from '@/lib/formatters';
 
 interface DashboardProps {
     kpis: {
@@ -550,7 +551,7 @@ export default function CustomerDashboard({
                                         <tr key={inv.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
                                             <td className="py-3 font-mono font-bold text-indigo-600 dark:text-cyan-400">{inv.invoice_number}</td>
                                             <td className="py-3 font-semibold text-slate-900 dark:text-white">{inv.subscription?.product?.name || 'SaaS Product'}</td>
-                                            <td className="py-3 font-bold">{currency}{inv.amount.toLocaleString()}</td>
+                                            <td className="py-3 font-bold">{formatCurrency(inv.amount, inv.currency || currency)}</td>
                                             <td className="py-3 uppercase font-mono">{inv.payment_method}</td>
                                             <td className="py-3 font-mono">{inv.transaction_id || 'N/A'}</td>
                                             <td className="py-3">

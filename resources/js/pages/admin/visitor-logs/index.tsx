@@ -6,16 +6,8 @@ import { DateRangeFilter } from '@/components/admin/date-range-filter';
 import {
     Search,
     Trash2,
-    Activity,
-    Globe,
-    Smartphone,
-    Monitor,
-    Tablet,
-    Calendar,
-    Layers,
-    AlertCircle
 } from 'lucide-react';
-import { confirmAction, showToast } from '@/lib/swal';
+import { confirmAction } from '@/lib/swal';
 
 interface VisitorLogIndexProps {
     logs: PaginatedData<VisitorLog>;
@@ -277,11 +269,11 @@ export default function VisitorLogIndex({ logs, filters }: VisitorLogIndexProps)
                                                 {/* Project */}
                                                 <td className="p-4">
                                                     {log.portfolio ? (
-                                                        <span className="px-2 py-0.5 rounded bg-indigo-50 dark:bg-slate-800 text-indigo-700 dark:text-cyan-400 font-bold text-[11px]">
+                                                        <div className="px-2 py-0.5 text-center rounded bg-indigo-50 dark:bg-slate-800 text-indigo-700 dark:text-cyan-400 font-bold text-[11px]">
                                                             {log.portfolio.title}
-                                                        </span>
+                                                        </div>
                                                     ) : (
-                                                        <span className="text-slate-400 text-[11px]">—</span>
+                                                        <div className="text-slate-400 text-[11px] text-center">—</div>
                                                     )}
                                                 </td>
 

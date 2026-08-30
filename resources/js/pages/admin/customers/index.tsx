@@ -42,15 +42,14 @@ export default function CustomersIndex({
         router.get('/admin/customers', { search, status: newStatus }, { preserveState: true });
     };
 
-    const handleDelete = (id: number, name: string) => {
-        showConfirmDialog(
+    const handleDelete = async (id: number, name: string) => {
+        const confirmed = await showConfirmDialog(
             'Delete Customer Account?',
             `Are you sure you want to delete "${name}"? All associated subscriptions and invoices will also be removed.`
-        ).then((res) => {
-            if (res.isConfirmed) {
-                router.delete(`/admin/customers/${id}`);
-            }
-        });
+        );
+        if (confirmed) {
+            router.delete(`/admin/customers/${id}`);
+        }
     };
 
     return (

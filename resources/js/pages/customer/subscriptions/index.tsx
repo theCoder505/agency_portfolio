@@ -2,6 +2,7 @@ import React from 'react';
 import { Link, router } from '@inertiajs/react';
 import { CustomerLayout } from '@/layouts/customer-layout';
 import { PaginatedData, SaasSubscription } from '@/types';
+import { formatCurrency } from '@/lib/formatters';
 import {
     Layers,
     Clock,
@@ -127,7 +128,7 @@ export default function SubscriptionsIndex({
                                             )}
                                         </div>
                                         <div className="text-xs text-slate-400 mt-0.5">
-                                            Order #{sub.order_number} • {currency}{Number(sub.amount).toLocaleString('en-US')} ({sub.billing_cycle})
+                                            Order #{sub.order_number} • {formatCurrency(sub.amount, sub.currency || currency, 0)} ({sub.billing_cycle})
                                         </div>
 
                                         {/* Status & Deadline Info */}

@@ -8,11 +8,13 @@ use App\Mail\CustomOrderDeniedMail;
 use App\Models\AppSetting;
 use App\Models\CustomOrder;
 use App\Models\CustomOrderMilestone;
+use App\Models\Review;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -27,7 +29,7 @@ class CustomOrderController extends Controller
         $search = $request->query('search', '');
         $status = $request->query('status', 'all');
 
-        $query = CustomOrder::with(['user', 'milestones']);
+        $query = CustomOrder::with(['user', 'milestones', 'review']);
 
         if (!empty($search)) {
             $query->where(function ($q) use ($search) {
@@ -43,7 +45,15 @@ class CustomOrderController extends Controller
         }
 
         if ($status !== 'all' && !empty($status)) {
-            $query->where('status', $status);
+            if ($status === 'in_progress' || $status === 'accepted') {
+                $query->whereIn('status', ['accepted', 'in_progress']);
+            } elseif ($status === 'overdue') {
+                $query->whereNotIn('status', ['completed', 'cancelled', 'denied'])
+                      ->whereNotNull('target_deadline')
+                      ->whereDate('target_deadline', '<', Carbon::today());
+            } else {
+                $query->where('status', $status);
+            }
         }
 
         $orders = $query->orderBy('created_at', 'desc')->paginate(15)->withQueryString();
@@ -54,13 +64,26 @@ class CustomOrderController extends Controller
             return $order->milestones->where('payment_status', 'collected')->sum('amount');
         });
 
+        $totalRefunded = $allOrders->sum(function ($order) {
+            return $order->total_refunded_amount;
+        });
+
+        $overdueOrdersCount = $allOrders->filter(function ($order) {
+            return $order->is_late && !in_array($order->status, ['completed', 'cancelled', 'denied']);
+        })->count();
+
+        $pendingBudgetRequestsCount = $allOrders->where('budget_update_status', 'pending')->count();
+
         $kpis = [
             'total' => $allOrders->count(),
             'pending' => $allOrders->where('status', 'pending')->count(),
             'in_progress' => $allOrders->whereIn('status', ['accepted', 'in_progress'])->count(),
             'completed' => $allOrders->where('status', 'completed')->count(),
             'denied' => $allOrders->where('status', 'denied')->count(),
+            'overdue' => $overdueOrdersCount,
+            'pending_budgets' => $pendingBudgetRequestsCount,
             'total_collected' => $totalRevenueCollected,
+            'total_refunded' => $totalRefunded,
         ];
 
         $appSettings = AppSetting::getAllGrouped();
@@ -72,7 +95,7 @@ class CustomOrderController extends Controller
                 'search' => $search,
                 'status' => $status,
             ],
-            'currencySymbol' => $appSettings['currency_symbol'] ?? '$',
+            'currencySymbol' => $appSettings['currency_symbol'] ?? '৳',
         ]);
     }
 
@@ -81,14 +104,14 @@ class CustomOrderController extends Controller
      */
     public function create(): Response
     {
-        $users = User::where('status', 'active')->orderBy('name')->get(['id', 'name', 'email', 'phone']);
+        $users = User::where('status', 'active')->orderBy('name')->get(['id', 'name', 'email', 'phone', 'whatsapp_number']);
         $appSettings = AppSetting::getAllGrouped();
 
         return Inertia::render('admin/custom-orders/form', [
             'order' => null,
             'users' => $users,
             'isEdit' => false,
-            'currencySymbol' => $appSettings['currency_symbol'] ?? '$',
+            'currencySymbol' => $appSettings['currency_symbol'] ?? '৳',
         ]);
     }
 
@@ -103,7 +126,9 @@ class CustomOrderController extends Controller
             'category' => 'nullable|string|max:100',
             'estimated_budget' => 'nullable|numeric|min:0',
             'agreed_price' => 'nullable|numeric|min:0',
-            'currency' => 'required|string|max:10',
+            'currency' => 'required|string|in:BDT,USD,EUR',
+            'client_whatsapp' => 'nullable|string|max:40',
+            'client_email' => 'nullable|email|max:255',
             'target_deadline' => 'nullable|date',
             'requirements' => 'required|string',
             'reference_links' => 'nullable|string',
@@ -113,6 +138,14 @@ class CustomOrderController extends Controller
             'drive_link' => 'nullable|url|max:500',
             'live_demo_url' => 'nullable|url|max:255',
         ]);
+
+        $user = User::find($validated['user_id']);
+        if (empty($validated['client_whatsapp']) && $user) {
+            $validated['client_whatsapp'] = $user->whatsapp_number ?: $user->phone;
+        }
+        if (empty($validated['client_email']) && $user) {
+            $validated['client_email'] = $user->email;
+        }
 
         if ($validated['status'] === 'accepted' || $validated['status'] === 'in_progress') {
             $validated['accepted_at'] = Carbon::now();
@@ -133,6 +166,7 @@ class CustomOrderController extends Controller
     {
         $order = CustomOrder::with([
             'user',
+            'review',
             'milestones' => function ($q) {
                 $q->orderBy('order', 'asc')->orderBy('id', 'asc');
             },
@@ -142,7 +176,7 @@ class CustomOrderController extends Controller
 
         return Inertia::render('admin/custom-orders/show', [
             'order' => $order,
-            'currencySymbol' => $appSettings['currency_symbol'] ?? '$',
+            'currencySymbol' => $appSettings['currency_symbol'] ?? '৳',
             'appSettings' => $appSettings,
         ]);
     }
@@ -154,11 +188,18 @@ class CustomOrderController extends Controller
     {
         $order = CustomOrder::findOrFail($id);
 
+        if ($order->status === 'completed') {
+            return back()->with('error', 'This project is Completed & Delivered. The contract, deliverables, and specifications are finalized and locked.');
+        }
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'category' => 'nullable|string|max:100',
             'estimated_budget' => 'nullable|numeric|min:0',
             'agreed_price' => 'nullable|numeric|min:0',
+            'currency' => 'nullable|string|in:BDT,USD,EUR',
+            'client_whatsapp' => 'nullable|string|max:40',
+            'client_email' => 'nullable|email|max:255',
             'target_deadline' => 'nullable|date',
             'status' => 'required|in:pending,accepted,in_progress,completed,denied,cancelled',
             'admin_notes' => 'nullable|string',
@@ -168,6 +209,12 @@ class CustomOrderController extends Controller
             'drive_link' => 'nullable|url|max:500',
             'live_demo_url' => 'nullable|url|max:255',
         ]);
+
+        if ($validated['status'] === 'completed' && (!$order->is_fully_paid || $order->remaining_balance > 0)) {
+            return back()->withErrors([
+                'status' => "Cannot mark order as completed: The project must be 100% settled first (Remaining Balance Due: {$order->currency} " . number_format($order->remaining_balance, 2) . ")."
+            ])->with('error', "Cannot mark order as completed: The project must be 100% settled first (Remaining Balance Due: {$order->currency} " . number_format($order->remaining_balance, 2) . ").");
+        }
 
         if ($validated['status'] === 'completed' && !$order->completed_at) {
             $validated['completed_at'] = Carbon::now();
@@ -180,6 +227,194 @@ class CustomOrderController extends Controller
     }
 
     /**
+     * Admin updates repository and deliverable links.
+     */
+    public function updateDeliverables(Request $request, int $id): RedirectResponse
+    {
+        $order = CustomOrder::findOrFail($id);
+
+        if ($order->status === 'completed') {
+            return back()->with('error', 'This project is Completed & Delivered. Deliverable links are finalized and locked.');
+        }
+
+        $validated = $request->validate([
+            'github_repo_url' => 'nullable|url|max:255',
+            'drive_link' => 'nullable|url|max:500',
+            'live_demo_url' => 'nullable|url|max:255',
+        ]);
+
+        $order->update($validated);
+
+        return redirect()->route('admin.custom-orders.show', $order->id)
+            ->with('success', 'Source code & deliverable links updated successfully!');
+    }
+
+    /**
+     * Mark order as completed (requires 100% settlement).
+     */
+    public function complete(Request $request, int $id): RedirectResponse
+    {
+        $order = CustomOrder::with('milestones')->findOrFail($id);
+
+        if (!$order->is_fully_paid || $order->remaining_balance > 0) {
+            return back()->with('error', "Cannot mark order as completed: The project must be 100% settled first (Remaining Balance Due: {$order->currency} " . number_format($order->remaining_balance, 2) . ").");
+        }
+
+        $order->update([
+            'status' => 'completed',
+            'completed_at' => $order->completed_at ?: Carbon::now(),
+        ]);
+
+        return redirect()->route('admin.custom-orders.show', $order->id)
+            ->with('success', "Order #{$order->order_number} marked as Completed & Delivered.");
+    }
+
+    /**
+     * Admin approves client's proposed budget revision.
+     */
+    public function approveBudgetRequest(Request $request, int $id): RedirectResponse
+    {
+        $order = CustomOrder::findOrFail($id);
+
+        if ($order->status === 'completed') {
+            return back()->with('error', 'Completed projects are locked and cannot process budget revisions.');
+        }
+
+        if (!$order->proposed_budget) {
+            return back()->with('error', 'No pending budget revision found on this project.');
+        }
+
+        $oldBudget = $order->estimated_budget;
+        $newBudget = $order->proposed_budget;
+        $newCurrency = $order->proposed_currency ?: $order->currency;
+
+        $note = "\n\n[Admin Verified Budget Update " . Carbon::now()->format('M d, Y H:i') . "]: Approved client request to update budget to {$newCurrency} " . number_format($newBudget, 2);
+
+        $order->update([
+            'estimated_budget' => $newBudget,
+            'agreed_price' => $order->agreed_price ?: $newBudget,
+            'currency' => $newCurrency,
+            'budget_update_status' => 'approved',
+            'requirements' => $order->requirements . $note,
+        ]);
+
+        return redirect()->route('admin.custom-orders.show', $order->id)
+            ->with('success', "Client proposed budget of {$newCurrency} " . number_format($newBudget, 2) . " has been verified and approved!");
+    }
+
+    /**
+     * Admin declines client's proposed budget revision.
+     */
+    public function declineBudgetRequest(Request $request, int $id): RedirectResponse
+    {
+        $order = CustomOrder::findOrFail($id);
+
+        if ($order->status === 'completed') {
+            return back()->with('error', 'Completed projects are locked and cannot process budget revisions.');
+        }
+
+        $request->validate([
+            'decline_reason' => 'nullable|string|max:500',
+        ]);
+
+        $reason = $request->decline_reason ?: 'Proposed budget does not meet technical scope requirements.';
+
+        $note = "\n\n[Admin Declined Budget Update " . Carbon::now()->format('M d, Y H:i') . "]: Client proposal of {$order->proposed_currency} " . number_format($order->proposed_budget, 2) . " declined. Reason: {$reason}";
+
+        $order->update([
+            'budget_update_status' => 'rejected',
+            'requirements' => $order->requirements . $note,
+        ]);
+
+        return redirect()->route('admin.custom-orders.show', $order->id)
+            ->with('warning', 'Client budget request was declined.');
+    }
+
+    /**
+     * Issue or record a payment return (refund) for a milestone.
+     */
+    public function refundMilestone(Request $request, int $orderId, int $milestoneId): RedirectResponse
+    {
+        $order = CustomOrder::findOrFail($orderId);
+        $milestone = CustomOrderMilestone::where('custom_order_id', $order->id)->findOrFail($milestoneId);
+
+        if ($order->status === 'completed') {
+            return back()->with('error', 'This project is Completed & Delivered. Payments cannot be refunded after final completion.');
+        }
+
+        $validated = $request->validate([
+            'refund_amount' => 'required|numeric|min:0.01',
+            'refund_trx_id' => 'required|string|max:100',
+            'refund_reason' => 'required|string|max:1000',
+            'refunded_at' => 'nullable|date',
+        ]);
+
+        $updateData = [
+            'payment_status' => 'refunded',
+            'refund_amount' => $validated['refund_amount'],
+            'refund_trx_id' => strtoupper(trim($validated['refund_trx_id'])),
+            'refund_reason' => $validated['refund_reason'],
+            'refunded_at' => !empty($validated['refunded_at']) ? Carbon::parse($validated['refunded_at']) : Carbon::now(),
+        ];
+
+        try {
+            $milestone->update($updateData);
+        } catch (\Illuminate\Database\QueryException $e) {
+            if (str_contains($e->getMessage(), '1265') || str_contains($e->getMessage(), 'Data truncated')) {
+                \Illuminate\Support\Facades\DB::statement("ALTER TABLE `custom_order_milestones` MODIFY COLUMN `payment_status` VARCHAR(50) NOT NULL DEFAULT 'waiting-client-to-pay'");
+                $milestone->update($updateData);
+            } else {
+                throw $e;
+            }
+        }
+
+        return redirect()->route('admin.custom-orders.show', $order->id)
+            ->with('success', "Milestone '{$milestone->title}' has been marked as Payment Returned / Refunded ({$order->currency} {$validated['refund_amount']}).");
+    }
+
+    /**
+     * Admin toggle review visibility on the public frontend.
+     */
+    public function toggleReviewFeatured(Request $request, int $orderId, int $reviewId): RedirectResponse
+    {
+        $order = CustomOrder::findOrFail($orderId);
+        $review = Review::where('custom_order_id', $order->id)->findOrFail($reviewId);
+
+        $review->update([
+            'is_featured' => !$review->is_featured,
+        ]);
+
+        $state = $review->is_featured ? 'Enabled (Visible to Visitors)' : 'Disabled (Hidden from Visitors)';
+
+        return redirect()->route('admin.custom-orders.show', $order->id)
+            ->with('success', "Review visibility updated: {$state}.");
+    }
+
+    /**
+     * Admin updates agreed price, estimated budget, and currency.
+     */
+    public function updateBudget(Request $request, int $id): RedirectResponse
+    {
+        $order = CustomOrder::findOrFail($id);
+
+        if ($order->status === 'completed') {
+            return back()->with('error', 'This project is Completed & Delivered. Pricing terms are finalized and locked.');
+        }
+
+        $validated = $request->validate([
+            'agreed_price' => 'nullable|numeric|min:0',
+            'estimated_budget' => 'nullable|numeric|min:0',
+            'currency' => 'required|string|in:BDT,USD,EUR',
+            'admin_notes' => 'nullable|string',
+        ]);
+
+        $order->update($validated);
+
+        return redirect()->route('admin.custom-orders.show', $order->id)
+            ->with('success', 'Project budget & currency updated successfully!');
+    }
+
+    /**
      * Accept a pending custom order proposal and notify client.
      */
     public function accept(Request $request, int $id): RedirectResponse
@@ -188,9 +423,9 @@ class CustomOrderController extends Controller
 
         $validated = $request->validate([
             'agreed_price' => 'required|numeric|min:1',
+            'currency' => 'nullable|string|in:BDT,USD,EUR',
             'target_deadline' => 'nullable|date',
             'admin_notes' => 'nullable|string',
-            // Optional quick milestone creation
             'initial_milestones' => 'nullable|array',
             'initial_milestones.*.title' => 'required|string|max:255',
             'initial_milestones.*.amount' => 'required|numeric|min:0',
@@ -199,16 +434,30 @@ class CustomOrderController extends Controller
             'initial_milestones.*.payment_details' => 'nullable|string',
         ]);
 
-        $order->update([
+        $updateData = [
             'status' => 'accepted',
             'agreed_price' => $validated['agreed_price'],
             'target_deadline' => $validated['target_deadline'] ?? $order->target_deadline,
             'admin_notes' => $validated['admin_notes'] ?? $order->admin_notes,
             'accepted_at' => Carbon::now(),
             'rejection_reason' => null,
-        ]);
+        ];
 
-        // Create initial milestones if provided
+        if (!empty($validated['currency'])) {
+            $updateData['currency'] = $validated['currency'];
+        }
+
+        if (!empty($validated['initial_milestones'])) {
+            $milestonesTotal = array_sum(array_column($validated['initial_milestones'], 'amount'));
+            if ($milestonesTotal > $validated['agreed_price']) {
+                return back()->withErrors([
+                    'initial_milestones' => "Total milestone amounts cannot exceed the agreed price ({$order->currency} {$validated['agreed_price']})."
+                ])->with('error', "Total milestone amounts cannot exceed the agreed price ({$order->currency} {$validated['agreed_price']})!");
+            }
+        }
+
+        $order->update($updateData);
+
         if (!empty($validated['initial_milestones'])) {
             foreach ($validated['initial_milestones'] as $index => $m) {
                 CustomOrderMilestone::create([
@@ -224,13 +473,12 @@ class CustomOrderController extends Controller
             }
         }
 
-        // Send Acceptance email to customer
         try {
             if ($order->user && !empty($order->user->email)) {
                 Mail::to($order->user->email)->send(new CustomOrderAcceptedMail($order));
             }
         } catch (\Throwable $e) {
-            \Log::error('Failed sending CustomOrderAcceptedMail: ' . $e->getMessage());
+            Log::error('Failed sending CustomOrderAcceptedMail: ' . $e->getMessage());
         }
 
         return redirect()->route('admin.custom-orders.show', $order->id)
@@ -255,13 +503,12 @@ class CustomOrderController extends Controller
             'rejection_reason' => $reason,
         ]);
 
-        // Send denial email
         try {
             if ($order->user && !empty($order->user->email)) {
                 Mail::to($order->user->email)->send(new CustomOrderDeniedMail($order, $reason));
             }
         } catch (\Throwable $e) {
-            \Log::error('Failed sending CustomOrderDeniedMail: ' . $e->getMessage());
+            Log::error('Failed sending CustomOrderDeniedMail: ' . $e->getMessage());
         }
 
         return redirect()->route('admin.custom-orders.show', $order->id)
@@ -279,5 +526,34 @@ class CustomOrderController extends Controller
 
         return redirect()->route('admin.custom-orders.index')
             ->with('success', "Custom order #{$orderNumber} deleted successfully.");
+    }
+
+    /**
+     * Display printable PDF Project Deal & Payment Settlement Report.
+     */
+    public function showReport(int $id): Response
+    {
+        $order = CustomOrder::with([
+            'user',
+            'review',
+            'milestones' => function ($q) {
+                $q->orderBy('order', 'asc')->orderBy('id', 'asc');
+            }
+        ])->findOrFail($id);
+
+        $appSettings = AppSetting::getAllGrouped();
+
+        return Inertia::render('customer/custom-orders/report', [
+            'order' => $order,
+            'brandSettings' => [
+                'brand_name' => $appSettings['brand_name'] ?? 'CodeVenture Tech',
+                'logo' => $appSettings['logo'] ?? null,
+                'contact_email' => $appSettings['contact_email'] ?? 'hello@codeventure.tech',
+                'contact_phone' => $appSettings['contact_phone'] ?? '+880 1700-000000',
+                'address_line1' => $appSettings['address_line1'] ?? 'Dhaka, Bangladesh',
+                'address_line2' => $appSettings['address_line2'] ?? 'Engineering Division',
+                'currency_symbol' => $appSettings['currency_symbol'] ?? '৳',
+            ],
+        ]);
     }
 }

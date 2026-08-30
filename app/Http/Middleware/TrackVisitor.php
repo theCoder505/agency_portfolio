@@ -95,7 +95,7 @@ class TrackVisitor
                 ]);
             } catch (\Exception $e) {
                 // Fail silently to avoid breaking visitor request
-                \Log::warning('Visitor tracking error: ' . $e->getMessage());
+                Log::warning('Visitor tracking error: ' . $e->getMessage());
             }
         }
 

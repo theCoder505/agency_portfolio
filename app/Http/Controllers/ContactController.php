@@ -70,7 +70,7 @@ class ContactController extends Controller
         try {
             Mail::to($email)->send(new OtpMail($otpCode, 'contact form verification', 10));
         } catch (\Exception $e) {
-            \Log::error('Failed to send contact OTP email: ' . $e->getMessage());
+            Log::error('Failed to send contact OTP email: ' . $e->getMessage());
         }
 
         return response()->json([

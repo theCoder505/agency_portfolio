@@ -54,6 +54,7 @@ return new class extends Migration
                 'waiting-client-to-pay',
                 'paid-and-bank-processing',
                 'collected',
+                'refunded',
             ])->default('waiting-client-to-pay')->index();
             
             // Payment settlement info set by Admin

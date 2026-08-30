@@ -12,6 +12,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\FacadesLog;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rules\Password;
@@ -29,8 +30,8 @@ class CustomOrderRequestController extends Controller
 
         return Inertia::render('surface/custom-order-request', [
             'appSettings' => $appSettings,
-            'defaultCurrency' => $appSettings['currency_code'] ?? 'USD',
-            'currencySymbol' => $appSettings['currency_symbol'] ?? '$',
+            'defaultCurrency' => $appSettings['currency_code'] ?? 'BDT',
+            'currencySymbol' => $appSettings['currency_symbol'] ?? '৳',
         ]);
     }
 
@@ -43,6 +44,9 @@ class CustomOrderRequestController extends Controller
             'title' => 'required|string|max:255',
             'category' => 'nullable|string|max:100',
             'estimated_budget' => 'nullable|numeric|min:0',
+            'currency' => 'nullable|string|in:BDT,USD,EUR',
+            'client_whatsapp' => 'nullable|string|max:40',
+            'client_email' => 'nullable|email|max:255',
             'target_deadline' => 'nullable|date',
             'requirements' => 'required|string|min:20|max:10000',
             'reference_links' => 'nullable|string|max:2000',
@@ -57,6 +61,7 @@ class CustomOrderRequestController extends Controller
                 'name' => 'required|string|max:255',
                 'email' => 'required|string|email|max:255',
                 'phone' => 'required|string|max:40',
+                'whatsapp_number' => 'nullable|string|max:40',
                 'password' => ['required', Password::defaults()],
                 'company_name' => 'nullable|string|max:255',
             ]);
@@ -64,11 +69,16 @@ class CustomOrderRequestController extends Controller
 
         $validated = $request->validate($rules);
 
+        $whatsapp = $request->client_whatsapp ?: ($request->whatsapp_number ?: null);
+
         // Handle user authentication or creation if guest
         if (!$user) {
             $existingUser = User::where('email', $request->email)->first();
             if ($existingUser) {
                 if (Hash::check($request->password, $existingUser->password)) {
+                    if ($whatsapp && empty($existingUser->whatsapp_number)) {
+                        $existingUser->update(['whatsapp_number' => $whatsapp]);
+                    }
                     Auth::login($existingUser);
                     $user = $existingUser;
                 } else {
@@ -81,12 +91,15 @@ class CustomOrderRequestController extends Controller
                     'name' => $request->name,
                     'email' => $request->email,
                     'phone' => $request->phone,
+                    'whatsapp_number' => $whatsapp ?: $request->phone,
                     'company_name' => $request->company_name,
                     'password' => Hash::make($request->password),
                     'status' => 'active',
                 ]);
                 Auth::login($user);
             }
+        } elseif ($whatsapp && empty($user->whatsapp_number)) {
+            $user->update(['whatsapp_number' => $whatsapp]);
         }
 
         // Handle attachment uploads
@@ -105,7 +118,9 @@ class CustomOrderRequestController extends Controller
         }
 
         $appSettings = AppSetting::getAllGrouped();
-        $currency = $appSettings['currency_code'] ?? 'USD';
+        $currency = $validated['currency'] ?? ($appSettings['currency_code'] ?? 'BDT');
+        $clientWhatsapp = $whatsapp ?: ($user->whatsapp_number ?: $user->phone);
+        $clientEmail = $validated['client_email'] ?? $user->email;
 
         $order = CustomOrder::create([
             'user_id' => $user->id,
@@ -113,6 +128,8 @@ class CustomOrderRequestController extends Controller
             'category' => $validated['category'] ?? 'Custom Software',
             'estimated_budget' => $validated['estimated_budget'] ?? null,
             'currency' => $currency,
+            'client_whatsapp' => $clientWhatsapp,
+            'client_email' => $clientEmail,
             'target_deadline' => $validated['target_deadline'] ?? null,
             'requirements' => $validated['requirements'],
             'reference_links' => $validated['reference_links'] ?? null,
@@ -134,7 +151,7 @@ class CustomOrderRequestController extends Controller
                 Mail::to($adminEmail)->send(new CustomOrderRequestedMail($order));
             }
         } catch (\Throwable $e) {
-            \Log::error('Failed sending CustomOrderRequestedMail to admin: ' . $e->getMessage());
+            Log::error('Failed sending CustomOrderRequestedMail to admin: ' . $e->getMessage());
         }
 
         // Send confirmation email to Customer
@@ -143,7 +160,7 @@ class CustomOrderRequestController extends Controller
                 Mail::to($user->email)->send(new CustomOrderReceivedMail($order));
             }
         } catch (\Throwable $e) {
-            \Log::error('Failed sending CustomOrderReceivedMail to user: ' . $e->getMessage());
+            Log::error('Failed sending CustomOrderReceivedMail to user: ' . $e->getMessage());
         }
 
         return redirect()->route('customer.custom-orders.show', $order->id)

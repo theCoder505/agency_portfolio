@@ -277,7 +277,7 @@ export default function SaasProductsPage({
                                                     </div>
                                                     <div className="flex items-baseline space-x-1.5 mt-0.5">
                                                         <span className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 dark:text-white">
-                                                            {formatCurrency(priceInfo.amount, currency, 0)}
+                                                            {formatCurrency(priceInfo.amount, product.currency || currency, 0)}
                                                         </span>
                                                         <span className="text-xs font-bold text-slate-500">
                                                             {priceInfo.periodLabel}

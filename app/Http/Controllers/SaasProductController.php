@@ -135,6 +135,7 @@ class SaasProductController extends Controller
         ]);
 
         $user = Auth::user();
+        $whatsapp = $request->whatsapp_number ?: ($request->client_whatsapp ?: null);
 
         // If user is guest, handle registration or authentication
         if (!$user) {
@@ -142,6 +143,7 @@ class SaasProductController extends Controller
                 'name' => 'required|string|max:255',
                 'email' => 'required|string|email|max:255',
                 'phone' => 'required|string|max:30',
+                'whatsapp_number' => 'nullable|string|max:40',
                 'password' => ['required', Password::defaults()],
                 'company_name' => 'nullable|string|max:255',
             ]);
@@ -151,6 +153,9 @@ class SaasProductController extends Controller
             if ($existingUser) {
                 // Check if password matches
                 if (Hash::check($request->password, $existingUser->password)) {
+                    if ($whatsapp && empty($existingUser->whatsapp_number)) {
+                        $existingUser->update(['whatsapp_number' => $whatsapp]);
+                    }
                     Auth::login($existingUser);
                     $user = $existingUser;
                 } else {
@@ -163,18 +168,21 @@ class SaasProductController extends Controller
                     'name' => $request->name,
                     'email' => $request->email,
                     'phone' => $request->phone,
+                    'whatsapp_number' => $whatsapp ?: $request->phone,
                     'company_name' => $request->company_name,
                     'password' => Hash::make($request->password),
                     'status' => 'active',
                 ]);
                 Auth::login($user);
             }
+        } elseif ($whatsapp && empty($user->whatsapp_number)) {
+            $user->update(['whatsapp_number' => $whatsapp]);
         }
 
         $product = SaasProduct::findOrFail($request->saas_product_id);
         $amount = $product->getPriceForCycle($request->billing_cycle, $request->package_tier);
         $appSettings = AppSetting::getAllGrouped();
-        $currency = $appSettings['currency_code'] ?? 'BDT';
+        $currency = $product->currency ?: ($appSettings['currency_code'] ?? 'BDT');
 
         // Create the pending subscription
         $subscription = SaasSubscription::create([
@@ -187,6 +195,8 @@ class SaasProductController extends Controller
             'status' => 'pending',
             'payment_method' => $request->payment_method,
             'sender_number' => $request->sender_number,
+            'client_whatsapp' => $whatsapp ?: ($user->whatsapp_number ?: $user->phone),
+            'client_email' => $user->email,
             'transaction_id' => strtoupper(trim($request->transaction_id)),
             'payment_notes' => $request->payment_notes,
             'domain' => $request->desired_domain,

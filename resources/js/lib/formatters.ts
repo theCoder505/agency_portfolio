@@ -2,30 +2,71 @@
  * Format utility for human-readable 'en-US' presentation across frontend.
  */
 
+export interface CurrencyOption {
+    code: 'BDT' | 'USD' | 'EUR';
+    symbol: string;
+    label: string;
+    description: string;
+}
+
+export const CURRENCY_OPTIONS: CurrencyOption[] = [
+    { code: 'BDT', symbol: '৳', label: 'BDT (৳)', description: 'Bangladeshi Taka (Default)' },
+    { code: 'USD', symbol: '$', label: 'USD ($)', description: 'US Dollar' },
+    { code: 'EUR', symbol: '€', label: 'EUR (€)', description: 'Euro' },
+];
+
+/**
+ * Get visual currency symbol from currency code or symbol string.
+ */
+export function getCurrencySymbol(codeOrSymbol: string = 'BDT'): string {
+    if (!codeOrSymbol) return '৳';
+    const clean = codeOrSymbol.trim().toUpperCase();
+
+    const map: Record<string, string> = {
+        BDT: '৳',
+        '৳': '৳',
+        TK: '৳',
+        TAKA: '৳',
+        USD: '$',
+        '$': '$',
+        DOLLAR: '$',
+        EUR: '€',
+        '€': '€',
+        EURO: '€',
+        GBP: '£',
+        '£': '£',
+    };
+
+    return map[clean] || map[codeOrSymbol.trim()] || codeOrSymbol || '৳';
+}
+
 /**
  * Format currency amount with en-US locale rules.
  * Examples:
- * formatCurrency(2999, '৳') -> "৳ 2,999"
- * formatCurrency(49.99, '$', 2) -> "$49.99"
+ * formatCurrency(2999, 'BDT') -> "৳ 2,999"
+ * formatCurrency(49.99, 'USD', 2) -> "$49.99"
+ * formatCurrency(120, 'EUR') -> "€120"
  */
 export function formatCurrency(
     amount: number | string | null | undefined,
-    symbolOrCode: string = '৳',
+    symbolOrCode: string = 'BDT',
     decimals: number = 0
 ): string {
     const num = typeof amount === 'number' ? amount : parseFloat(String(amount || 0));
-    if (isNaN(num)) return `${symbolOrCode}0`;
+    const symbol = getCurrencySymbol(symbolOrCode);
+
+    if (isNaN(num)) return `${symbol}0`;
 
     const formattedNumber = new Intl.NumberFormat('en-US', {
         minimumFractionDigits: decimals,
         maximumFractionDigits: decimals,
     }).format(num);
 
-    if (symbolOrCode === '$' || symbolOrCode === '€' || symbolOrCode === '£') {
-        return `${symbolOrCode}${formattedNumber}`;
+    if (symbol === '$' || symbol === '€' || symbol === '£') {
+        return `${symbol}${formattedNumber}`;
     }
 
-    return `${symbolOrCode}${formattedNumber}`;
+    return `${symbol} ${formattedNumber}`;
 }
 
 /**

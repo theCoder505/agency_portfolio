@@ -15,6 +15,7 @@ export interface User {
     name: string;
     email: string;
     phone?: string | null;
+    whatsapp_number?: string | null;
     company_name?: string | null;
     address?: string | null;
     avatar?: string | null;
@@ -164,6 +165,7 @@ export interface SaasProduct {
     monthly_price: number;
     half_yearly_price: number;
     yearly_price: number;
+    currency?: string | null;
     has_monthly: boolean;
     has_half_yearly: boolean;
     has_yearly: boolean;
@@ -190,6 +192,8 @@ export interface SaasSubscription {
     status: 'pending' | 'active' | 'expired' | 'rejected' | 'cancelled';
     payment_method: string;
     sender_number?: string | null;
+    client_whatsapp?: string | null;
+    client_email?: string | null;
     transaction_id?: string | null;
     payment_notes?: string | null;
     domain?: string | null;
@@ -287,6 +291,8 @@ export interface TeamMember {
 
 export interface Review {
     id: number;
+    user_id?: number | null;
+    custom_order_id?: number | null;
     author_name: string;
     author_avatar?: string | null;
     author_role?: string | null;
@@ -323,7 +329,7 @@ export interface CustomOrderMilestone {
     description?: string | null;
     amount: number;
     due_date?: string | null;
-    payment_status: 'waiting-client-to-pay' | 'paid-and-bank-processing' | 'collected';
+    payment_status: 'waiting-client-to-pay' | 'paid-and-bank-processing' | 'collected' | 'refunded';
     payment_method?: string | null;
     payment_details?: string | null;
     payment_instructions?: string | null;
@@ -334,6 +340,10 @@ export interface CustomOrderMilestone {
     client_payment_notes?: string | null;
     client_paid_at?: string | null;
     collected_at?: string | null;
+    refund_amount?: number | null;
+    refund_trx_id?: string | null;
+    refund_reason?: string | null;
+    refunded_at?: string | null;
     github_repo_url?: string | null;
     drive_link?: string | null;
     live_demo_url?: string | null;
@@ -346,6 +356,8 @@ export interface CustomOrderMilestone {
         code: string;
     };
     has_deliverables?: boolean;
+    is_late?: boolean;
+    days_overdue?: number;
     created_at?: string;
     updated_at?: string;
 }
@@ -359,7 +371,14 @@ export interface CustomOrder {
     category?: string | null;
     estimated_budget?: number | null;
     agreed_price?: number | null;
+    proposed_budget?: number | null;
+    proposed_currency?: string | null;
+    proposed_budget_notes?: string | null;
+    proposed_budget_at?: string | null;
+    budget_update_status?: 'none' | 'pending' | 'approved' | 'rejected';
     currency: string;
+    client_whatsapp?: string | null;
+    client_email?: string | null;
     target_deadline?: string | null;
     requirements: string;
     reference_links?: string | null;
@@ -373,11 +392,21 @@ export interface CustomOrder {
     accepted_at?: string | null;
     completed_at?: string | null;
     milestones?: CustomOrderMilestone[];
+    review?: Review | null;
     total_milestones_amount?: number;
+    total_active_milestones_amount?: number;
+    unallocated_milestone_amount?: number;
     total_collected_amount?: number;
     total_processing_amount?: number;
     total_pending_amount?: number;
+    total_refunded_amount?: number;
+    remaining_balance?: number;
     progress_percentage?: number;
+    is_late?: boolean;
+    days_overdue?: number;
+    late_milestones_count?: number;
+    has_pending_budget_request?: boolean;
+    is_fully_paid?: boolean;
     status_badge?: {
         label: string;
         color: string;

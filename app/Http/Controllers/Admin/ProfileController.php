@@ -82,7 +82,7 @@ class ProfileController extends Controller
         try {
             Mail::to($admin->email)->send(new OtpMail($otpCode, 'Email Address Update', 10));
         } catch (\Exception $e) {
-            \Log::error('Failed to send Admin Email OTP: ' . $e->getMessage());
+            Log::error('Failed to send Admin Email OTP: ' . $e->getMessage());
         }
 
         return response()->json([
@@ -164,7 +164,7 @@ class ProfileController extends Controller
         try {
             Mail::to($admin->email)->send(new OtpMail($otpCode, 'Password Change Verification', 10));
         } catch (\Exception $e) {
-            \Log::error('Failed to send Admin Password OTP: ' . $e->getMessage());
+            Log::error('Failed to send Admin Password OTP: ' . $e->getMessage());
         }
 
         return response()->json([

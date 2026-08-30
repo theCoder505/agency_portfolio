@@ -100,7 +100,7 @@ class ContactController extends Controller
 
             return back()->with('success', 'Reply email sent successfully to ' . $contact->email);
         } catch (\Exception $e) {
-            \Log::error('Failed to send reply email: ' . $e->getMessage());
+            Log::error('Failed to send reply email: ' . $e->getMessage());
 
             // Still save reply record even if mailer logs in development
             $contact->update([
