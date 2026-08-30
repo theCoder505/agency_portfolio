@@ -73,16 +73,10 @@ export default function SubscriptionsIndex({
 
     // Helper to get Live URL
     const getSurfaceUrl = (sub: SaasSubscription) => {
+        const base = sub.product?.primary_domain || 'codeventure.app';
         if (sub.domain) return `https://${sub.domain}`;
-        if (sub.subdomain) return `https://${sub.subdomain}.codeventure.app`;
+        if (sub.subdomain) return `https://${sub.subdomain}.${base}`;
         return null;
-    };
-
-    // Helper to get Admin Panel URL
-    const getAdminPanelUrl = (sub: SaasSubscription) => {
-        const surface = getSurfaceUrl(sub);
-        if (!surface) return null;
-        return `${surface}/admin`;
     };
 
     return (
@@ -163,7 +157,6 @@ export default function SubscriptionsIndex({
                             const badge = sub.status_badge;
                             const daysLeft = sub.days_remaining;
                             const surfaceUrl = getSurfaceUrl(sub);
-                            const adminPanelUrl = getAdminPanelUrl(sub);
 
                             return (
                                 <div
@@ -224,67 +217,45 @@ export default function SubscriptionsIndex({
                                             </div>
                                         </div>
 
-                                        {/* Surface Website & Admin Panel Quick Action Tiles */}
+                                        {/* Domain & Subdomain Routing (Requested vs Provided) */}
+                                        <div className="mt-3 p-3 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/60 dark:border-slate-800 text-[11px] space-y-1.5">
+                                            <div className="flex justify-between items-center text-slate-500">
+                                                <span>Requested:</span>
+                                                <span className="font-mono font-semibold text-slate-700 dark:text-slate-300 truncate max-w-[170px]">
+                                                    {sub.requested_domain || sub.domain || (sub.requested_subdomain ? `${sub.requested_subdomain}.${sub.product?.primary_domain || 'codeventure.app'}` : sub.subdomain ? `${sub.subdomain}.${sub.product?.primary_domain || 'codeventure.app'}` : 'None requested')}
+                                                </span>
+                                            </div>
+                                            <div className="flex justify-between items-center text-indigo-600 dark:text-cyan-400">
+                                                <span>Provided Live:</span>
+                                                <span className="font-mono font-bold truncate max-w-[170px]">
+                                                    {surfaceUrl ? surfaceUrl.replace('https://', '') : <span className="text-amber-500 font-normal">Pending activation</span>}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        {/* Live Surface Website Action & Setup Notes */}
                                         <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800/80 space-y-2">
-                                            <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                                                Live Application Endpoints
-                                            </div>
-
-                                            <div className="grid grid-cols-2 gap-2">
-                                                {/* Surface Website */}
-                                                {surfaceUrl ? (
-                                                    <a
-                                                        href={surfaceUrl}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="p-2.5 rounded-xl bg-indigo-50/70 dark:bg-indigo-950/40 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 border border-indigo-200/60 dark:border-indigo-800/60 text-indigo-700 dark:text-cyan-300 transition-all flex flex-col justify-between group"
-                                                    >
-                                                        <div className="flex items-center justify-between">
-                                                            <Globe className="h-4 w-4 text-indigo-600 dark:text-cyan-400" />
-                                                            <ExternalLink className="h-3 w-3 opacity-60 group-hover:opacity-100 transition-opacity" />
-                                                        </div>
-                                                        <div className="mt-1.5">
-                                                            <div className="text-[11px] font-bold">Surface Website</div>
-                                                            <div className="text-[9px] text-indigo-500/80 dark:text-cyan-400/80 truncate">Public Frontend</div>
-                                                        </div>
-                                                    </a>
-                                                ) : (
-                                                    <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/60 dark:border-slate-800/60 text-slate-400 flex flex-col justify-between opacity-70">
+                                            {surfaceUrl ? (
+                                                <a
+                                                    href={surfaceUrl}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="w-full py-2.5 px-3 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 border border-indigo-200/70 dark:border-indigo-800/70 text-indigo-700 dark:text-cyan-300 transition-all flex items-center justify-between group"
+                                                >
+                                                    <div className="flex items-center space-x-2">
+                                                        <Globe className="h-4 w-4 text-indigo-600 dark:text-cyan-400" />
+                                                        <span className="text-xs font-bold">Open Live Website</span>
+                                                    </div>
+                                                    <ExternalLink className="h-3.5 w-3.5 opacity-70 group-hover:opacity-100 transition-opacity" />
+                                                </a>
+                                            ) : (
+                                                <div className="w-full py-2.5 px-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200/60 dark:border-slate-800 text-slate-400 text-xs flex items-center justify-between opacity-80">
+                                                    <div className="flex items-center space-x-2">
                                                         <Globe className="h-4 w-4 text-slate-400" />
-                                                        <div className="mt-1.5">
-                                                            <div className="text-[11px] font-semibold">Surface Website</div>
-                                                            <div className="text-[9px] text-slate-400">Pending Setup</div>
-                                                        </div>
+                                                        <span>Live Website: Pending Setup</span>
                                                     </div>
-                                                )}
-
-                                                {/* Website Admin Panel */}
-                                                {adminPanelUrl ? (
-                                                    <a
-                                                        href={adminPanelUrl}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="p-2.5 rounded-xl bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 dark:hover:bg-slate-700 border border-slate-800 dark:border-slate-700 text-white transition-all flex flex-col justify-between group shadow-xs"
-                                                    >
-                                                        <div className="flex items-center justify-between">
-                                                            <LayoutDashboard className="h-4 w-4 text-cyan-400" />
-                                                            <ExternalLink className="h-3 w-3 opacity-60 group-hover:opacity-100 transition-opacity" />
-                                                        </div>
-                                                        <div className="mt-1.5">
-                                                            <div className="text-[11px] font-bold text-white">Admin Panel</div>
-                                                            <div className="text-[9px] text-slate-300 truncate">Backend Portal</div>
-                                                        </div>
-                                                    </a>
-                                                ) : (
-                                                    <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/60 dark:border-slate-800/60 text-slate-400 flex flex-col justify-between opacity-70">
-                                                        <LayoutDashboard className="h-4 w-4 text-slate-400" />
-                                                        <div className="mt-1.5">
-                                                            <div className="text-[11px] font-semibold">Admin Panel</div>
-                                                            <div className="text-[9px] text-slate-400">Pending Setup</div>
-                                                        </div>
-                                                    </div>
-                                                )}
-                                            </div>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
 

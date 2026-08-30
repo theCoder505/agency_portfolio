@@ -14,6 +14,7 @@ class SaasProduct extends Model
     protected $fillable = [
         'name',
         'slug',
+        'primary_domain',
         'tagline',
         'description',
         'icon',

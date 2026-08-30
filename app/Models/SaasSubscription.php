@@ -28,6 +28,8 @@ class SaasSubscription extends Model
         'client_email',
         'transaction_id',
         'payment_notes',
+        'requested_domain',
+        'requested_subdomain',
         'domain',
         'subdomain',
         'admin_notes',
@@ -52,7 +54,19 @@ class SaasSubscription extends Model
         'is_active_now',
         'is_expired_now',
         'status_badge',
+        'requested_domain_display',
+        'requested_subdomain_display',
     ];
+
+    public function getRequestedDomainDisplayAttribute(): ?string
+    {
+        return $this->requested_domain ?: $this->domain;
+    }
+
+    public function getRequestedSubdomainDisplayAttribute(): ?string
+    {
+        return $this->requested_subdomain ?: $this->subdomain;
+    }
 
     protected static function boot()
     {

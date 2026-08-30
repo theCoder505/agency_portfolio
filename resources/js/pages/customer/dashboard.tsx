@@ -383,39 +383,50 @@ export default function CustomerDashboard({
                                             </div>
                                         </div>
 
-                                        {/* Deployment Domain / Subdomain Details */}
-                                        {(sub.domain || sub.subdomain) && (
-                                            <div className="space-y-2">
-                                                <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                                                    Connected Web Address
+                                        {/* Deployment Domain / Subdomain Details (Requested vs Provided) */}
+                                        {(sub.domain || sub.subdomain) && (() => {
+                                            const base = sub.product?.primary_domain || 'codeventure.app';
+                                            return (
+                                                <div className="space-y-2 p-3 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/60 dark:border-slate-800">
+                                                    <div className="flex items-center justify-between text-[11px]">
+                                                        <span className="font-bold text-slate-500 uppercase tracking-wider">
+                                                            Requested by You:
+                                                        </span>
+                                                        <span className="font-mono text-slate-700 dark:text-slate-300">
+                                                            {sub.requested_domain || sub.domain || (sub.requested_subdomain ? `${sub.requested_subdomain}.${base}` : sub.subdomain ? `${sub.subdomain}.${base}` : 'None requested')}
+                                                        </span>
+                                                    </div>
+                                                    <div className="text-[11px] font-bold text-indigo-600 dark:text-cyan-400 uppercase tracking-wider pt-1 border-t border-slate-200/60 dark:border-slate-800">
+                                                        Provided Live Web Address:
+                                                    </div>
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {sub.domain && (
+                                                            <a
+                                                                href={`https://${sub.domain}`}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-cyan-400 border border-indigo-200/50 dark:border-indigo-800/40 text-xs font-bold hover:underline"
+                                                            >
+                                                                <Globe className="h-3.5 w-3.5" />
+                                                                <span>https://{sub.domain}</span>
+                                                                <ExternalLink className="h-3 w-3" />
+                                                            </a>
+                                                        )}
+                                                        {sub.subdomain && (
+                                                            <a
+                                                                href={`https://${sub.subdomain}.${base}`}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 text-xs font-mono font-bold hover:underline"
+                                                            >
+                                                                <span>{sub.subdomain}.{base}</span>
+                                                                <ExternalLink className="h-3 w-3" />
+                                                            </a>
+                                                        )}
+                                                    </div>
                                                 </div>
-                                                <div className="flex flex-wrap gap-2">
-                                                    {sub.domain && (
-                                                        <a
-                                                            href={`https://${sub.domain}`}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                            className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-cyan-400 border border-indigo-200/50 dark:border-indigo-800/40 text-xs font-bold hover:underline"
-                                                        >
-                                                            <Globe className="h-3.5 w-3.5" />
-                                                            <span>https://{sub.domain}</span>
-                                                            <ExternalLink className="h-3 w-3" />
-                                                        </a>
-                                                    )}
-                                                    {sub.subdomain && (
-                                                        <a
-                                                            href={`https://${sub.subdomain}.codeventure.app`}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                            className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 text-xs font-mono font-bold hover:underline"
-                                                        >
-                                                            <span>{sub.subdomain}.codeventure.app</span>
-                                                            <ExternalLink className="h-3 w-3" />
-                                                        </a>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        )}
+                                            );
+                                        })()}
 
                                         {/* Admin Access Credentials Box */}
                                         {sub.admin_notes && (

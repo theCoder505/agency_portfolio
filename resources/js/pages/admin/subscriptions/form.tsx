@@ -228,7 +228,7 @@ export default function SubscriptionForm({
 
                             <div>
                                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                                    Assigned Custom Domain
+                                    Provided Custom Domain (to User)
                                 </label>
                                 <input
                                     type="text"
@@ -237,19 +237,30 @@ export default function SubscriptionForm({
                                     placeholder="e.g. clientdomain.com"
                                     className="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-xs font-mono"
                                 />
+                                <span className="text-[10px] text-slate-400 mt-1 block">
+                                    Configured custom domain provided to customer
+                                </span>
                             </div>
 
                             <div>
                                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                                    Assigned Subdomain Prefix
+                                    Provided Subdomain Prefix (to User)
                                 </label>
-                                <input
-                                    type="text"
-                                    value={data.subdomain}
-                                    onChange={(e) => setData('subdomain', e.target.value)}
-                                    placeholder="e.g. clientbrand"
-                                    className="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-xs font-mono"
-                                />
+                                <div className="flex items-center">
+                                    <input
+                                        type="text"
+                                        value={data.subdomain}
+                                        onChange={(e) => setData('subdomain', e.target.value)}
+                                        placeholder="e.g. clientbrand"
+                                        className="w-full px-3.5 py-2 rounded-l-xl border border-r-0 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-xs font-mono"
+                                    />
+                                    <span className="px-3 py-2 rounded-r-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-800 text-[11px] font-mono text-slate-500">
+                                        .{products.find((p) => p.id === Number(data.saas_product_id))?.primary_domain || 'codeventure.app'}
+                                    </span>
+                                </div>
+                                <span className="text-[10px] text-slate-400 mt-1 block">
+                                    Managed platform subdomain provided to customer
+                                </span>
                             </div>
                         </div>
 

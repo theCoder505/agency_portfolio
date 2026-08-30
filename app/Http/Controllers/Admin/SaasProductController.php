@@ -53,6 +53,7 @@ class SaasProductController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'slug' => 'nullable|string|max:255|unique:saas_products,slug',
+            'primary_domain' => 'nullable|string|max:255',
             'tagline' => 'nullable|string|max:255',
             'description' => 'nullable|string',
             'icon' => 'nullable|string|max:100',
@@ -127,6 +128,7 @@ class SaasProductController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'slug' => 'required|string|max:255|unique:saas_products,slug,' . $saasProduct->id,
+            'primary_domain' => 'nullable|string|max:255',
             'tagline' => 'nullable|string|max:255',
             'description' => 'nullable|string',
             'icon' => 'nullable|string|max:100',

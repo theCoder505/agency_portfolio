@@ -444,7 +444,7 @@ export default function SaasProductShowPage({
                 'Single Branch / Location License',
                 'Up to 5 Team Member Accounts',
                 'Automated Basic Invoicing & Sales Reports',
-                'Subdomain SSL (.codeventure.app)',
+                `Subdomain SSL (.${product.primary_domain || 'codeventure.app'})`,
                 'Standard Email Support',
             ],
         },

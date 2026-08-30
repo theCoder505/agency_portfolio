@@ -179,12 +179,16 @@ export default function SubscriptionShow({
 
                 {/* DOMAIN & DEPLOYMENT CONNECTIONS */}
                 {(() => {
-                    const surfaceUrl = subscription.domain
-                        ? `https://${subscription.domain}`
-                        : subscription.subdomain
-                        ? `https://${subscription.subdomain}.codeventure.app`
+                    const productBaseDomain = subscription.product?.primary_domain || 'codeventure.app';
+                    const reqDomain = subscription.requested_domain || subscription.domain;
+                    const reqSubdomain = subscription.requested_subdomain || subscription.subdomain;
+                    const liveDomain = subscription.domain;
+                    const liveSubdomain = subscription.subdomain;
+                    const surfaceUrl = liveDomain
+                        ? `https://${liveDomain}`
+                        : liveSubdomain
+                        ? `https://${liveSubdomain}.${productBaseDomain}`
                         : null;
-                    const adminPanelUrl = surfaceUrl ? `${surfaceUrl}/admin` : null;
 
                     return (
                         <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-6 sm:p-7 shadow-sm space-y-6">
@@ -192,107 +196,96 @@ export default function SubscriptionShow({
                                 <Globe className="h-5 w-5 text-indigo-600 dark:text-cyan-400" />
                                 <div>
                                     <h2 className="text-base font-bold text-slate-900 dark:text-white">
-                                        Live Application Endpoints & Portals
+                                        Domain Routing &amp; Live Application Endpoint
                                     </h2>
                                     <p className="text-xs text-slate-400">
-                                        Direct access links for your live public surface website and management admin panel.
+                                        View your requested domain preferences and the live endpoints provided by CodeVenture.
                                     </p>
                                 </div>
                             </div>
 
-                            {/* 2 Primary Access Cards: Surface Website & Website Admin Panel */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                {/* Surface Website Card */}
-                                <div className="p-5 rounded-2xl bg-indigo-50/60 dark:bg-indigo-950/30 border border-indigo-200/70 dark:border-indigo-800/70 space-y-4 flex flex-col justify-between">
-                                    <div className="space-y-2">
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center space-x-2 text-indigo-600 dark:text-cyan-400 font-bold text-xs">
-                                                <Globe className="h-4 w-4" />
-                                                <span>Surface Website (Public)</span>
-                                            </div>
-                                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-cyan-300">
-                                                Frontend
+                            {/* REQUESTED DOMAIN & SUBDOMAIN (BY YOU) VS PROVIDED (TO YOU) */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-5 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/70 dark:border-slate-800">
+                                <div className="space-y-2 text-xs">
+                                    <span className="font-bold text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center space-x-1.5">
+                                        <span>Requested by You (At Checkout)</span>
+                                    </span>
+                                    <div className="space-y-1.5 text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-200/60 dark:border-slate-800">
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-slate-400">Custom Domain:</span>
+                                            <span className="font-mono font-semibold text-slate-800 dark:text-slate-200">
+                                                {reqDomain || <span className="text-slate-400 italic">None requested</span>}
                                             </span>
                                         </div>
-                                        <p className="text-xs text-slate-600 dark:text-slate-400">
-                                            Public storefront and customer-facing web application.
-                                        </p>
-                                        <div className="font-mono text-xs font-bold text-slate-800 dark:text-slate-200 break-all bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-indigo-100 dark:border-indigo-900/50">
-                                            {surfaceUrl || 'Pending activation by admin'}
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-slate-400">Subdomain Prefix:</span>
+                                            <span className="font-mono font-semibold text-slate-800 dark:text-slate-200">
+                                                {reqSubdomain ? `${reqSubdomain}.${productBaseDomain}` : <span className="text-slate-400 italic">None requested</span>}
+                                            </span>
                                         </div>
                                     </div>
+                                </div>
 
-                                    {surfaceUrl ? (
-                                        <div className="flex items-center space-x-2 pt-2">
+                                <div className="space-y-2 text-xs">
+                                    <span className="font-bold text-[11px] uppercase tracking-wider text-indigo-600 dark:text-cyan-400 flex items-center space-x-1.5">
+                                        <span>Provided to You (Live Endpoints)</span>
+                                    </span>
+                                    <div className="space-y-1.5 text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-900 p-3 rounded-xl border border-indigo-100 dark:border-indigo-950/60">
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-slate-400">Provided Domain:</span>
+                                            <span className="font-mono font-bold text-indigo-600 dark:text-cyan-400">
+                                                {liveDomain ? `https://${liveDomain}` : <span className="text-slate-400 italic">Not configured</span>}
+                                            </span>
+                                        </div>
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-slate-400">Provided Subdomain:</span>
+                                            <span className="font-mono font-bold text-indigo-600 dark:text-cyan-400">
+                                                {liveSubdomain ? `https://${liveSubdomain}.${productBaseDomain}` : <span className="text-slate-400 italic">Not provisioned</span>}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Live Surface Website Access Card (If active or configured) */}
+                            <div className="p-5 rounded-2xl bg-indigo-50/60 dark:bg-indigo-950/30 border border-indigo-200/70 dark:border-indigo-800/70 space-y-4">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                                    <div>
+                                        <div className="flex items-center space-x-2 text-indigo-600 dark:text-cyan-400 font-bold text-sm">
+                                            <Globe className="h-4 w-4" />
+                                            <span>Provided Live Website Endpoint</span>
+                                        </div>
+                                        <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
+                                            Public storefront and client-facing web application address.
+                                        </p>
+                                    </div>
+                                    {surfaceUrl && (
+                                        <div className="flex items-center space-x-2">
                                             <a
                                                 href={surfaceUrl}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="flex-1 py-2.5 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center justify-center space-x-1.5 shadow-sm transition-all"
+                                                className="py-2 px-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center space-x-1.5 shadow-sm transition-all"
                                             >
-                                                <span>Open Surface Website</span>
+                                                <span>Open Live Website</span>
                                                 <ExternalLink className="h-3.5 w-3.5" />
                                             </a>
                                             <button
                                                 type="button"
                                                 onClick={() => handleCopy(surfaceUrl, 'Surface Website URL')}
-                                                className="p-2.5 rounded-xl border border-indigo-200 dark:border-indigo-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-950 transition-colors"
-                                                title="Copy Surface URL"
+                                                className="p-2 rounded-xl border border-indigo-200 dark:border-indigo-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-950 transition-colors"
+                                                title="Copy Website URL"
                                             >
                                                 {copiedLabel === 'Surface Website URL' ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
                                             </button>
                                         </div>
-                                    ) : (
-                                        <div className="text-[11px] text-amber-500 font-semibold italic">
-                                            URL will be ready once your order is activated.
-                                        </div>
                                     )}
                                 </div>
-
-                                {/* Website Admin Panel Card */}
-                                <div className="p-5 rounded-2xl bg-slate-900 dark:bg-slate-950 border border-slate-800 text-white space-y-4 flex flex-col justify-between shadow-md">
-                                    <div className="space-y-2">
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center space-x-2 text-cyan-400 font-bold text-xs">
-                                                <LayoutDashboard className="h-4 w-4" />
-                                                <span>Website Admin Panel</span>
-                                            </div>
-                                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700">
-                                                Backend Portal
-                                            </span>
-                                        </div>
-                                        <p className="text-xs text-slate-300">
-                                            Administrative dashboard for managing products, orders, and content.
-                                        </p>
-                                        <div className="font-mono text-xs font-bold text-cyan-300 break-all bg-slate-950/80 p-2.5 rounded-xl border border-slate-800">
-                                            {adminPanelUrl || 'Pending activation by admin'}
-                                        </div>
-                                    </div>
-
-                                    {adminPanelUrl ? (
-                                        <div className="flex items-center space-x-2 pt-2">
-                                            <a
-                                                href={adminPanelUrl}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="flex-1 py-2.5 px-3 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs flex items-center justify-center space-x-1.5 shadow-sm transition-all"
-                                            >
-                                                <span>Open Admin Panel</span>
-                                                <ExternalLink className="h-3.5 w-3.5" />
-                                            </a>
-                                            <button
-                                                type="button"
-                                                onClick={() => handleCopy(adminPanelUrl, 'Admin Panel URL')}
-                                                className="p-2.5 rounded-xl border border-slate-800 bg-slate-800/80 text-slate-300 hover:bg-slate-700 transition-colors"
-                                                title="Copy Admin URL"
-                                            >
-                                                {copiedLabel === 'Admin Panel URL' ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
-                                            </button>
-                                        </div>
-                                    ) : (
-                                        <div className="text-[11px] text-slate-400 italic">
-                                            Admin login link will be generated upon activation.
-                                        </div>
+                                <div className="font-mono text-xs font-bold text-slate-800 dark:text-slate-200 break-all bg-white dark:bg-slate-900 p-3 rounded-xl border border-indigo-100 dark:border-indigo-900/50">
+                                    {surfaceUrl || (
+                                        <span className="text-amber-500 font-normal italic">
+                                            Pending activation: Your live endpoint will be accessible once the admin approves your subscription.
+                                        </span>
                                     )}
                                 </div>
                             </div>
@@ -300,14 +293,19 @@ export default function SubscriptionShow({
                     );
                 })()}
 
-                {/* ACCESS CREDENTIALS & ADMIN SETUP NOTES */}
+                {/* ACCESS CREDENTIALS & SETUP NOTES (AS PROVIDED BY ADMIN) */}
                 <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-6 sm:p-7 shadow-sm space-y-4">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
                         <div className="flex items-center space-x-2">
                             <Key className="h-5 w-5 text-indigo-600 dark:text-cyan-400" />
-                            <h2 className="text-base font-bold text-slate-900 dark:text-white">
-                                Access Credentials & Setup Notes
-                            </h2>
+                            <div>
+                                <h2 className="text-base font-bold text-slate-900 dark:text-white">
+                                    Access Credentials &amp; Setup Guide
+                                </h2>
+                                <p className="text-xs text-slate-400">
+                                    Official admin panel login URL, system credentials, and setup instructions provided by the engineering team.
+                                </p>
+                            </div>
                         </div>
 
                         {subscription.admin_notes && (
@@ -335,12 +333,17 @@ export default function SubscriptionShow({
                             </div>
                         ) : (
                             <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 text-xs text-slate-400 italic text-center">
-                                Credentials hidden. Click reveal to display login links and secret keys.
+                                Credentials hidden for privacy. Click &ldquo;Reveal&rdquo; to view your full login links and secret keys.
                             </div>
                         )
                     ) : (
-                        <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-950 text-xs text-slate-400 text-center">
-                            Our team is currently preparing your isolated cloud environment. Credentials will be securely posted here upon verification.
+                        <div className="p-6 rounded-2xl bg-slate-50 dark:bg-slate-950 text-xs text-slate-400 text-center space-y-1">
+                            <p className="font-semibold text-slate-600 dark:text-slate-300">
+                                Your isolated cloud environment is being prepared.
+                            </p>
+                            <p>
+                                Complete login URLs, administrator credentials, and configuration guidelines will be posted here upon activation.
+                            </p>
                         </div>
                     )}
                 </div>

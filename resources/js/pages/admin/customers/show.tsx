@@ -210,7 +210,7 @@ export default function CustomerShow({
                                             <th className="pb-3">Order #</th>
                                             <th className="pb-3">SaaS Product</th>
                                             <th className="pb-3">Term & Price</th>
-                                            <th className="pb-3">Domain</th>
+                                            <th className="pb-3">Domain / Subdomain</th>
                                             <th className="pb-3">Status</th>
                                             <th className="pb-3">Expires At</th>
                                             <th className="pb-3 text-right">Action</th>
@@ -225,8 +225,17 @@ export default function CustomerShow({
                                                     <span className="font-bold">{currencySymbol}{sub.amount.toLocaleString()}</span>
                                                     <span className="text-[10px] text-slate-400 block capitalize">{sub.billing_cycle.replace('_', ' ')}</span>
                                                 </td>
-                                                <td className="py-3 font-mono text-slate-600 dark:text-slate-300">
-                                                    {sub.domain || (sub.subdomain ? `${sub.subdomain}.codeventure.app` : 'None')}
+                                                <td className="py-3 text-xs">
+                                                    <div className="font-mono text-slate-600 dark:text-slate-300 space-y-0.5">
+                                                        <span className="text-[10px] text-slate-400 block truncate max-w-[160px]">
+                                                            Req: {sub.domain || (sub.subdomain ? `${sub.subdomain}.codeventure.app` : 'None')}
+                                                        </span>
+                                                        {sub.status === 'active' && (sub.domain || sub.subdomain) && (
+                                                            <span className="text-[9.5px] text-indigo-600 dark:text-cyan-400 font-semibold block truncate max-w-[160px]">
+                                                                Live: {sub.domain || `${sub.subdomain}.codeventure.app`}
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                 </td>
                                                 <td className="py-3">
                                                     <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${

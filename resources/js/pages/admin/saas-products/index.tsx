@@ -15,7 +15,8 @@ import {
     Layers,
     Sparkles,
     X,
-    ExternalLink
+    ExternalLink,
+    Globe
 } from 'lucide-react';
 import { showConfirmDialog, showToast } from '@/lib/swal';
 import { formatCurrency } from '@/lib/formatters';
@@ -201,8 +202,9 @@ export default function SaasProductsIndex({
                                                                 {product.name}
                                                             </Link>
                                                         </div>
-                                                        <div className="text-[11px] text-slate-400">
-                                                            Display Order: #{product.order ?? 0}
+                                                        <div className="text-[11px] text-slate-400 font-mono flex items-center space-x-1">
+                                                            <Globe className="h-3 w-3 text-indigo-500/70 dark:text-cyan-400/70" />
+                                                            <span>{product.primary_domain || 'codeventure.app'}</span>
                                                         </div>
                                                     </div>
                                                 </div>

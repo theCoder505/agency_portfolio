@@ -162,6 +162,7 @@ export interface SaasProduct {
     id: number;
     name: string;
     slug: string;
+    primary_domain?: string | null;
     tagline?: string | null;
     description?: string | null;
     icon?: string | null;
@@ -203,6 +204,8 @@ export interface SaasSubscription {
     client_email?: string | null;
     transaction_id?: string | null;
     payment_notes?: string | null;
+    requested_domain?: string | null;
+    requested_subdomain?: string | null;
     domain?: string | null;
     subdomain?: string | null;
     admin_notes?: string | null;

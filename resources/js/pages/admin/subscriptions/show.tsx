@@ -313,6 +313,21 @@ export default function SubscriptionShow({
                                     )}
                                 </div>
                             </div>
+
+                            <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-2">
+                                <div className="flex justify-between items-center">
+                                    <span className="text-slate-400">Requested Custom Domain:</span>
+                                    <span className="font-mono font-semibold text-slate-800 dark:text-slate-200">
+                                        {subscription.requested_domain || subscription.domain || <span className="text-slate-400 italic">None requested</span>}
+                                    </span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-slate-400">Requested Subdomain Prefix:</span>
+                                    <span className="font-mono font-semibold text-slate-800 dark:text-slate-200">
+                                        {subscription.requested_subdomain ? `${subscription.requested_subdomain}.${subscription.product?.primary_domain || 'codeventure.app'}` : subscription.subdomain ? `${subscription.subdomain}.${subscription.product?.primary_domain || 'codeventure.app'}` : <span className="text-slate-400 italic">None requested</span>}
+                                    </span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -401,35 +416,60 @@ export default function SubscriptionShow({
                                 </div>
                             </div>
 
-                            {/* Domain & Subdomain */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                                        Assigned Custom Domain
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={approvalForm.data.domain}
-                                        onChange={(e) => approvalForm.setData('domain', e.target.value)}
-                                        placeholder="e.g. clientbrand.com"
-                                        className="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-xs font-mono focus:ring-2 focus:ring-indigo-500"
-                                    />
+                            {/* Domain & Subdomain Setup */}
+                            <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/80 dark:border-slate-800 space-y-3">
+                                <div className="text-[11px] font-bold uppercase tracking-wider text-indigo-600 dark:text-cyan-400">
+                                    Domain &amp; Subdomain Routing (Requested by User vs Provided to User)
                                 </div>
-
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                                        Assigned Subdomain Prefix
-                                    </label>
-                                    <div className="flex items-center">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div>
+                                        <div className="flex justify-between items-center mb-1">
+                                            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                                                Provided Custom Domain (to User)
+                                            </label>
+                                            {(subscription.requested_domain || subscription.domain) && (
+                                                <span className="text-[10px] text-slate-400">
+                                                    Requested: <span className="font-mono text-indigo-600 dark:text-cyan-400">{subscription.requested_domain || subscription.domain}</span>
+                                                </span>
+                                            )}
+                                        </div>
                                         <input
                                             type="text"
-                                            value={approvalForm.data.subdomain}
-                                            onChange={(e) => approvalForm.setData('subdomain', e.target.value)}
-                                            placeholder="clientbrand"
-                                            className="w-full px-3.5 py-2 rounded-l-xl border border-r-0 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-xs font-mono focus:ring-2 focus:ring-indigo-500"
+                                            value={approvalForm.data.domain}
+                                            onChange={(e) => approvalForm.setData('domain', e.target.value)}
+                                            placeholder={subscription.requested_domain || subscription.domain || "e.g. clientbrand.com"}
+                                            className="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-xs font-mono focus:ring-2 focus:ring-indigo-500"
                                         />
-                                        <span className="px-3 py-2 rounded-r-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-800 text-[11px] font-mono text-slate-500">
-                                            .platform.com
+                                        <span className="text-[10px] text-slate-400 mt-1 block">
+                                            User requested custom domain: <strong className="text-slate-700 dark:text-slate-300">{subscription.requested_domain || subscription.domain || 'None requested'}</strong>
+                                        </span>
+                                    </div>
+
+                                    <div>
+                                        <div className="flex justify-between items-center mb-1">
+                                            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                                                Provided Subdomain Prefix (to User)
+                                            </label>
+                                            {(subscription.requested_subdomain || subscription.subdomain) && (
+                                                <span className="text-[10px] text-slate-400">
+                                                    Requested: <span className="font-mono text-indigo-600 dark:text-cyan-400">{subscription.requested_subdomain || subscription.subdomain}</span>
+                                                </span>
+                                            )}
+                                        </div>
+                                        <div className="flex items-center">
+                                            <input
+                                                type="text"
+                                                value={approvalForm.data.subdomain}
+                                                onChange={(e) => approvalForm.setData('subdomain', e.target.value)}
+                                                placeholder={subscription.requested_subdomain || subscription.subdomain || "clientbrand"}
+                                                className="w-full px-3.5 py-2 rounded-l-xl border border-r-0 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-xs font-mono focus:ring-2 focus:ring-indigo-500"
+                                            />
+                                            <span className="px-3 py-2 rounded-r-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-800 text-[11px] font-mono text-slate-500">
+                                                .{subscription.product?.primary_domain || 'codeventure.app'}
+                                            </span>
+                                        </div>
+                                        <span className="text-[10px] text-slate-400 mt-1 block">
+                                            User requested subdomain prefix: <strong className="text-slate-700 dark:text-slate-300">{(subscription.requested_subdomain || subscription.subdomain) ? `${subscription.requested_subdomain || subscription.subdomain}.${subscription.product?.primary_domain || 'codeventure.app'}` : 'None requested'}</strong>
                                         </span>
                                     </div>
                                 </div>

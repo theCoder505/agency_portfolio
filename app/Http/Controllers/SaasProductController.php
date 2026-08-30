@@ -199,6 +199,8 @@ class SaasProductController extends Controller
             'client_email' => $user->email,
             'transaction_id' => strtoupper(trim($request->transaction_id)),
             'payment_notes' => $request->payment_notes,
+            'requested_domain' => $request->desired_domain,
+            'requested_subdomain' => $request->desired_subdomain,
             'domain' => $request->desired_domain,
             'subdomain' => $request->desired_subdomain,
         ]);

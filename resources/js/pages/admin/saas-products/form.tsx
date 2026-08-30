@@ -37,6 +37,7 @@ export default function SaasProductForm({
     // Basic Details State
     const [name, setName] = useState(product?.name || '');
     const [slug, setSlug] = useState(product?.slug || '');
+    const [primaryDomain, setPrimaryDomain] = useState(product?.primary_domain || 'codeventure.app');
     const [tagline, setTagline] = useState(product?.tagline || '');
     const [description, setDescription] = useState(product?.description || '');
     const [icon, setIcon] = useState(product?.icon || 'Database');
@@ -194,6 +195,7 @@ export default function SaasProductForm({
         const formData = new FormData();
         formData.append('name', name);
         formData.append('slug', slug);
+        formData.append('primary_domain', primaryDomain);
         formData.append('tagline', tagline);
         formData.append('description', description);
         formData.append('icon', icon);
@@ -322,6 +324,24 @@ export default function SaasProductForm({
                                     placeholder="e.g. clouderp-suite-enterprise"
                                     className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-xs font-mono text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500"
                                 />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1 flex items-center justify-between">
+                                    <span>Product Main / Root Domain *</span>
+                                    <span className="text-[10px] text-indigo-500 font-bold">Subdomain Base</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    required
+                                    value={primaryDomain}
+                                    onChange={(e) => setPrimaryDomain(e.target.value.toLowerCase().replace(/https?:\/\//g, '').replace(/\/.*$/, ''))}
+                                    placeholder="e.g. clouderp.app or codeventure.app"
+                                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-xs font-mono text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500"
+                                />
+                                <span className="text-[10px] text-slate-400 mt-1 block">
+                                    Customer subdomains will resolve to <strong className="font-mono text-indigo-600 dark:text-cyan-400">clientname.{primaryDomain || 'codeventure.app'}</strong>
+                                </span>
                             </div>
 
                             <div>

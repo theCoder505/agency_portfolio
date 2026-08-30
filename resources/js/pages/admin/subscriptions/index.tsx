@@ -262,10 +262,17 @@ export default function SubscriptionsIndex({
                                             <td className="py-3.5 px-4">
                                                 <div className="font-bold text-slate-800 dark:text-slate-200">{sub.product?.name || 'SaaS Product'}</div>
                                                 {(sub.domain || sub.subdomain) && (
-                                                    <span className="text-[10px] text-slate-400 flex items-center space-x-1 mt-0.5">
-                                                        <Globe className="h-3 w-3" />
-                                                        <span>{sub.domain || `${sub.subdomain}.codeventure.app`}</span>
-                                                    </span>
+                                                    <div className="text-[10px] space-y-0.5 mt-0.5">
+                                                        <span className="text-slate-400 flex items-center space-x-1">
+                                                            <Globe className="h-3 w-3 text-slate-400" />
+                                                            <span>Req: {sub.domain || `${sub.subdomain}.codeventure.app`}</span>
+                                                        </span>
+                                                        {sub.status === 'active' && (
+                                                            <span className="font-mono text-[9.5px] text-indigo-600 dark:text-cyan-400 font-semibold block pl-4">
+                                                                Live: {sub.domain || `${sub.subdomain}.codeventure.app`}
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                 )}
                                             </td>
                                             <td className="py-3.5 px-4">
