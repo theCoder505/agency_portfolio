@@ -139,8 +139,8 @@ export const ProjectReportModal: React.FC<ProjectReportModalProps> = ({
                     orientation: 'portrait',
                 },
                 pagebreak: {
-                    mode: ['css', 'legacy'],
-                    avoid: ['.pdf-avoid-break', 'tr', 'table', '.pdf-card', '.pdf-section']
+                    mode: ['avoid-all', 'css', 'legacy'],
+                    avoid: ['.pdf-avoid-break', '.pdf-card', '.pdf-section', 'table', 'tr']
                 }
             };
 
@@ -204,10 +204,10 @@ export const ProjectReportModal: React.FC<ProjectReportModalProps> = ({
                             <img
                                 src={brandSettings.logo}
                                 alt="Brand Watermark"
-                                className="w-[450px] max-w-[80%] max-h-[300px] object-contain opacity-50 dark:opacity-50 pointer-events-none"
+                                className="w-[60%] max-w-[550px] max-h-[450px] object-contain opacity-25 dark:opacity-25 pointer-events-none -rotate-45"
                             />
                         ) : (
-                            <div className="text-6xl font-black text-indigo-600 opacity-50 dark:opacity-50 uppercase tracking-wider">
+                            <div className="text-7xl font-black text-indigo-600 opacity-25 dark:opacity-25 uppercase tracking-wider -rotate-45">
                                 {brandSettings.brand_name || 'CodeVenture'}
                             </div>
                         )}
@@ -265,7 +265,7 @@ export const ProjectReportModal: React.FC<ProjectReportModalProps> = ({
                     </div>
 
                     {/* FULL-WIDTH CLIENT & PROJECT METADATA CARD */}
-                    <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-6 p-5 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/80 dark:border-slate-800 relative z-10">
+                    <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-6 p-5 rounded-2xl bg-slate-50/40 dark:bg-slate-950/30 backdrop-blur-xs border border-slate-200/80 dark:border-slate-800 relative z-10">
                         <div className="space-y-1.5 text-xs">
                             <span className="font-bold text-[11px] uppercase tracking-wider text-slate-400">
                                 Client Details
@@ -316,7 +316,7 @@ export const ProjectReportModal: React.FC<ProjectReportModalProps> = ({
 
                     {/* PROJECT REPOSITORY & DELIVERABLE LINKS (IF AVAILABLE, FULL WIDTH) */}
                     {(order.github_repo_url || order.drive_link || order.live_demo_url) && (
-                        <div className="w-full p-4 rounded-2xl bg-indigo-50/50 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/50 relative z-10">
+                        <div className="w-full p-4 rounded-2xl bg-indigo-50/30 dark:bg-indigo-950/20 backdrop-blur-xs border border-indigo-100 dark:border-indigo-900/50 relative z-10">
                             <span className="font-bold text-[11px] uppercase tracking-wider text-indigo-600 dark:text-indigo-400 block mb-2">
                                 Project Deliverable Repositories &amp; Assets
                             </span>
@@ -349,7 +349,7 @@ export const ProjectReportModal: React.FC<ProjectReportModalProps> = ({
                             <h4 className="font-bold text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">
                                 Complete Project Scope &amp; Technical Requirements
                             </h4>
-                            <div className="p-4 rounded-2xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-line text-xs w-full break-words">
+                            <div className="p-4 rounded-2xl bg-white/40 dark:bg-slate-900/30 backdrop-blur-xs border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-line text-xs w-full break-words">
                                 {order.requirements}
                             </div>
                         </div>
@@ -361,7 +361,7 @@ export const ProjectReportModal: React.FC<ProjectReportModalProps> = ({
                             <h4 className="font-bold text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">
                                 Project Reference Links &amp; Specifications
                             </h4>
-                            <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 whitespace-pre-line text-xs w-full break-words">
+                            <div className="p-3.5 rounded-2xl bg-slate-50/40 dark:bg-slate-900/30 backdrop-blur-xs border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 whitespace-pre-line text-xs w-full break-words">
                                 {order.reference_links}
                             </div>
                         </div>
@@ -377,10 +377,10 @@ export const ProjectReportModal: React.FC<ProjectReportModalProps> = ({
                                 {milestones.length} Milestone{milestones.length === 1 ? '' : 's'} Recorded
                             </span>
                         </div>
-                        <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 w-full">
+                        <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 w-full bg-white/30 dark:bg-slate-900/20">
                             <table className="w-full text-left text-xs border-collapse">
                                 <thead>
-                                    <tr className="bg-slate-100 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300">
+                                    <tr className="bg-slate-100/40 dark:bg-slate-900/40 border-b border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300">
                                         <th className="py-3 px-4 font-bold w-12">#</th>
                                         <th className="py-3 px-4 font-bold">Milestone Title &amp; Deliverable Details</th>
                                         <th className="py-3 px-4 font-bold whitespace-nowrap">Due Date</th>
@@ -488,7 +488,7 @@ export const ProjectReportModal: React.FC<ProjectReportModalProps> = ({
 
                     {/* FINANCIAL SETTLEMENT SUMMARY LEDGER (FULL WIDTH GRID) */}
                     <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-6 pt-2 relative z-10">
-                        <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 space-y-3 text-xs flex flex-col justify-between">
+                        <div className="p-5 rounded-2xl bg-slate-50/40 dark:bg-slate-900/30 backdrop-blur-xs border border-slate-200 dark:border-slate-800 space-y-3 text-xs flex flex-col justify-between">
                             <div className="space-y-2">
                                 <div className="flex items-center space-x-2 font-bold text-slate-800 dark:text-slate-200">
                                     <ShieldCheck className="h-4 w-4 text-emerald-500" />
@@ -506,7 +506,7 @@ export const ProjectReportModal: React.FC<ProjectReportModalProps> = ({
                             </div>
                         </div>
 
-                        <div className="w-full space-y-2.5 p-5 rounded-2xl bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 text-xs">
+                        <div className="w-full space-y-2.5 p-5 rounded-2xl bg-slate-50/40 dark:bg-slate-900/30 backdrop-blur-xs border border-slate-200 dark:border-slate-800 text-xs">
                             <div className="flex justify-between items-center text-slate-600 dark:text-slate-400">
                                 <span>Agreed Total Contract Price:</span>
                                 <span className="font-bold text-slate-900 dark:text-white font-mono">
@@ -691,51 +691,23 @@ function generateStandaloneReportHtml(
             }
         </style>
 
-        <!-- MULTI-PAGE LOGO WATERMARK LAYERS (GUARANTEED HTML2CANVAS CAPTURE ON EVERY PAGE) -->
-        <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; z-index: 99;">
-            <!-- Page 1 Watermark (Middle) -->
-            <div style="position: absolute; top: 400px; left: 50%; transform: translate(-50%, -50%); opacity: 0.5; text-align: center; width: 440px;">
+        <!-- PAGE 1 CONTAINER -->
+        <div style="position: relative; width: 100%; min-height: 960px;">
+            <!-- Page 1 Watermark (Centered in Page 1, -45deg, 60% width) -->
+            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-45deg); opacity: 0.25; pointer-events: none; z-index: 0; text-align: center; width: 450px;">
                 ${brandSettings.logo ? `
-                    <img src="${brandSettings.logo}" alt="Watermark" style="width: 380px; max-height: 200px; object-fit: contain; display: inline-block; opacity: 0.5;" />
+                    <img src="${brandSettings.logo}" alt="Watermark" style="width: 100%; max-height: 350px; object-fit: contain; display: inline-block; opacity: 0.25;" />
                 ` : `
-                    <div style="font-size: 40px; font-weight: 900; color: #4f46e5; letter-spacing: -1px; text-transform: uppercase; opacity: 0.5;">
+                    <div style="font-size: 48px; font-weight: 900; color: #4f46e5; letter-spacing: -1px; text-transform: uppercase; opacity: 0.25;">
                         ${brandName}
                     </div>
                 `}
             </div>
-            <!-- Page 2 Watermark (Middle) -->
-            <div style="position: absolute; top: 1470px; left: 50%; transform: translate(-50%, -50%); opacity: 0.5; text-align: center; width: 440px;">
-                ${brandSettings.logo ? `
-                    <img src="${brandSettings.logo}" alt="Watermark" style="width: 380px; max-height: 200px; object-fit: contain; display: inline-block; opacity: 0.5;" />
-                ` : `
-                    <div style="font-size: 40px; font-weight: 900; color: #4f46e5; letter-spacing: -1px; text-transform: uppercase; opacity: 0.5;">
-                        ${brandName}
-                    </div>
-                `}
-            </div>
-            <!-- Page 3 Watermark (Middle) -->
-            <div style="position: absolute; top: 2540px; left: 50%; transform: translate(-50%, -50%); opacity: 0.5; text-align: center; width: 440px;">
-                ${brandSettings.logo ? `
-                    <img src="${brandSettings.logo}" alt="Watermark" style="width: 380px; max-height: 200px; object-fit: contain; display: inline-block; opacity: 0.5;" />
-                ` : `
-                    <div style="font-size: 40px; font-weight: 900; color: #4f46e5; letter-spacing: -1px; text-transform: uppercase; opacity: 0.5;">
-                        ${brandName}
-                    </div>
-                `}
-            </div>
-            <!-- Page 4 Watermark (Middle) -->
-            <div style="position: absolute; top: 3610px; left: 50%; transform: translate(-50%, -50%); opacity: 0.5; text-align: center; width: 440px;">
-                ${brandSettings.logo ? `
-                    <img src="${brandSettings.logo}" alt="Watermark" style="width: 380px; max-height: 200px; object-fit: contain; display: inline-block; opacity: 0.5;" />
-                ` : `
-                    <div style="font-size: 40px; font-weight: 900; color: #4f46e5; letter-spacing: -1px; text-transform: uppercase; opacity: 0.5;">
-                        ${brandName}
-                    </div>
-                `}
-            </div>
-        </div>
-        <!-- BRAND LOGO & HEADER AT START (FULL WIDTH) -->
-        <table class="pdf-avoid-break pdf-card" style="width: 100%; border-collapse: collapse; table-layout: fixed; margin: 0 0 16px 0; border-bottom: 2px solid #e2e8f0; padding-bottom: 14px; page-break-inside: avoid !important; break-inside: avoid !important;">
+
+            <!-- Page 1 Document Content (z-index: 2) -->
+            <div style="position: relative; z-index: 2;">
+                <!-- BRAND LOGO & HEADER AT START (FULL WIDTH) -->
+                <table class="pdf-avoid-break pdf-card" style="width: 100%; border-collapse: collapse; table-layout: fixed; margin: 0 0 16px 0; border-bottom: 2px solid #e2e8f0; padding-bottom: 14px; page-break-inside: avoid !important; break-inside: avoid !important;">
             <tr>
                 <td style="vertical-align: top; width: 58%; padding: 0 10px 14px 0; text-align: left;">
                     ${brandSettings.logo ? `
@@ -792,7 +764,7 @@ function generateStandaloneReportHtml(
         </table>
 
         <!-- CLIENT & PROJECT SPECIFICATIONS OVERVIEW (FULL WIDTH) -->
-        <div class="pdf-avoid-break pdf-card" style="width: 100%; box-sizing: border-box; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 16px; margin-bottom: 14px; page-break-inside: avoid !important; break-inside: avoid !important;">
+        <div class="pdf-avoid-break pdf-card" style="width: 100%; box-sizing: border-box; background-color: rgba(248, 250, 252, 0.4); border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 16px; margin-bottom: 14px; page-break-inside: avoid !important; break-inside: avoid !important;">
             <table style="width: 100%; border-collapse: collapse; table-layout: fixed;">
                 <tr>
                     <td style="width: 50%; vertical-align: top; padding: 0 10px 0 0; text-align: left;">
@@ -817,7 +789,7 @@ function generateStandaloneReportHtml(
 
         <!-- DELIVERABLE REPOSITORIES & URLS (IF ANY, FULL WIDTH) -->
         ${(order.github_repo_url || order.drive_link || order.live_demo_url) ? `
-        <div class="pdf-avoid-break pdf-card" style="width: 100%; box-sizing: border-box; background-color: #f5f3ff; border: 1px solid #e0e7ff; border-radius: 10px; padding: 10px 14px; margin-bottom: 14px; page-break-inside: avoid !important; break-inside: avoid !important;">
+        <div class="pdf-avoid-break pdf-card" style="width: 100%; box-sizing: border-box; background-color: rgba(245, 243, 255, 0.4); border: 1px solid #e0e7ff; border-radius: 10px; padding: 10px 14px; margin-bottom: 14px; page-break-inside: avoid !important; break-inside: avoid !important;">
             <div style="font-size: 8.5px; font-weight: 700; color: #4f46e5; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">Project Deliverable Repositories &amp; Links</div>
             <table style="width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 9.5px;">
                 <tr>
@@ -845,7 +817,7 @@ function generateStandaloneReportHtml(
         ${order.requirements ? `
         <div class="pdf-avoid-break pdf-card" style="width: 100%; box-sizing: border-box; margin-bottom: 14px; page-break-inside: avoid !important; break-inside: avoid !important;">
             <div style="font-size: 8.5px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px;">Agreed Scope &amp; Technical Specifications</div>
-            <div style="width: 100%; box-sizing: border-box; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 16px; font-size: 10.5px; color: #334155; line-height: 1.5; white-space: pre-line; word-break: break-word;">
+            <div style="width: 100%; box-sizing: border-box; background-color: rgba(255, 255, 255, 0.4); border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 16px; font-size: 10.5px; color: #334155; line-height: 1.5; white-space: pre-line; word-break: break-word;">
                 ${order.requirements}
             </div>
         </div>
@@ -855,7 +827,7 @@ function generateStandaloneReportHtml(
         ${order.reference_links ? `
         <div class="pdf-avoid-break pdf-card" style="width: 100%; box-sizing: border-box; margin-bottom: 14px; page-break-inside: avoid !important; break-inside: avoid !important;">
             <div style="font-size: 8.5px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px;">Reference Links &amp; Attachments</div>
-            <div style="width: 100%; box-sizing: border-box; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 14px; font-size: 9.5px; color: #475569; line-height: 1.45; white-space: pre-line; word-break: break-word;">
+            <div style="width: 100%; box-sizing: border-box; background-color: rgba(248, 250, 252, 0.4); border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 14px; font-size: 9.5px; color: #475569; line-height: 1.45; white-space: pre-line; word-break: break-word;">
                 ${order.reference_links}
             </div>
         </div>
@@ -864,10 +836,10 @@ function generateStandaloneReportHtml(
         <!-- ITEMIZED MILESTONES & PAYMENTS LEDGER TABLE (FULL WIDTH) -->
         <div class="pdf-avoid-break pdf-card" style="width: 100%; box-sizing: border-box; margin-bottom: 14px; page-break-inside: avoid !important; break-inside: avoid !important;">
             <div style="font-size: 8.5px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px;">Milestone Deliverables &amp; Payment Ledger</div>
-            <div style="width: 100%; box-sizing: border-box; border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden;">
+            <div style="width: 100%; box-sizing: border-box; background-color: rgba(255, 255, 255, 0.3); border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden;">
                 <table style="width: 100%; border-collapse: collapse; table-layout: fixed;">
                     <thead>
-                        <tr class="pdf-avoid-break" style="background-color: #f1f5f9; border-bottom: 1px solid #e2e8f0; page-break-inside: avoid !important; break-inside: avoid !important;">
+                        <tr class="pdf-avoid-break" style="background-color: rgba(241, 245, 249, 0.45); border-bottom: 1px solid #e2e8f0; page-break-inside: avoid !important; break-inside: avoid !important;">
                             <th style="width: 5%; padding: 8px 6px 8px 10px; font-size: 9px; font-weight: 700; color: #334155; text-transform: uppercase; text-align: left;">#</th>
                             <th style="width: 33%; padding: 8px 8px; font-size: 9px; font-weight: 700; color: #334155; text-transform: uppercase; text-align: left;">Milestone Title &amp; Deliverables</th>
                             <th style="width: 13%; padding: 8px 8px; font-size: 9px; font-weight: 700; color: #334155; text-transform: uppercase; text-align: left;">Due Date</th>
@@ -882,72 +854,98 @@ function generateStandaloneReportHtml(
                 </table>
             </div>
         </div>
+            </div>
+        </div>
 
-        <!-- FINANCIAL SETTLEMENT SUMMARY (FULL WIDTH 2-COLUMN GRID) -->
-        <table class="pdf-avoid-break pdf-card" style="width: 100%; border-collapse: collapse; table-layout: fixed; margin-top: 2px; margin-bottom: 14px; page-break-inside: avoid !important; break-inside: avoid !important;">
-            <tr>
-                <td style="vertical-align: top; width: 50%; padding: 0 8px 0 0;">
-                    <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 14px; box-sizing: border-box; page-break-inside: avoid !important; break-inside: avoid !important;">
-                        <div style="font-size: 10px; font-weight: 700; color: #059669; margin-bottom: 3px;">✓ Verified Statement Confirmation</div>
-                        <div style="font-size: 9.5px; color: #64748b; line-height: 1.45;">
-                            This document serves as an authorized, verified deal confirmation and financial ledger for Order #${order.order_number}. All recorded payments are guaranteed and protected by ${brandName} agreements.
-                        </div>
-                        <div style="margin-top: 8px; padding-top: 6px; border-top: 1px solid #e2e8f0; font-size: 9.5px; font-weight: 700; color: #475569;">
-                            Settlement Progress: <span style="color: #4f46e5;">${settlementProgress}% Settled</span>
-                        </div>
-                    </div>
-                </td>
-                <td style="vertical-align: top; width: 50%; padding: 0 0 0 8px;">
-                    <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 14px; box-sizing: border-box; page-break-inside: avoid !important; break-inside: avoid !important;">
-                        <table style="width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 9.5px;">
-                            <tr>
-                                <td style="color: #64748b; padding: 2px 0;">Agreed Total Contract Price:</td>
-                                <td style="text-align: right; font-weight: 700; font-family: monospace; color: #0f172a; padding: 2px 2px 2px 0;">${currency} ${agreedPrice.toLocaleString()}</td>
-                            </tr>
-                            <tr>
-                                <td style="color: #16a34a; padding: 2px 0; font-weight: 700;">Total Paid &amp; Collected:</td>
-                                <td style="text-align: right; font-weight: 800; font-family: monospace; color: #16a34a; padding: 2px 2px 2px 0;">(+) ${currency} ${totalCollected.toLocaleString()}</td>
-                            </tr>
-                            ${totalProcessing > 0 ? `
-                            <tr>
-                                <td style="color: #2563eb; padding: 2px 0;">In-Verification Processing:</td>
-                                <td style="text-align: right; font-weight: 700; font-family: monospace; color: #2563eb; padding: 2px 2px 2px 0;">(~) ${currency} ${totalProcessing.toLocaleString()}</td>
-                            </tr>
-                            ` : ''}
-                            ${totalPending > 0 ? `
-                            <tr>
-                                <td style="color: #d97706; padding: 2px 0;">Awaiting Client Payment:</td>
-                                <td style="text-align: right; font-weight: 700; font-family: monospace; color: #d97706; padding: 2px 2px 2px 0;">${currency} ${totalPending.toLocaleString()}</td>
-                            </tr>
-                            ` : ''}
-                            ${totalRefunded > 0 ? `
-                            <tr>
-                                <td style="color: #dc2626; padding: 2px 0;">Returned / Refunded:</td>
-                                <td style="text-align: right; font-weight: 700; font-family: monospace; color: #dc2626; padding: 2px 2px 2px 0;">(-) ${currency} ${totalRefunded.toLocaleString()}</td>
-                            </tr>
-                            ` : ''}
-                            <tr style="border-top: 1px solid #e2e8f0;">
-                                <td style="padding-top: 5px; font-weight: 800; font-size: 9.5px; text-transform: uppercase; color: #0f172a;">Remaining Balance Due:</td>
-                                <td style="padding-top: 5px; text-align: right; font-weight: 900; font-family: monospace; font-size: 11.5px; color: #4f46e5; padding-right: 2px;">${currency} ${remainingBalance.toLocaleString()}</td>
-                            </tr>
-                        </table>
-                    </div>
-                </td>
-            </tr>
-        </table>
+        <!-- PAGE BREAK: FINANCIAL SUMMARY STARTS CLEANLY ON NEXT PAGE -->
+        <div class="html2pdf__page-break" style="page-break-before: always !important; break-before: page !important; height: 0; line-height: 0; font-size: 0; margin: 0; padding: 0;"></div>
 
-        <!-- OFFICIAL FOOTER (NO SIGNATURE) -->
-        <table class="pdf-avoid-break" style="width: 100%; border-collapse: collapse; table-layout: fixed; margin-top: 14px; border-top: 1px solid #e2e8f0; padding-top: 10px; page-break-inside: avoid !important; break-inside: avoid !important;">
-            <tr>
-                <td style="vertical-align: middle; width: 60%; text-align: left; padding: 4px 0;">
-                    <div style="font-weight: 700; font-size: 9.5px; color: #0f172a;">${brandName}</div>
-                    <div style="font-size: 8.5px; color: #94a3b8;">Engineering &amp; Solutions Department &bull; Support: ${contactEmail}</div>
-                </td>
-                <td style="vertical-align: middle; width: 40%; text-align: right; padding: 4px 4px 4px 0;">
-                    <div style="font-size: 8.5px; color: #94a3b8; font-family: monospace;">Generated on ${formattedGeneratedDate} &bull; Ref #${order.order_number}</div>
-                </td>
-            </tr>
-        </table>
+        <!-- PAGE 2 CONTAINER -->
+        <div style="position: relative; width: 100%; min-height: 750px; padding-top: 14px;">
+            <!-- Page 2 Watermark (Centered in Page 2, -45deg, 60% width) -->
+            <div style="position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%) rotate(-45deg); opacity: 0.25; pointer-events: none; z-index: 0; text-align: center; width: 450px;">
+                ${brandSettings.logo ? `
+                    <img src="${brandSettings.logo}" alt="Watermark" style="width: 100%; max-height: 350px; object-fit: contain; display: inline-block; opacity: 0.25;" />
+                ` : `
+                    <div style="font-size: 48px; font-weight: 900; color: #4f46e5; letter-spacing: -1px; text-transform: uppercase; opacity: 0.25;">
+                        ${brandName}
+                    </div>
+                `}
+            </div>
+
+            <!-- Page 2 Document Content (z-index: 2) -->
+            <div style="position: relative; z-index: 2;">
+                <!-- FINANCIAL SETTLEMENT SUMMARY (FULL WIDTH 2-COLUMN GRID) -->
+                <div class="pdf-avoid-break pdf-card pdf-section" style="width: 100%; box-sizing: border-box; margin-top: 6px; margin-bottom: 14px; page-break-inside: avoid !important; break-inside: avoid !important; break-inside: avoid-page !important;">
+                    <table style="width: 100%; border-collapse: collapse; table-layout: fixed;">
+                        <tr>
+                            <td style="vertical-align: top; width: 50%; padding: 0 8px 0 0;">
+                                <div style="background-color: rgba(248, 250, 252, 0.4); border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px 16px; box-sizing: border-box;">
+                                    <div style="font-size: 10.5px; font-weight: 700; color: #059669; margin-bottom: 3px;">✓ Verified Statement Confirmation</div>
+                                    <div style="font-size: 9.5px; color: #64748b; line-height: 1.45;">
+                                        This document serves as an authorized, verified deal confirmation and financial ledger for Order #${order.order_number}. All recorded payments are guaranteed and protected by ${brandName} agreements.
+                                    </div>
+                                    <div style="margin-top: 8px; padding-top: 6px; border-top: 1px solid #e2e8f0; font-size: 9.5px; font-weight: 700; color: #475569;">
+                                        Settlement Progress: <span style="color: #4f46e5;">${settlementProgress}% Settled</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td style="vertical-align: top; width: 50%; padding: 0 0 0 8px;">
+                                <div style="background-color: rgba(248, 250, 252, 0.4); border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px 16px; box-sizing: border-box;">
+                                    <table style="width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 9.5px;">
+                                        <tr>
+                                            <td style="color: #64748b; padding: 2px 0;">Agreed Total Contract Price:</td>
+                                            <td style="text-align: right; font-weight: 700; font-family: monospace; color: #0f172a; padding: 2px 2px 2px 0;">${currency} ${agreedPrice.toLocaleString()}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="color: #16a34a; padding: 2px 0; font-weight: 700;">Total Paid &amp; Collected:</td>
+                                            <td style="text-align: right; font-weight: 800; font-family: monospace; color: #16a34a; padding: 2px 2px 2px 0;">(+) ${currency} ${totalCollected.toLocaleString()}</td>
+                                        </tr>
+                                        ${totalProcessing > 0 ? `
+                                        <tr>
+                                            <td style="color: #2563eb; padding: 2px 0;">In-Verification Processing:</td>
+                                            <td style="text-align: right; font-weight: 700; font-family: monospace; color: #2563eb; padding: 2px 2px 2px 0;">(~) ${currency} ${totalProcessing.toLocaleString()}</td>
+                                        </tr>
+                                        ` : ''}
+                                        ${totalPending > 0 ? `
+                                        <tr>
+                                            <td style="color: #d97706; padding: 2px 0;">Awaiting Client Payment:</td>
+                                            <td style="text-align: right; font-weight: 700; font-family: monospace; color: #d97706; padding: 2px 2px 2px 0;">${currency} ${totalPending.toLocaleString()}</td>
+                                        </tr>
+                                        ` : ''}
+                                        ${totalRefunded > 0 ? `
+                                        <tr>
+                                            <td style="color: #dc2626; padding: 2px 0;">Returned / Refunded:</td>
+                                            <td style="text-align: right; font-weight: 700; font-family: monospace; color: #dc2626; padding: 2px 2px 2px 0;">(-) ${currency} ${totalRefunded.toLocaleString()}</td>
+                                        </tr>
+                                        ` : ''}
+                                        <tr style="border-top: 1px solid #e2e8f0;">
+                                            <td style="padding-top: 5px; font-weight: 800; font-size: 9.5px; text-transform: uppercase; color: #0f172a;">Remaining Balance Due:</td>
+                                            <td style="padding-top: 5px; text-align: right; font-weight: 900; font-family: monospace; font-size: 11.5px; color: #4f46e5; padding-right: 2px;">${currency} ${remainingBalance.toLocaleString()}</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+
+                <!-- OFFICIAL FOOTER (NO SIGNATURE) -->
+                <div class="pdf-avoid-break pdf-card pdf-section" style="width: 100%; box-sizing: border-box; margin-top: 14px; border-top: 1px solid #e2e8f0; padding-top: 10px; page-break-inside: avoid !important; break-inside: avoid !important; break-inside: avoid-page !important;">
+                    <table style="width: 100%; border-collapse: collapse; table-layout: fixed;">
+                        <tr>
+                            <td style="vertical-align: middle; width: 60%; text-align: left; padding: 4px 0;">
+                                <div style="font-weight: 700; font-size: 9.5px; color: #0f172a;">${brandName}</div>
+                                <div style="font-size: 8.5px; color: #94a3b8;">Engineering &amp; Solutions Department &bull; Support: ${contactEmail}</div>
+                            </td>
+                            <td style="vertical-align: middle; width: 40%; text-align: right; padding: 4px 4px 4px 0;">
+                                <div style="font-size: 8.5px; color: #94a3b8; font-family: monospace;">Generated on ${formattedGeneratedDate} &bull; Ref #${order.order_number}</div>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
     `;
 }

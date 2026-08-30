@@ -12,7 +12,6 @@ import {
     Calendar,
     AlertTriangle,
     Coins,
-    RotateCcw
 } from 'lucide-react';
 
 interface CustomOrderIndexProps {
