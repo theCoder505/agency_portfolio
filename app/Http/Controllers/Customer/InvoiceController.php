@@ -19,7 +19,7 @@ class InvoiceController extends Controller
     {
         $user = Auth::user();
 
-        $invoices = SubscriptionInvoice::with('subscription.product')
+        $invoices = SubscriptionInvoice::with(['subscription.product', 'user'])
             ->where('user_id', $user->id)
             ->orderBy('created_at', 'desc')
             ->get();
@@ -30,10 +30,11 @@ class InvoiceController extends Controller
             'invoices' => $invoices,
             'brandSettings' => [
                 'brand_name' => $appSettings['brand_name'] ?? 'CodeVenture Tech',
+                'logo' => $appSettings['logo'] ?? null,
                 'contact_email' => $appSettings['contact_email'] ?? 'hello@codeventure.tech',
-                'contact_phone' => $appSettings['contact_phone'] ?? '',
-                'address_line1' => $appSettings['address_line1'] ?? '',
-                'address_line2' => $appSettings['address_line2'] ?? '',
+                'contact_phone' => $appSettings['contact_phone'] ?? '+880 1700-000000',
+                'address_line1' => $appSettings['address_line1'] ?? 'Dhaka, Bangladesh',
+                'address_line2' => $appSettings['address_line2'] ?? 'Engineering Division',
                 'currency_symbol' => $appSettings['currency_symbol'] ?? '৳',
             ],
         ]);

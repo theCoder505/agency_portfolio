@@ -3,7 +3,6 @@ import {
     ArrowRight,
     Award,
     Code2,
-    Cpu,
     Layers,
     Play,
     Rocket,
@@ -66,7 +65,7 @@ export default function SurfaceHero({
     // Generates 3-digit zero-padded frame paths (/images/frames/ezgif-frame-001.jpg)
     const getFrameUrl = (index: number) => {
         const paddedIndex = String(index).padStart(3, '0');
-        return `/images/frames/ezgif-frame-${paddedIndex}.jpg`;
+        return `/images/hero/ezgif-frame-${paddedIndex}.jpg`;
     };
 
     // Renders specified frame to canvas using image cover calculation

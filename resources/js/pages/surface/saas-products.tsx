@@ -19,7 +19,9 @@ import {
     Headphones,
     ArrowUpRight,
     Package,
-    ChevronDown
+    ChevronDown,
+    ChevronLeft,
+    ChevronRight
 } from 'lucide-react';
 
 interface SaasProductsPageProps {
@@ -34,6 +36,119 @@ interface SaasProductsPageProps {
         nagad_instructions?: string;
         nagad_enabled: boolean;
     };
+}
+
+// Interactive Product Card Image Slider with gentle scale on hover
+function ProductCardImageSlider({
+    product,
+    icon: IconComp,
+}: {
+    product: SaasProduct;
+    icon: React.ComponentType<{ className?: string }>;
+}) {
+    const images = [
+        ...(product.thumbnail ? [product.thumbnail] : []),
+        ...(Array.isArray(product.gallery_images) ? product.gallery_images : []),
+    ];
+
+    const [currentIndex, setCurrentIndex] = useState(0);
+    const activeImage = images[currentIndex] || undefined;
+
+    const handlePrev = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setCurrentIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+    };
+
+    const handleNext = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setCurrentIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+    };
+
+    return (
+        <div className="relative aspect-video w-full overflow-hidden bg-slate-950 group/slider">
+            {activeImage ? (
+                <div className="w-full h-full overflow-hidden flex items-center justify-center">
+                    <img
+                        src={activeImage}
+                        alt={`${product.name} Preview`}
+                        className="w-full h-full object-cover transition-transform duration-500 ease-out will-change-transform group-hover:scale-[1.12]"
+                    />
+                </div>
+            ) : (
+                <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-indigo-950 via-slate-900 to-slate-950 text-indigo-400 p-6 text-center">
+                    <IconComp className="h-12 w-12 mb-2 text-indigo-400 group-hover:scale-110 transition-transform duration-500" />
+                    <span className="text-xs font-bold text-slate-300">{product.name}</span>
+                </div>
+            )}
+
+            {/* Gradient overlay */}
+            <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-slate-950/80 via-transparent to-transparent opacity-90 group-hover:opacity-70 transition-opacity duration-500" />
+
+            {/* Top Highlight Badge */}
+            {product.badge && (
+                <div className="absolute top-3.5 left-3.5 px-3 py-1 rounded-full bg-indigo-600/90 backdrop-blur-md text-white font-black text-[10px] tracking-wider uppercase shadow-md flex items-center space-x-1 z-10">
+                    <Sparkles className="h-3 w-3 text-cyan-300" />
+                    <span>{product.badge}</span>
+                </div>
+            )}
+
+            {/* Featured Pill */}
+            {product.is_featured && (
+                <div className="absolute top-3.5 right-3.5 px-2.5 py-1 rounded-full bg-amber-500/90 backdrop-blur-md text-slate-950 font-black text-[10px] uppercase shadow-md z-10">
+                    ★ Featured
+                </div>
+            )}
+
+            {/* Floating Icon */}
+            <div className="absolute bottom-3 left-3.5 h-10 w-10 rounded-xl bg-slate-900/90 backdrop-blur-md border border-white/10 text-cyan-400 flex items-center justify-center shadow-lg z-10 transition-transform duration-300 group-hover:scale-105">
+                <IconComp className="h-5 w-5" />
+            </div>
+
+            {/* Slider Navigation Arrows (if multiple images) */}
+            {images.length > 1 && (
+                <>
+                    <button
+                        type="button"
+                        onClick={handlePrev}
+                        className="absolute left-2 top-1/2 -translate-y-1/2 p-2 rounded-xl bg-slate-950/70 hover:bg-indigo-600 text-white backdrop-blur-md border border-white/10 shadow-lg transition-all opacity-0 group-hover/slider:opacity-100 hover:scale-110 z-20"
+                        title="Previous Image"
+                    >
+                        <ChevronLeft className="h-4 w-4" />
+                    </button>
+                    <button
+                        type="button"
+                        onClick={handleNext}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-xl bg-slate-950/70 hover:bg-indigo-600 text-white backdrop-blur-md border border-white/10 shadow-lg transition-all opacity-0 group-hover/slider:opacity-100 hover:scale-110 z-20"
+                        title="Next Image"
+                    >
+                        <ChevronRight className="h-4 w-4" />
+                    </button>
+
+                    {/* Slide Dots */}
+                    <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center space-x-1 p-1 rounded-full bg-slate-950/60 backdrop-blur-md border border-white/10 z-10">
+                        {images.map((_, idx) => (
+                            <button
+                                key={idx}
+                                type="button"
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    setCurrentIndex(idx);
+                                }}
+                                className={`h-1.5 rounded-full transition-all ${currentIndex === idx
+                                    ? 'w-4 bg-cyan-400'
+                                    : 'w-1.5 bg-white/40 hover:bg-white/70'
+                                    }`}
+                                aria-label={`Slide ${idx + 1}`}
+                            />
+                        ))}
+                    </div>
+                </>
+            )}
+        </div>
+    );
 }
 
 export default function SaasProductsPage({
@@ -158,22 +273,20 @@ export default function SaasProductsPage({
                         <div className="inline-flex p-1.5 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-2xl backdrop-blur-md">
                             <button
                                 onClick={() => setBillingCycle('monthly')}
-                                className={`px-6 py-2.5 rounded-xl text-xs font-bold transition-all ${
-                                    billingCycle === 'monthly'
-                                        ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30'
-                                        : 'text-slate-400 hover:text-white'
-                                }`}
+                                className={`px-6 py-2.5 rounded-xl text-xs font-bold transition-all ${billingCycle === 'monthly'
+                                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30'
+                                    : 'text-slate-400 hover:text-white'
+                                    }`}
                             >
                                 Monthly Billing
                             </button>
 
                             <button
                                 onClick={() => setBillingCycle('yearly')}
-                                className={`flex items-center space-x-2 px-6 py-2.5 rounded-xl text-xs font-bold transition-all ${
-                                    billingCycle === 'yearly'
-                                        ? 'bg-gradient-to-r from-indigo-600 to-cyan-500 text-white shadow-lg shadow-cyan-500/20'
-                                        : 'text-slate-400 hover:text-white'
-                                }`}
+                                className={`flex items-center space-x-2 px-6 py-2.5 rounded-xl text-xs font-bold transition-all ${billingCycle === 'yearly'
+                                    ? 'bg-gradient-to-r from-indigo-600 to-cyan-500 text-white shadow-lg shadow-cyan-500/20'
+                                    : 'text-slate-400 hover:text-white'
+                                    }`}
                             >
                                 <span>Annual Billing</span>
                                 <span className="px-2 py-0.5 rounded-md bg-cyan-400 text-slate-950 text-[10px] font-black uppercase tracking-wider">
@@ -207,127 +320,90 @@ export default function SaasProductsPage({
                                         key={product.id}
                                         data-aos="fade-up"
                                         data-aos-delay={`${(idx % 3) * 100}`}
-                                        className="group relative flex flex-col justify-between rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-sm hover:shadow-2xl hover:border-indigo-500/50 dark:hover:border-indigo-400/50 transition-all duration-300 overflow-hidden"
+                                        className="group relative flex flex-col justify-between rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-sm hover:shadow-[0_20px_50px_-10px_rgba(217,70,239,0.35)] hover:border-pink-500/60 dark:hover:border-pink-500/60 transition-all duration-500 overflow-hidden hover:-translate-y-1.5"
                                     >
-                                        {/* TOP THUMBNAIL IMAGE WITH HOVER ZOOM & BADGE */}
-                                        <div className="relative aspect-video w-full overflow-hidden bg-slate-950">
-                                            {product.thumbnail ? (
-                                                <img
-                                                    src={product.thumbnail}
-                                                    alt={product.name}
-                                                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                                                />
-                                            ) : (
-                                                <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-indigo-950 via-slate-900 to-slate-950 text-indigo-400 p-6 text-center">
-                                                    <IconComp className="h-12 w-12 mb-2 text-indigo-400" />
-                                                    <span className="text-xs font-bold text-slate-300">{product.name}</span>
-                                                </div>
-                                            )}
+                                        {/* Prominent Dark Purple-Pink Glassy Gradient Layer on Hover (for both themes) */}
+                                        <div className="absolute inset-0 bg-gradient-to-br from-purple-950/90 via-slate-950/95 to-slate-950 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none backdrop-blur-2xl" />
 
-                                            {/* Gradient dark overlay */}
-                                            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent pointer-events-none" />
+                                        {/* Ambient Purple & Pink Glowing Glass Orbs */}
+                                        <div className="absolute -top-16 -right-16 w-60 h-60 bg-gradient-to-br from-fuchsia-500/25 to-pink-500/30 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+                                        <div className="absolute -bottom-16 -left-16 w-60 h-60 bg-gradient-to-tr from-purple-600/30 to-fuchsia-500/25 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
 
-                                            {/* Top Highlight Badge */}
-                                            {product.badge && (
-                                                <div className="absolute top-3.5 left-3.5 px-3 py-1 rounded-full bg-indigo-600/90 backdrop-blur-md text-white font-black text-[10px] tracking-wider uppercase shadow-md flex items-center space-x-1">
-                                                    <Sparkles className="h-3 w-3 text-cyan-300" />
-                                                    <span>{product.badge}</span>
-                                                </div>
-                                            )}
+                                        {/* Glossy Top Glass Light Sheen */}
+                                        <div className="absolute top-0 inset-x-0 h-36 bg-gradient-to-b from-white/10 to-transparent pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                                        <div className="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-fuchsia-400 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 shadow-[0_0_12px_rgba(232,121,249,0.8)]" />
 
-                                            {/* Featured Pill */}
-                                            {isFeatured && (
-                                                <div className="absolute top-3.5 right-3.5 px-2.5 py-1 rounded-full bg-amber-500/90 backdrop-blur-md text-slate-950 font-black text-[10px] uppercase shadow-md">
-                                                    ★ Featured
-                                                </div>
-                                            )}
-
-                                            {/* Icon floating on image */}
-                                            <div className="absolute bottom-3 left-3.5 h-10 w-10 rounded-xl bg-slate-900/90 backdrop-blur-md border border-white/10 text-cyan-400 flex items-center justify-center shadow-lg">
-                                                <IconComp className="h-5 w-5" />
-                                            </div>
-                                        </div>
+                                        {/* TOP PRODUCT IMAGE SLIDER WITH GENTLE SCALE */}
+                                        <ProductCardImageSlider product={product} icon={IconComp} />
 
                                         {/* BODY CONTENT: TITLE, TAGLINE, TIERS & PRICE */}
-                                        <div className="p-6 sm:p-7 flex-1 flex flex-col justify-between space-y-5">
+                                        <div className="p-6 sm:p-7 flex-1 flex flex-col justify-between space-y-5 relative z-10">
                                             <div className="space-y-3">
                                                 {/* Title */}
                                                 <Link
                                                     href={`/saas-products/${product.slug}`}
-                                                    className="block group-hover:text-indigo-600 dark:group-hover:text-cyan-400 transition-colors"
+                                                    className="block group-hover:bg-gradient-to-r group-hover:from-purple-300 group-hover:via-fuchsia-300 group-hover:to-pink-300 group-hover:bg-clip-text group-hover:text-transparent transition-all duration-300"
                                                 >
-                                                    <h3 className="text-xl font-black tracking-tight text-slate-900 dark:text-white leading-snug">
+                                                    <h3 className="text-xl font-black tracking-tight text-slate-900 dark:text-white leading-snug group-hover:text-white">
                                                         {product.name}
                                                     </h3>
                                                 </Link>
 
                                                 {/* Tagline / Description */}
                                                 {product.tagline && (
-                                                    <p className="text-xs text-slate-600 dark:text-slate-400 line-clamp-2 leading-relaxed">
+                                                    <p className="text-xs text-slate-600 dark:text-slate-400 group-hover:text-slate-300 line-clamp-2 leading-relaxed transition-colors duration-300">
                                                         {product.tagline}
                                                     </p>
                                                 )}
 
                                                 {/* Package Tier Badges: Basic, Standard, Premium */}
                                                 <div className="pt-1 flex flex-wrap items-center gap-1.5">
-                                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mr-1">
+                                                    <span className="text-[10px] font-bold text-slate-400 group-hover:text-pink-400 uppercase tracking-wider mr-1 transition-colors">
                                                         Tiers:
                                                     </span>
-                                                    <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[10px] font-bold border border-slate-200/60 dark:border-slate-700">
+                                                    <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 group-hover:bg-slate-800/90 group-hover:text-slate-200 group-hover:border-slate-700 text-[10px] font-bold border border-slate-200/60 dark:border-slate-700 transition-all duration-300">
                                                         Basic
                                                     </span>
-                                                    <span className="px-2 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-300 text-[10px] font-black border border-indigo-200/60 dark:border-indigo-800">
+                                                    <span className="px-2 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-300 group-hover:bg-purple-950/90 group-hover:text-purple-300 group-hover:border-purple-600/60 group-hover:shadow-[0_0_10px_rgba(168,85,247,0.25)] text-[10px] font-black border border-indigo-200/60 dark:border-indigo-800 transition-all duration-300">
                                                         Standard
                                                     </span>
-                                                    <span className="px-2 py-0.5 rounded-md bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-300 text-[10px] font-bold border border-purple-200/60 dark:border-purple-800">
+                                                    <span className="px-2 py-0.5 rounded-md bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-300 group-hover:bg-pink-950/90 group-hover:text-pink-300 group-hover:border-pink-600/60 group-hover:shadow-[0_0_10px_rgba(236,72,153,0.25)] text-[10px] font-bold border border-purple-200/60 dark:border-purple-800 transition-all duration-300">
                                                         Premium
                                                     </span>
                                                 </div>
 
-                                                {/* Starting Price Banner (Human-Readable en-US format) */}
-                                                <div className="pt-3 pb-2 border-t border-b border-slate-100 dark:border-slate-800">
-                                                    <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
+                                                {/* Starting Price Banner */}
+                                                <div className="dark:border-slate-800 p-3 -mx-3 rounded-2xl group-hover:bg-slate-900/70 group-hover:border group-hover:border-purple-500/30 group-hover:shadow-[inset_0_0_15px_rgba(217,70,239,0.08)] transition-all duration-300">
+                                                    <div className="text-[10px] uppercase font-bold text-slate-400 group-hover:text-pink-400 tracking-wider transition-colors">
                                                         Starting from
                                                     </div>
                                                     <div className="flex items-baseline space-x-1.5 mt-0.5">
-                                                        <span className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 dark:text-white">
+                                                        <span className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 dark:text-white group-hover:text-white transition-colors">
                                                             {formatCurrency(priceInfo.amount, product.currency || currency, 0)}
                                                         </span>
-                                                        <span className="text-xs font-bold text-slate-500">
+                                                        <span className="text-xs font-bold text-slate-500 group-hover:text-slate-300 transition-colors">
                                                             {priceInfo.periodLabel}
                                                         </span>
                                                     </div>
-                                                    <div className="text-[11px] text-indigo-600 dark:text-cyan-400 font-medium mt-0.5">
+                                                    <div className="text-[11px] text-indigo-600 dark:text-cyan-400 group-hover:text-pink-400 font-medium group-hover:font-semibold mt-0.5 transition-colors">
                                                         {priceInfo.subtext}
                                                     </div>
                                                 </div>
-
-                                                {/* Key 3 Features Checklist */}
-                                                <div className="space-y-2 pt-1">
-                                                    {Array.isArray(product.features) && product.features.slice(0, 3).map((feat, fIdx) => (
-                                                        <div key={fIdx} className="flex items-start space-x-2 text-xs">
-                                                            <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
-                                                            <span className="text-slate-700 dark:text-slate-300 leading-snug line-clamp-1">
-                                                                {feat}
-                                                            </span>
-                                                        </div>
-                                                    ))}
-                                                </div>
                                             </div>
 
-                                            {/* ACTION CTA BUTTONS: View Details & Packages */}
-                                            <div className="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-2">
+                                            {/* ACTION CTA BUTTONS */}
+                                            <div className="pt-4 border-t border-slate-100 dark:border-slate-800 group-hover:border-slate-800 space-y-2 transition-colors">
                                                 <Link
                                                     href={`/saas-products/${product.slug}`}
-                                                    className="w-full py-3.5 px-4 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center justify-center space-x-2 transition-all shadow-md shadow-indigo-500/20 group/btn"
+                                                    className="w-full py-3.5 px-4 rounded-2xl bg-indigo-600 group-hover:bg-gradient-to-r group-hover:from-purple-600 group-hover:via-fuchsia-600 group-hover:to-pink-600 hover:brightness-110 text-white font-bold text-xs flex items-center justify-center space-x-2 transition-all duration-300 shadow-md shadow-indigo-500/20 group-hover:shadow-lg group-hover:shadow-pink-500/30 group/btn"
                                                 >
                                                     <span>View Product & Packages</span>
-                                                    <ArrowRight className="h-4 w-4 transition-transform group-hover/btn:translate-x-1" />
+                                                    <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover/btn:translate-x-1" />
                                                 </Link>
 
                                                 <Link
                                                     href={`/checkout/${product.slug}?tier=standard&billing_cycle=${billingCycle}`}
-                                                    className="w-full py-2 px-3 rounded-xl text-center text-slate-500 hover:text-indigo-600 dark:hover:text-cyan-400 text-[11px] font-semibold block transition-colors"
+                                                    className="w-full py-2 px-3 rounded-xl text-center text-slate-500 hover:text-indigo-600 dark:hover:text-cyan-400 group-hover:text-pink-400 dark:group-hover:text-pink-400 text-[11px] font-semibold block transition-colors"
                                                 >
                                                     Direct Checkout (Standard Plan) →
                                                 </Link>
@@ -409,11 +485,10 @@ export default function SaasProductsPage({
                                         key={idx}
                                         data-aos="fade-up"
                                         data-aos-delay={`${(idx % 5) * 60}`}
-                                        className={`rounded-2xl transition-all duration-200 overflow-hidden border ${
-                                            isOpen
-                                                ? 'bg-white dark:bg-slate-900 border-indigo-500/50 shadow-lg shadow-indigo-500/5'
-                                                : 'bg-white/70 dark:bg-slate-900/60 border-slate-200/80 dark:border-slate-800/80 hover:border-slate-300 dark:hover:border-slate-700'
-                                        }`}
+                                        className={`rounded-2xl transition-all duration-200 overflow-hidden border ${isOpen
+                                            ? 'bg-white dark:bg-slate-900 border-indigo-500/50 shadow-lg shadow-indigo-500/5'
+                                            : 'bg-white/70 dark:bg-slate-900/60 border-slate-200/80 dark:border-slate-800/80 hover:border-slate-300 dark:hover:border-slate-700'
+                                            }`}
                                     >
                                         <button
                                             type="button"

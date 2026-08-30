@@ -10,6 +10,7 @@ interface PaginationProps {
     total?: number;
     currentPage?: number;
     lastPage?: number;
+    totalPages?: number;
     onPageChange?: (page: number) => void;
     className?: string;
     itemLabel?: string;
@@ -22,6 +23,7 @@ export function Pagination({
     total,
     currentPage,
     lastPage,
+    totalPages: propTotalPages,
     onPageChange,
     className = '',
     itemLabel = 'entries',
@@ -37,7 +39,7 @@ export function Pagination({
 
     // Determine if we are using Inertia links or client-side onPageChange
     const hasInertiaLinks = links && links.length > 0;
-    const totalPages = lastPage ?? (hasInertiaLinks ? links.length - 2 : 1);
+    const totalPages = lastPage ?? propTotalPages ?? (hasInertiaLinks ? links.length - 2 : 1);
 
     return (
         <div className={`p-4 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs ${className}`}>

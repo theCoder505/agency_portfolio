@@ -1,26 +1,17 @@
 import React, { useState, FormEventHandler } from 'react';
-import { Head, Link, useForm, router } from '@inertiajs/react';
+import { Link, useForm } from '@inertiajs/react';
 import { AdminLayout } from '@/layouts/admin-layout';
 import { SaasSubscription, SubscriptionInvoice } from '@/types';
 import {
     CreditCard,
     CheckCircle2,
-    XCircle,
-    Clock,
-    AlertCircle,
     ArrowLeft,
     Copy,
     Check,
-    Globe,
-    Key,
     User,
     Mail,
-    Phone,
     Shield,
     Receipt,
-    ExternalLink,
-    Calendar,
-    Save,
     Search,
     X
 } from 'lucide-react';
@@ -438,7 +429,7 @@ export default function SubscriptionShow({
                                             className="w-full px-3.5 py-2 rounded-l-xl border border-r-0 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-xs font-mono focus:ring-2 focus:ring-indigo-500"
                                         />
                                         <span className="px-3 py-2 rounded-r-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-800 text-[11px] font-mono text-slate-500">
-                                            .codeventure.app
+                                            .platform.com
                                         </span>
                                     </div>
                                 </div>

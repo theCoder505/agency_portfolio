@@ -1,10 +1,9 @@
 import React, { useState, FormEventHandler } from 'react';
-import { Head, Link, useForm, usePage } from '@inertiajs/react';
+import { Link, useForm, usePage } from '@inertiajs/react';
 import { SaasProduct, SharedData } from '@/types';
 import { SurfaceLayout } from '@/layouts/surface-layout';
-import { formatCurrency, formatNumberEnUs } from '@/lib/formatters';
+import { formatCurrency } from '@/lib/formatters';
 import {
-    CheckCircle2,
     Copy,
     Check,
     Shield,
@@ -12,14 +11,7 @@ import {
     ArrowRight,
     Smartphone,
     Globe,
-    Sparkles,
     User,
-    Mail,
-    Phone,
-    Building,
-    Key,
-    Info,
-    HelpCircle,
     Package,
     Eye,
     EyeOff
@@ -462,7 +454,7 @@ export default function CheckoutPage({
                                                     className="w-full px-3.5 py-2.5 rounded-l-xl border border-r-0 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500"
                                                 />
                                                 <span className="px-3 py-2.5 rounded-r-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-800 text-[11px] font-mono text-slate-500">
-                                                    .codeventure.app
+                                                    .platform.com
                                                 </span>
                                             </div>
                                         </div>

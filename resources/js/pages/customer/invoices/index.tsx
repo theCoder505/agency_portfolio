@@ -1,13 +1,13 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Head, Link } from '@inertiajs/react';
 import { CustomerLayout } from '@/layouts/customer-layout';
 import { PaginatedData, SubscriptionInvoice } from '@/types';
 import { formatCurrency } from '@/lib/formatters';
 import { Pagination } from '@/components/ui/pagination';
 import { useClientDataTable } from '@/hooks/use-client-data-table';
+import { InvoiceReceiptModal } from '@/components/invoices/invoice-receipt-modal';
 import {
     Receipt,
-    Printer,
     Download,
     CheckCircle2,
     Clock,
@@ -17,13 +17,15 @@ import {
     Calendar,
     ChevronRight,
     Search,
-    X
+    X,
+    ExternalLink
 } from 'lucide-react';
 
 interface InvoicesIndexProps {
     invoices: SubscriptionInvoice[] | PaginatedData<SubscriptionInvoice>;
     brandSettings?: {
         brand_name?: string;
+        logo?: string;
         contact_email?: string;
         contact_phone?: string;
         address_line1?: string;
@@ -37,9 +39,9 @@ export default function InvoicesIndex({
     brandSettings = {
         brand_name: 'CodeVenture Tech',
         contact_email: 'hello@codeventure.tech',
-        contact_phone: '+1 (555) 234-5678',
-        address_line1: '',
-        address_line2: '',
+        contact_phone: '+880 1700-000000',
+        address_line1: 'House #42, Road #11, Banani',
+        address_line2: 'Dhaka - 1213, Bangladesh',
         currency_symbol: '৳',
     },
 }: InvoicesIndexProps) {
@@ -50,6 +52,22 @@ export default function InvoicesIndex({
     const allInvoicesList = useMemo(() => {
         return Array.isArray(invoices) ? invoices : invoices?.data || [];
     }, [invoices]);
+
+    // Auto-open invoice modal if ref param is present in URL
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const params = new URLSearchParams(window.location.search);
+            const refParam = params.get('ref');
+            if (refParam) {
+                const found = allInvoicesList.find(
+                    (i) => i.invoice_number === refParam || String(i.id) === refParam
+                );
+                if (found) {
+                    setSelectedInvoice(found);
+                }
+            }
+        }
+    }, [allInvoicesList]);
 
     // Status filter
     const filteredByStatus = useMemo(() => {
@@ -81,10 +99,6 @@ export default function InvoicesIndex({
         setCurrentPage(1);
     };
 
-    const printReceipt = () => {
-        window.print();
-    };
-
     return (
         <CustomerLayout
             title="Payment Invoices & Receipts"
@@ -95,10 +109,10 @@ export default function InvoicesIndex({
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
                         <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
-                            Invoices & Payment Receipts
+                            Invoices &amp; Payment Receipts
                         </h1>
                         <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                            Official billing statements and transaction confirmation records for your account.
+                            Official billing statements, transaction confirmation records, and downloadable PDF receipts for your account.
                         </p>
                     </div>
 
@@ -163,7 +177,7 @@ export default function InvoicesIndex({
                                         <th className="py-3.5 px-4">TrxID</th>
                                         <th className="py-3.5 px-4">Status</th>
                                         <th className="py-3.5 px-4">Date</th>
-                                        <th className="py-3.5 px-5 text-right">Receipt</th>
+                                        <th className="py-3.5 px-5 text-right">PDF Invoice</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -204,10 +218,10 @@ export default function InvoicesIndex({
                                             <td className="py-4 px-5 text-right">
                                                 <button
                                                     onClick={() => setSelectedInvoice(inv)}
-                                                    className="inline-flex items-center space-x-1 px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-cyan-400 font-bold text-xs transition-colors"
+                                                    className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 text-indigo-600 dark:text-cyan-400 font-bold text-xs transition-all shadow-2xs cursor-pointer"
                                                 >
-                                                    <FileText className="h-3.5 w-3.5" />
-                                                    <span>View</span>
+                                                    <Download className="h-3.5 w-3.5" />
+                                                    <span>PDF Statement</span>
                                                 </button>
                                             </td>
                                         </tr>
@@ -229,91 +243,14 @@ export default function InvoicesIndex({
                 </div>
             </div>
 
-            {/* PRINTABLE INVOICE RECEIPT MODAL */}
+            {/* OFFICIAL INVOICE STATEMENT PDF MODAL WITH BACKGROUND WATERMARK & URL */}
             {selectedInvoice && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in">
-                    <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-8 max-w-2xl w-full shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto print:p-0 print:border-none print:shadow-none">
-                        {/* Modal Header */}
-                        <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800 print:hidden">
-                            <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                                Invoice Statement
-                            </h3>
-                            <div className="flex items-center space-x-2">
-                                <button
-                                    onClick={printReceipt}
-                                    className="p-2 rounded-xl bg-indigo-50 dark:bg-slate-800 text-indigo-600 dark:text-cyan-400 hover:bg-indigo-100 text-xs font-bold flex items-center space-x-1"
-                                >
-                                    <Printer className="h-4 w-4" />
-                                    <span>Print</span>
-                                </button>
-                                <button
-                                    onClick={() => setSelectedInvoice(null)}
-                                    className="p-2 text-slate-400 hover:text-slate-600"
-                                >
-                                    <X className="h-5 w-5" />
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Invoice Paper Layout */}
-                        <div className="space-y-6">
-                            {/* Brand Header */}
-                            <div className="flex justify-between items-start">
-                                <div>
-                                    <h2 className="text-xl font-black text-slate-900 dark:text-white">
-                                        {brandSettings?.brand_name || 'CodeVenture Tech'}
-                                    </h2>
-                                    <p className="text-xs text-slate-500 mt-1">{brandSettings?.address_line1}</p>
-                                    <p className="text-xs text-slate-500">{brandSettings?.contact_email}</p>
-                                </div>
-
-                                <div className="text-right">
-                                    <div className="text-xs font-mono font-bold text-indigo-600 dark:text-cyan-400">
-                                        {selectedInvoice.invoice_number}
-                                    </div>
-                                    <div className="text-xs text-slate-400 mt-1">
-                                        Date: {new Date(selectedInvoice.created_at).toLocaleDateString()}
-                                    </div>
-                                    <span className={`inline-block mt-2 px-2.5 py-0.5 rounded-md text-[10px] font-bold ${
-                                        selectedInvoice.status === 'paid' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-amber-500/10 text-amber-500'
-                                    }`}>
-                                        {selectedInvoice.status.toUpperCase()}
-                                    </span>
-                                </div>
-                            </div>
-
-                            {/* Service Item Table */}
-                            <div className="border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden">
-                                <table className="w-full text-left text-xs">
-                                    <thead className="bg-slate-50 dark:bg-slate-800 font-bold">
-                                        <tr>
-                                            <th className="p-3">Description</th>
-                                            <th className="p-3">Term</th>
-                                            <th className="p-3 text-right">Total</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td className="p-3 font-semibold">
-                                                {selectedInvoice.subscription?.product?.name || 'SaaS Cloud Subscription'}
-                                            </td>
-                                            <td className="p-3 capitalize">{selectedInvoice.billing_cycle ? selectedInvoice.billing_cycle.replace('_', ' ') : 'Subscription'}</td>
-                                            <td className="p-3 text-right font-black">{currency}{selectedInvoice.amount.toLocaleString()}</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-
-                            {/* Payment Meta */}
-                            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 text-xs space-y-1 text-slate-600 dark:text-slate-300">
-                                <div><strong>Payment Method:</strong> {selectedInvoice.payment_method.toUpperCase()}</div>
-                                <div><strong>Sender Number:</strong> {selectedInvoice.sender_number || 'N/A'}</div>
-                                <div><strong>Transaction ID:</strong> <span className="font-mono font-bold">{selectedInvoice.transaction_id || 'N/A'}</span></div>
-                                {selectedInvoice.notes && <div><strong>Notes:</strong> {selectedInvoice.notes}</div>}
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <InvoiceReceiptModal
+                    invoice={selectedInvoice}
+                    isOpen={!!selectedInvoice}
+                    onClose={() => setSelectedInvoice(null)}
+                    brandSettings={brandSettings}
+                />
             )}
         </CustomerLayout>
     );
