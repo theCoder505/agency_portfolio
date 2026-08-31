@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { router, Link } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
 import { AdminLayout } from '@/layouts/admin-layout';
 import { Contact, PaginatedData } from '@/types';
 import { ReplyEmailModal } from '@/components/admin/reply-email-modal';
@@ -9,16 +9,11 @@ import { useClientDataTable } from '@/hooks/use-client-data-table';
 import {
     Search,
     Trash2,
-    Mail,
     Send,
-    Eye,
     CheckCheck,
-    Clock,
-    Phone,
-    ShieldAlert,
     X
 } from 'lucide-react';
-import { confirmAction, showToast } from '@/lib/swal';
+import { confirmAction } from '@/lib/swal';
 
 interface ContactIndexProps {
     contacts: Contact[] | PaginatedData<Contact>;
@@ -305,9 +300,9 @@ export default function ContactIndex({ contacts }: ContactIndexProps) {
 
                                                 {/* Service */}
                                                 <td className="p-4">
-                                                    <span className="px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[11px] font-medium">
+                                                    <div className="px-2 py-1 text-center rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[11px] font-medium">
                                                         {contact.service_interested || 'General Inquiry'}
-                                                    </span>
+                                                    </div>
                                                 </td>
 
                                                 {/* Date */}

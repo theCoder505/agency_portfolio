@@ -41,6 +41,7 @@ export default function CustomOrderAdminForm({
         estimated_budget: order?.estimated_budget || '',
         agreed_price: order?.agreed_price || '',
         currency: order?.currency || 'BDT',
+        exchange_rate_to_bdt: order?.exchange_rate_to_bdt || (order?.currency === 'EUR' ? 130 : (order?.currency === 'USD' ? 120 : 1)),
         target_deadline: order?.target_deadline ? String(order.target_deadline).substring(0, 10) : '',
         requirements: order?.requirements || '',
         reference_links: order?.reference_links || '',
@@ -292,7 +293,15 @@ export default function CustomOrderAdminForm({
                                     <button
                                         key={cur.code}
                                         type="button"
-                                        onClick={() => setData('currency', cur.code)}
+                                        onClick={() => {
+                                            const newCur = cur.code;
+                                            const defaultRate = newCur === 'EUR' ? 130 : (newCur === 'USD' ? 120 : 1);
+                                            setData((prev) => ({
+                                                ...prev,
+                                                currency: newCur,
+                                                exchange_rate_to_bdt: defaultRate,
+                                            }));
+                                        }}
                                         className={`py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-1.5 border ${
                                             data.currency === cur.code
                                                 ? 'bg-indigo-600 border-indigo-600 text-white shadow-xs'
@@ -305,6 +314,47 @@ export default function CustomOrderAdminForm({
                                 ))}
                             </div>
                         </div>
+                    </div>
+
+                    {/* Conversion Rate to BDT */}
+                    <div className="p-4 rounded-2xl bg-indigo-50/70 dark:bg-indigo-950/30 border border-indigo-200/80 dark:border-indigo-900/50 space-y-3">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                            <div>
+                                <label className="block text-xs font-bold uppercase tracking-wider text-indigo-950 dark:text-indigo-200">
+                                    Conversion Rate to BDT (1 {data.currency} = ? BDT) <span className="text-rose-500">*</span>
+                                </label>
+                                <p className="text-[11px] text-indigo-700 dark:text-indigo-400 mt-0.5">
+                                    Exchange rate used for Profit &amp; Loss reporting, financial analytics, and BDT settlement calculations.
+                                </p>
+                            </div>
+                            <div className="w-full sm:w-48">
+                                <div className="relative">
+                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">৳</span>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        min="0.01"
+                                        required
+                                        disabled={data.currency === 'BDT'}
+                                        value={data.currency === 'BDT' ? 1 : data.exchange_rate_to_bdt}
+                                        onChange={(e) => setData('exchange_rate_to_bdt', e.target.value)}
+                                        placeholder={data.currency === 'EUR' ? '130.00' : (data.currency === 'USD' ? '120.00' : '1.00')}
+                                        className="w-full pl-8 pr-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-indigo-300 dark:border-indigo-800 text-slate-900 dark:text-white text-xs font-bold focus:ring-2 focus:ring-indigo-500 disabled:opacity-60"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        {data.currency !== 'BDT' && (
+                            <div className="flex items-center justify-between pt-2 border-t border-indigo-200/50 dark:border-indigo-900/40 text-xs">
+                                <span className="text-indigo-800 dark:text-indigo-300 font-medium">
+                                    Converted Estimated Total in BDT:
+                                </span>
+                                <span className="font-mono font-bold text-indigo-950 dark:text-indigo-200">
+                                    ≈ ৳{(Number(data.agreed_price || data.estimated_budget || 0) * Number(data.exchange_rate_to_bdt || 1)).toLocaleString()} BDT
+                                </span>
+                            </div>
+                        )}
                     </div>
 
                     {/* Requirements */}

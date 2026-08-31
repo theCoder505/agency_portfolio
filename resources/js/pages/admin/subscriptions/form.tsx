@@ -36,6 +36,8 @@ export default function SubscriptionForm({
         saas_product_id: subscription?.saas_product_id || (products[0]?.id || ''),
         billing_cycle: subscription?.billing_cycle || 'monthly',
         amount: subscription?.amount || (products[0]?.monthly_price || 0),
+        currency: subscription?.currency || 'BDT',
+        exchange_rate_to_bdt: subscription?.exchange_rate_to_bdt || (subscription?.currency === 'EUR' ? 130 : (subscription?.currency === 'USD' ? 120 : 1)),
         status: subscription?.status || 'active',
         payment_method: subscription?.payment_method || 'bkash',
         sender_number: subscription?.sender_number || '',
@@ -145,7 +147,7 @@ export default function SubscriptionForm({
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+                        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 pt-2">
                             <div>
                                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                                     Billing Cycle *
@@ -163,7 +165,30 @@ export default function SubscriptionForm({
 
                             <div>
                                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                                    Amount ({currencySymbol}) *
+                                    Currency *
+                                </label>
+                                <select
+                                    value={data.currency}
+                                    onChange={(e) => {
+                                        const newCur = e.target.value;
+                                        const defaultRate = newCur === 'EUR' ? 130 : (newCur === 'USD' ? 120 : 1);
+                                        setData((prev) => ({
+                                            ...prev,
+                                            currency: newCur,
+                                            exchange_rate_to_bdt: defaultRate,
+                                        }));
+                                    }}
+                                    className="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-xs font-bold"
+                                >
+                                    <option value="BDT">BDT (৳)</option>
+                                    <option value="USD">USD ($)</option>
+                                    <option value="EUR">EUR (€)</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                                    Amount ({data.currency}) *
                                 </label>
                                 <input
                                     type="number"
@@ -191,6 +216,47 @@ export default function SubscriptionForm({
                                     <option value="cancelled">Cancelled</option>
                                 </select>
                             </div>
+                        </div>
+
+                        {/* Conversion Rate to BDT */}
+                        <div className="p-4 rounded-xl bg-indigo-50/70 dark:bg-indigo-950/30 border border-indigo-200/80 dark:border-indigo-900/50 space-y-3 mt-2">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                                <div>
+                                    <label className="block text-xs font-bold uppercase tracking-wider text-indigo-950 dark:text-indigo-200">
+                                        Conversion Rate to BDT (1 {data.currency} = ? BDT) *
+                                    </label>
+                                    <p className="text-[11px] text-indigo-700 dark:text-indigo-400 mt-0.5">
+                                        Exchange rate used for Profit &amp; Loss revenue tracking and BDT financial reporting (Defaults: USD = 120, EUR = 130, BDT = 1).
+                                    </p>
+                                </div>
+                                <div className="w-full sm:w-44">
+                                    <div className="relative">
+                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">৳</span>
+                                        <input
+                                            type="number"
+                                            step="0.01"
+                                            min="0.01"
+                                            required
+                                            disabled={data.currency === 'BDT'}
+                                            value={data.currency === 'BDT' ? 1 : data.exchange_rate_to_bdt}
+                                            onChange={(e) => setData('exchange_rate_to_bdt', parseFloat(e.target.value) || 1)}
+                                            placeholder={data.currency === 'EUR' ? '130.00' : (data.currency === 'USD' ? '120.00' : '1.00')}
+                                            className="w-full pl-8 pr-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-indigo-300 dark:border-indigo-800 text-slate-900 dark:text-white text-xs font-bold focus:ring-2 focus:ring-indigo-500 disabled:opacity-60"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {data.currency !== 'BDT' && (
+                                <div className="flex items-center justify-between pt-2 border-t border-indigo-200/50 dark:border-indigo-900/40 text-xs">
+                                    <span className="text-indigo-800 dark:text-indigo-300 font-medium">
+                                        Calculated Billing Amount in BDT:
+                                    </span>
+                                    <span className="font-mono font-bold text-indigo-950 dark:text-indigo-200">
+                                        ≈ ৳{(Number(data.amount || 0) * Number(data.exchange_rate_to_bdt || 1)).toLocaleString()} BDT
+                                    </span>
+                                </div>
+                            )}
                         </div>
                     </div>
 

@@ -45,6 +45,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('custom-orders/{ref}/deliverables', [CustomOrderController::class, 'updateDeliverables'])->name('custom-orders.deliverables');
         Route::put('custom-orders/{ref}/deliverables', [CustomOrderController::class, 'updateDeliverables'])->name('custom-orders.deliverables.put');
         Route::post('custom-orders/{ref}/update-budget', [CustomOrderController::class, 'updateBudget'])->name('custom-orders.update-budget');
+        Route::post('custom-orders/{ref}/exchange-rate', [CustomOrderController::class, 'updateExchangeRate'])->name('custom-orders.exchange-rate');
         Route::post('custom-orders/{ref}/accept', [CustomOrderController::class, 'accept'])->name('custom-orders.accept');
         Route::post('custom-orders/{ref}/deny', [CustomOrderController::class, 'deny'])->name('custom-orders.deny');
         Route::post('custom-orders/{ref}/complete', [CustomOrderController::class, 'complete'])->name('custom-orders.complete');

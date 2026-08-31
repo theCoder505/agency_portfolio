@@ -197,9 +197,14 @@ export default function CustomOrderRequest({
 
                         {/* Project Title */}
                         <div>
-                            <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">
-                                Project / Product Title <span className="text-rose-500">*</span>
-                            </label>
+                            <div className="flex items-center justify-between mb-2">
+                                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                                    Project / Product Title <span className="text-rose-500">*</span>
+                                </label>
+                                <span className="text-[11px] font-mono text-slate-400 dark:text-slate-500">
+                                    {data.title.length} characters
+                                </span>
+                            </div>
                             <input
                                 type="text"
                                 value={data.title}
@@ -311,7 +316,15 @@ export default function CustomOrderRequest({
                                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
                                     Detailed Requirements & Scope of Work <span className="text-rose-500">*</span>
                                 </label>
-                                <span className="text-[11px] text-slate-400">Be as detailed as possible</span>
+                                <div className="flex items-center space-x-2 text-[11px] text-slate-400">
+                                    <span className="font-mono font-medium text-indigo-600 dark:text-cyan-400">
+                                        {data.requirements.length.toLocaleString()} characters
+                                    </span>
+                                    <span>&bull;</span>
+                                    <span className="font-mono">
+                                        {data.requirements.trim() ? data.requirements.trim().split(/\s+/).length : 0} words
+                                    </span>
+                                </div>
                             </div>
                             <textarea
                                 rows={6}
@@ -321,14 +334,27 @@ export default function CustomOrderRequest({
                                 required
                                 className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-medium leading-relaxed resize-y"
                             />
+                            <div className="flex items-center justify-between mt-1.5 text-[11px] text-slate-400">
+                                <span>Be as detailed as possible to help us provide an accurate timeline and quote.</span>
+                                <span className="font-mono text-slate-500">
+                                    {data.requirements.length.toLocaleString()} chars
+                                </span>
+                            </div>
                             {errors.requirements && <p className="text-rose-500 text-xs mt-1">{errors.requirements}</p>}
                         </div>
 
                         {/* Reference Links */}
                         <div>
-                            <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">
-                                Reference Links (Figma, GitHub, Live Demo, Competitor URLs)
-                            </label>
+                            <div className="flex items-center justify-between mb-2">
+                                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                                    Reference Links (Figma, GitHub, Live Demo, Competitor URLs)
+                                </label>
+                                {data.reference_links.length > 0 && (
+                                    <span className="text-[11px] font-mono text-slate-400 dark:text-slate-500">
+                                        {data.reference_links.length} characters
+                                    </span>
+                                )}
+                            </div>
                             <input
                                 type="text"
                                 value={data.reference_links}

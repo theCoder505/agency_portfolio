@@ -84,6 +84,8 @@ class SubscriptionController extends Controller
             'package_tier' => 'nullable|string|in:basic,standard,premium',
             'billing_cycle' => 'required|in:monthly,half_yearly,yearly',
             'amount' => 'required|numeric|min:0',
+            'currency' => 'nullable|string|in:BDT,USD,EUR',
+            'exchange_rate_to_bdt' => 'nullable|numeric|min:0.01',
             'status' => 'required|in:pending,active,expired,rejected,cancelled',
             'payment_method' => 'required|string|max:50',
             'sender_number' => 'nullable|string|max:30',
@@ -96,9 +98,14 @@ class SubscriptionController extends Controller
         ]);
 
         $admin = Auth::guard('admin')->user();
-        $appSettings = AppSetting::getAllGrouped();
-        $validated['currency'] = $appSettings['currency_code'] ?? 'BDT';
+        $currency = $validated['currency'] ?? 'BDT';
+        $validated['currency'] = $currency;
         $validated['package_tier'] = $validated['package_tier'] ?? 'standard';
+
+        $rate = !empty($validated['exchange_rate_to_bdt']) 
+            ? (float) $validated['exchange_rate_to_bdt'] 
+            : (($currency === 'EUR') ? 130.0 : (($currency === 'USD') ? 120.0 : 1.0));
+        $validated['exchange_rate_to_bdt'] = $rate;
 
         if ($validated['status'] === 'active') {
             $startsAt = !empty($validated['starts_at']) ? Carbon::parse($validated['starts_at']) : Carbon::now();
@@ -121,6 +128,7 @@ class SubscriptionController extends Controller
                 'billing_cycle' => $subscription->billing_cycle,
                 'amount' => $subscription->amount,
                 'currency' => $subscription->currency,
+                'exchange_rate_to_bdt' => $rate,
                 'payment_method' => $subscription->payment_method,
                 'sender_number' => $subscription->sender_number,
                 'transaction_id' => $subscription->transaction_id ?? ('ADM-' . rand(1000, 9999)),
@@ -220,8 +228,14 @@ class SubscriptionController extends Controller
 
         $subscription->update($validated);
 
+        if (!empty($validated['exchange_rate_to_bdt'])) {
+            SubscriptionInvoice::where('subscription_id', $subscription->id)->update([
+                'exchange_rate_to_bdt' => (float) $validated['exchange_rate_to_bdt'],
+            ]);
+        }
+
         return redirect()->route('admin.subscriptions.show', $subscription->order_number)
-            ->with('success', 'Subscription details updated successfully!');
+            ->with('success', 'Subscription details & exchange rate updated successfully!');
     }
 
     /**

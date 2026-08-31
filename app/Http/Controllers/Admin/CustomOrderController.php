@@ -389,7 +389,7 @@ class CustomOrderController extends Controller
     }
 
     /**
-     * Admin updates agreed price, estimated budget, and currency.
+     * Admin updates agreed price, estimated budget, currency, and conversion rate.
      */
     public function updateBudget(Request $request, string|int $ref): RedirectResponse
     {
@@ -413,8 +413,37 @@ class CustomOrderController extends Controller
 
         $order->update($validated);
 
+        CustomOrderMilestone::where('custom_order_id', $order->id)->update([
+            'exchange_rate_to_bdt' => (float) $validated['exchange_rate_to_bdt'],
+        ]);
+
         return redirect($order->admin_show_url)
             ->with('success', 'Project budget, currency & exchange rate updated successfully!');
+    }
+
+    /**
+     * Admin quickly updates conversion rate to BDT for a custom order and all its milestones.
+     */
+    public function updateExchangeRate(Request $request, string|int $ref): RedirectResponse
+    {
+        $order = CustomOrder::findByRefOrFail($ref);
+
+        $validated = $request->validate([
+            'exchange_rate_to_bdt' => 'required|numeric|min:0.01',
+        ]);
+
+        $rate = (float) $validated['exchange_rate_to_bdt'];
+
+        $order->update([
+            'exchange_rate_to_bdt' => $rate,
+        ]);
+
+        CustomOrderMilestone::where('custom_order_id', $order->id)->update([
+            'exchange_rate_to_bdt' => $rate,
+        ]);
+
+        return redirect($order->admin_show_url)
+            ->with('success', "Conversion rate updated: 1 {$order->currency} = ৳" . number_format($rate, 2) . " BDT");
     }
 
     /**

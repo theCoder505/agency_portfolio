@@ -41,7 +41,7 @@ export default function CheckoutPage({
     selectedTier = 'standard',
     paymentSettings,
 }: CheckoutPageProps) {
-    const { auth, app_settings } = usePage<SharedData>().props;
+    const { auth } = usePage<SharedData>().props;
     const currentUser = auth?.user;
 
     const [cycle, setCycle] = useState<'monthly' | 'half_yearly' | 'yearly'>(selectedCycle);
@@ -300,7 +300,7 @@ export default function CheckoutPage({
                                         </div>
 
                                         <div className="mt-4">
-                                            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1 flex items-center space-x-1.5">
+                                            <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1 flex items-center space-x-1.5">
                                                 <WhatsAppIcon className="h-3.5 w-3.5 text-emerald-500" />
                                                 <span>WhatsApp Number (For Direct Activation & Instant Support)</span>
                                             </label>
@@ -355,7 +355,7 @@ export default function CheckoutPage({
                                             </div>
 
                                             <div>
-                                                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1 flex items-center space-x-1.5">
+                                                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1 flex items-center space-x-1.5">
                                                     <WhatsAppIcon className="h-3.5 w-3.5 text-emerald-500" />
                                                     <span>WhatsApp Number (For Direct Chat) *</span>
                                                 </label>
@@ -426,7 +426,7 @@ export default function CheckoutPage({
                                 </div>
 
                                 <div className="space-y-4">
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 gap-4">
                                         <div>
                                             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                                                 Requested Custom Domain (If you have one)
@@ -445,17 +445,17 @@ export default function CheckoutPage({
                                             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                                                 Requested Subdomain Prefix
                                             </label>
-                                            <div className="flex items-center">
+                                            <div className="flex flex-wrap items-stretch w-full rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-transparent transition-all">
                                                 <input
                                                     type="text"
                                                     value={data.desired_subdomain}
                                                     onChange={(e) => setData('desired_subdomain', e.target.value)}
                                                     placeholder="mybrand"
-                                                    className="w-full px-3.5 py-2.5 rounded-l-xl border border-r-0 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500"
+                                                    className="flex-1 min-w-[50%] px-3.5 py-2.5 bg-white dark:bg-slate-950 text-xs text-slate-900 dark:text-white border-0 outline-hidden focus:ring-0 focus:outline-hidden"
                                                 />
-                                                <span className="px-3 py-2.5 rounded-r-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-800 text-[11px] font-mono text-slate-500">
+                                                <div className="flex-initial shrink-0 min-w-max max-w-full px-3.5 py-2.5 bg-slate-100 dark:bg-slate-800/80 border-t sm:border-t-0 sm:border-l border-slate-200 dark:border-slate-800 text-[11px] font-mono text-slate-600 dark:text-slate-400 flex items-center select-none">
                                                     .{product.primary_domain || 'codeventure.app'}
-                                                </span>
+                                                </div>
                                             </div>
                                             <p className="text-[10px] text-slate-400 mt-1">Your free managed platform subdomain on {product.primary_domain || 'codeventure.app'}.</p>
                                         </div>

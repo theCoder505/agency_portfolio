@@ -56,7 +56,7 @@ export default function CustomerForm({
                 { title: isEdit ? 'Edit Customer' : 'New Customer' },
             ]}
         >
-            <div className="max-w-3xl space-y-6">
+            <div className="w-full space-y-6">
                 <div className="flex items-center space-x-3">
                     <Link
                         href="/admin/customers"
