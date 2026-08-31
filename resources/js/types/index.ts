@@ -74,7 +74,21 @@ export interface AppSettings {
     terms_and_conditions?: string;
     privacy_policy?: string;
     faqs_json?: string;
+    services_title?: string;
+    services_subtitle?: string;
+    services_json?: string;
     [key: string]: string | undefined | boolean;
+}
+
+export interface ServiceCapabilityItem {
+    number: string;
+    icon: string;
+    title: string;
+    description: string;
+    tags: string[];
+    link?: string;
+    gradient?: string;
+    glowColor?: string;
 }
 
 export interface FAQItem {

@@ -12,6 +12,13 @@ import {
     CheckCircle2,
     Code2,
     Cpu,
+    Brain,
+    Radio,
+    CircuitBoard,
+    ShoppingCart,
+    Smartphone,
+    Palette,
+    TrendingUp,
     Zap,
     Database,
     Layout,
@@ -93,44 +100,127 @@ export default function Home({
     const featuredVideo = app_settings?.featured_youtube_video || 'https://www.youtube.com/watch?v=LXb3EKWsInQ';
     const currency = app_settings?.currency_symbol || '৳';
 
-    const services = [
+    const DEFAULT_SERVICES: ServiceCapabilityItem[] = [
         {
-            icon: Code2,
-            title: 'SaaS Platform Engineering',
-            description: 'Multi-tenant, high-throughput web applications with robust billing, real-time analytics, and role-based permissions.',
-            gradient: 'from-blue-500 to-indigo-600',
+            number: '01',
+            icon: 'Brain',
+            title: 'Machine Learning',
+            description: 'At Code Venture, Machine Learning is more than pattern recognition—it’s strategic foresight coded into action. We create adaptive systems that learn from data, predict outcomes, and make processes smarter across every touchpoint.',
+            tags: ['Predictive AI', 'Adaptive Models', 'Strategic Foresight'],
+            link: '/custom-orders/request',
+            gradient: 'from-cyan-500 via-blue-500 to-indigo-600',
         },
         {
-            icon: Cpu,
-            title: 'AI & Intelligent Workspaces',
-            description: 'Integrating generative AI, LLM streaming agents, semantic vector databases, and custom workflow canvases.',
-            gradient: 'from-purple-500 to-pink-600',
+            number: '02',
+            icon: 'Cpu',
+            title: 'Artificial Intelligence',
+            description: 'We design intelligent systems that think, learn, and adapt—empowering your business with high-throughput automation, smart telemetry analytics, and data-driven decision-making.',
+            tags: ['LLM Orchestration', 'Smart Automation', 'Decision Engines'],
+            link: '/custom-orders/request',
+            gradient: 'from-indigo-500 via-purple-500 to-pink-500',
         },
         {
-            icon: Globe,
-            title: 'Headless E-Commerce Solutions',
-            description: 'Sub-second page load times, 3D interactive product configurators, and global multi-currency checkout experiences.',
-            gradient: 'from-amber-500 to-orange-600',
+            number: '03',
+            icon: 'Radio',
+            title: 'IoT Solutions',
+            description: 'At Code Venture, we create smart IoT ecosystems that connect devices, platforms, and people. From smart sensors to seamless system integrations, we help businesses unlock automation and real-time efficiency.',
+            tags: ['Smart Sensors', 'Cloud Telemetry', 'Connected Devices'],
+            link: '/custom-orders/request',
+            gradient: 'from-teal-400 via-emerald-500 to-cyan-600',
         },
         {
-            icon: Layout,
-            title: 'Interactive Web & 3D Experiences',
-            description: 'Award-winning digital experiences featuring Three.js 3D animations, custom shader effects, and smooth scroll interactions.',
-            gradient: 'from-teal-500 to-emerald-600',
+            number: '04',
+            icon: 'CircuitBoard',
+            title: 'Hardware Integration',
+            description: 'We bridge the physical and digital by integrating software with smart hardware—building interconnected systems that deliver seamless functionality, control, and edge computing.',
+            tags: ['Firmware APIs', 'Edge Systems', 'Device Control'],
+            link: '/custom-orders/request',
+            gradient: 'from-amber-400 via-orange-500 to-rose-500',
         },
         {
-            icon: Database,
-            title: 'Enterprise Portals & Cloud ERP',
-            description: 'Secure, HIPAA/SOC2 compliant internal management systems, telemetry dashboards, and automated business workflows.',
-            gradient: 'from-cyan-500 to-blue-600',
+            number: '05',
+            icon: 'ShoppingCart',
+            title: 'Ecommerce Development',
+            description: 'We create robust, scalable ecommerce platforms that streamline user journeys, optimize conversions, and elevate your brand in the competitive global marketplace.',
+            tags: ['Headless Stores', 'Multi-Currency', 'Instant Checkout'],
+            link: '/custom-orders/request',
+            gradient: 'from-pink-500 via-rose-500 to-red-500',
         },
         {
-            icon: Zap,
-            title: 'Cloud DevOps & API Architecture',
-            description: 'Automated CI/CD pipelines, Kubernetes containerization, Redis caching layers, and high-availability serverless setups.',
-            gradient: 'from-red-500 to-rose-600',
+            number: '06',
+            icon: 'Smartphone',
+            title: 'Web & Mobile Development',
+            description: 'From lightning-fast web platforms to fluid mobile experiences, we don’t just build—we launch brands into the hands of the future. One tap at a time.',
+            tags: ['React 19 & Next.js', 'Native-Feel Apps', 'Micro-Interactions'],
+            link: '/custom-orders/request',
+            gradient: 'from-blue-500 via-cyan-500 to-sky-400',
         },
-    ];    const techStackTicker = [
+        {
+            number: '07',
+            icon: 'Palette',
+            title: 'UI/UX Designing',
+            description: 'Our design philosophy blends aesthetics with usability—crafting intuitive digital experiences that delight users and drive engagement across every touchpoint.',
+            tags: ['Design Systems', '3D & Motion', 'User Journeys'],
+            link: '/custom-orders/request',
+            gradient: 'from-violet-500 via-purple-500 to-fuchsia-500',
+        },
+        {
+            number: '08',
+            icon: 'TrendingUp',
+            title: 'Digital Marketing',
+            description: 'From strategy to execution, we amplify your digital presence through data-led campaigns, content that connects, and performance that delivers measurable growth.',
+            tags: ['Technical SEO', 'Performance Growth', 'Conversion Funnels'],
+            link: '/custom-orders/request',
+            gradient: 'from-emerald-400 via-teal-500 to-blue-500',
+        },
+        {
+            number: '09',
+            icon: 'Zap',
+            title: 'Cloud DevOps & Architecture',
+            description: 'We architect resilient cloud infrastructures, automated CI/CD pipelines, containerized microservices, and high-availability systems with 99.9% uptime SLA.',
+            tags: ['Kubernetes & Docker', 'CI/CD Pipelines', 'AWS & Cloudflare'],
+            link: '/custom-orders/request',
+            gradient: 'from-amber-500 via-rose-500 to-red-600',
+        },
+    ];
+
+    const ICON_MAP: Record<string, React.ElementType> = {
+        Brain,
+        Cpu,
+        Radio,
+        CircuitBoard,
+        ShoppingCart,
+        Smartphone,
+        Palette,
+        TrendingUp,
+        Code2,
+        Database,
+        Layout,
+        Globe,
+        Zap,
+        Rocket,
+        Award,
+        ShieldCheck: CheckCircle2,
+        Layers,
+        Sparkles,
+    };
+
+    let services: ServiceCapabilityItem[] = DEFAULT_SERVICES;
+    if (app_settings?.services_json) {
+        try {
+            const parsed = JSON.parse(app_settings.services_json);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+                services = parsed;
+            }
+        } catch (e) {
+            console.error('Failed to parse dynamic services:', e);
+        }
+    }
+
+    const servicesTitle = app_settings?.services_title || 'Tech that talks business. Code that creates impact.';
+    const servicesSubtitle = app_settings?.services_subtitle || 'At CodeVenture, we fuse creativity with clean code to craft digital experiences that move fast, scale effortlessly, and feel fresh.';
+
+    const techStackTicker = [
         'Laravel 12 (PHP 8.4)',
         'React 19 + Inertia.js',
         'TypeScript Architecture',
@@ -174,46 +264,91 @@ export default function Home({
                 </div>
             </div>
 
-            {/* SERVICES / CORE ENGINEERING CAPABILITIES */}
-            <section id="what-we-build" className="py-24 relative w-full overflow-hidden">
+            {/* WHAT WE BUILD / CORE CAPABILITIES (Matching codeventuretechnologies.com design) */}
+            <section id="what-we-build" className="py-28 relative w-full overflow-hidden">
+                {/* Ambient background lighting */}
+                <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[700px] h-[500px] bg-cyan-500/5 dark:bg-cyan-500/10 rounded-full blur-[140px] pointer-events-none" />
+
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-                    <div className="text-center max-w-2xl mx-auto mb-16" data-aos="fade-up">
-                        <div className="cv-badge mb-3.5">
+                    <div className="text-center max-w-3xl mx-auto mb-20" data-aos="fade-up">
+                        <div className="cv-badge mb-4" data-aos="zoom-in">
                             <Layers className="h-3.5 w-3.5 text-cyan-400" />
                             <span>Core Engineering Capabilities</span>
                         </div>
-                        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-slate-900 dark:text-white">
-                            What We Build
+                        <h2 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight text-slate-900 dark:text-white leading-[1.15]">
+                            {servicesTitle.includes('.') ? (
+                                <>
+                                    {servicesTitle.split('.')[0]}.{' '}
+                                    <span className="cv-gradient-text block sm:inline">
+                                        {servicesTitle.split('.').slice(1).join('.').trim()}
+                                    </span>
+                                </>
+                            ) : (
+                                <span className="cv-gradient-text">{servicesTitle}</span>
+                            )}
                         </h2>
-                        <p className="mt-3.5 text-sm sm:text-base text-slate-600 dark:text-slate-400 leading-relaxed">
-                            Enterprise-grade full stack digital systems engineered for extreme speed, high reliability, and market leadership.
+                        <p className="mt-5 text-base sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed max-w-2xl mx-auto">
+                            {servicesSubtitle}
                         </p>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {services.map((service, index) => {
-                            const IconComponent = service.icon;
+                            const IconComponent = ICON_MAP[service.icon] || Code2;
+                            const gradient = service.gradient || 'from-cyan-500 via-blue-500 to-indigo-600';
+                            const targetLink = service.link || '/custom-orders/request';
+
                             return (
                                 <div
                                     key={index}
                                     data-aos="fade-up"
                                     data-aos-delay={`${(index % 3) * 100}`}
-                                    className="cv-card rounded-3xl p-8 flex flex-col justify-between group"
+                                    className="cv-card cv-service-card rounded-3xl p-7 flex flex-col justify-between group cursor-default transition-all duration-500 hover:scale-[1.02] hover:-translate-y-2"
                                 >
                                     <div>
-                                        <div className={`h-12 w-12 rounded-2xl bg-gradient-to-tr ${service.gradient} flex items-center justify-center text-white shadow-lg mb-6 group-hover:scale-110 transition-transform duration-300`}>
-                                            <IconComponent className="h-6 w-6" />
+                                        {/* Card Top: Gradient Icon + Monospace Index Number */}
+                                        <div className="flex items-center justify-between mb-6">
+                                            <div className={`h-12 w-12 rounded-2xl bg-gradient-to-tr ${gradient} flex items-center justify-center text-white shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300`}>
+                                                <IconComponent className="h-6 w-6" />
+                                            </div>
+                                            <span className="font-mono text-xs font-bold text-slate-400 dark:text-slate-500 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-[#01121e] border border-slate-200/60 dark:border-cyan-500/15 group-hover:text-cyan-400 group-hover:border-cyan-500/40 transition-colors">
+                                                {service.number || `0${index + 1}`}
+                                            </span>
                                         </div>
-                                        <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3 group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">
+
+                                        {/* Title */}
+                                        <h3 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white mb-3 group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">
                                             {service.title}
                                         </h3>
-                                        <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+
+                                        {/* Description */}
+                                        <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
                                             {service.description}
                                         </p>
                                     </div>
-                                    <div className="pt-6 flex items-center text-xs font-bold text-cyan-600 dark:text-cyan-400 group-hover:translate-x-1 transition-transform">
-                                        <span>Production-Ready SLA</span>
-                                        <ArrowRight className="h-3.5 w-3.5 ml-1.5" />
+
+                                    {/* Bottom: Technical Tag Chips + Interactive Action */}
+                                    <div className="mt-6 pt-5 border-t border-slate-100 dark:border-cyan-500/10 space-y-4">
+                                        {service.tags && service.tags.length > 0 && (
+                                            <div className="flex flex-wrap gap-1.5">
+                                                {service.tags.map((tag, tIdx) => (
+                                                    <span
+                                                        key={tIdx}
+                                                        className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 dark:bg-[#01121e] text-slate-600 dark:text-slate-300 border border-slate-200/60 dark:border-cyan-500/15 group-hover:border-cyan-500/30 transition-colors"
+                                                    >
+                                                        {tag}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        <Link
+                                            href={targetLink}
+                                            className="inline-flex items-center text-xs font-bold text-cyan-600 dark:text-cyan-400 group-hover:translate-x-1 transition-transform"
+                                        >
+                                            <span>Venture Beyond</span>
+                                            <ArrowUpRight className="h-3.5 w-3.5 ml-1 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                                        </Link>
                                     </div>
                                 </div>
                             );

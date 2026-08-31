@@ -157,7 +157,7 @@ export default function BlogIndexPage({
                         <div
                             data-aos="fade-up"
                             data-aos-delay="200"
-                            className="mt-10 flex gap-2 flex-wrap items-center overflow-x-auto pb-2 scrollbar-none"
+                            className="mt-10 flex gap-2 p-2 flex-wrap items-center overflow-x-auto pb-2 scrollbar-none"
                         >
                             <button
                                 type="button"

@@ -10,11 +10,7 @@ interface ThemeToggleProps {
 export const ThemeToggle: React.FC<ThemeToggleProps> = ({ className = '', isHeroMode = false }) => {
     const { appearance, updateAppearance } = useAppearance();
 
-    const isDark =
-        appearance === 'dark' ||
-        (appearance === 'system' &&
-            typeof window !== 'undefined' &&
-            window.matchMedia('(prefers-color-scheme: dark)').matches);
+    const isDark = appearance !== 'light';
 
     const toggleTheme = () => {
         updateAppearance(isDark ? 'light' : 'dark');

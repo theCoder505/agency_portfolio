@@ -2,43 +2,58 @@ import { useEffect, useState } from 'react';
 
 export type Appearance = 'light' | 'dark' | 'system';
 
-const prefersDark = () => window.matchMedia('(prefers-color-scheme: dark)').matches;
-
 const applyTheme = (appearance: Appearance) => {
-    const isDark = appearance === 'dark' || (appearance === 'system' && prefersDark());
+    // If explicitly set to 'light', use light mode. Otherwise (dark, system, or unset), default to dark.
+    const isDark = appearance === 'system'
+        ? (typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+        : appearance !== 'light';
 
-    document.documentElement.classList.toggle('dark', isDark);
+    if (typeof document !== 'undefined') {
+        document.documentElement.classList.toggle('dark', isDark);
+    }
 };
-
-const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
 
 const handleSystemThemeChange = () => {
     const currentAppearance = localStorage.getItem('appearance') as Appearance;
-    applyTheme(currentAppearance || 'system');
+    if (currentAppearance === 'system') {
+        applyTheme('system');
+    }
 };
 
 export function initializeTheme() {
-    const savedAppearance = (localStorage.getItem('appearance') as Appearance) || 'system';
+    if (typeof window === 'undefined') return;
+    const savedAppearance = (localStorage.getItem('appearance') as Appearance) || 'dark';
 
     applyTheme(savedAppearance);
 
-    // Add the event listener for system theme changes...
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     mediaQuery.addEventListener('change', handleSystemThemeChange);
 }
 
 export function useAppearance() {
-    const [appearance, setAppearance] = useState<Appearance>('system');
+    const [appearance, setAppearance] = useState<Appearance>(() => {
+        if (typeof window !== 'undefined') {
+            return (localStorage.getItem('appearance') as Appearance) || 'dark';
+        }
+        return 'dark';
+    });
 
     const updateAppearance = (mode: Appearance) => {
         setAppearance(mode);
-        localStorage.setItem('appearance', mode);
+        if (typeof window !== 'undefined') {
+            localStorage.setItem('appearance', mode);
+        }
         applyTheme(mode);
     };
 
     useEffect(() => {
-        const savedAppearance = localStorage.getItem('appearance') as Appearance | null;
-        updateAppearance(savedAppearance || 'system');
+        if (typeof window === 'undefined') return;
+        const savedAppearance = (localStorage.getItem('appearance') as Appearance | null) || 'dark';
+        setAppearance(savedAppearance);
+        applyTheme(savedAppearance);
 
+        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        mediaQuery.addEventListener('change', handleSystemThemeChange);
         return () => mediaQuery.removeEventListener('change', handleSystemThemeChange);
     }, []);
 

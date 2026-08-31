@@ -8,7 +8,8 @@ export const SurfaceFooter: React.FC = () => {
     const { app_settings } = usePage<SharedData>().props;
 
     const brandName = app_settings?.brand_name || 'CodeVenture Tech';
-    const logoUrl = app_settings?.logo;
+    const logoLight = app_settings?.logo;
+    const logoDark = app_settings?.logo_dark;
     const footerText = app_settings?.footer_text || 'Pioneering digital craftsmanship and modern web applications.';
     const copyrightText = app_settings?.copyright_text || `© ${new Date().getFullYear()} CodeVenture Technology. All rights reserved.`;
     const email = app_settings?.contact_email || 'hello@codeventure.tech';
@@ -33,9 +34,28 @@ export const SurfaceFooter: React.FC = () => {
                     {/* Col 1 & 2: Brand Info */}
                     <div className="lg:col-span-2 space-y-4">
                         <Link href="/" className="inline-flex items-center space-x-2.5">
-                            {logoUrl ? (
+                            {logoDark && logoLight ? (
+                                <>
+                                    <img
+                                        src={logoLight}
+                                        alt={brandName}
+                                        className="h-9 w-auto object-contain transition-transform group-hover:scale-105 dark:hidden"
+                                    />
+                                    <img
+                                        src={logoDark}
+                                        alt={brandName}
+                                        className="h-9 w-auto object-contain transition-transform group-hover:scale-105 hidden dark:block"
+                                    />
+                                </>
+                            ) : logoDark ? (
                                 <img
-                                    src={logoUrl}
+                                    src={logoDark}
+                                    alt={brandName}
+                                    className="h-9 w-auto object-contain transition-transform group-hover:scale-105"
+                                />
+                            ) : logoLight ? (
+                                <img
+                                    src={logoLight}
                                     alt={brandName}
                                     className="h-9 w-auto object-contain transition-transform group-hover:scale-105"
                                 />

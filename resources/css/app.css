@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@import url('https://api.fontshare.com/v2/css?f[]=satoshi@900,800,700,600,500,400,300,1&display=swap');
 
 @plugin 'tailwindcss-animate';
 
@@ -8,7 +9,7 @@
 
 @theme {
     --font-sans:
-        'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+        'Satoshi Variable', 'Satoshi', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 
     --radius-lg: var(--radius);
     --radius-md: calc(var(--radius) - 2px);
@@ -447,27 +448,50 @@ button{
 /* Signature Cards Background Effect */
 .cv-card {
     position: relative;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(241, 248, 255, 0.85) 100%);
-    border: 1px solid rgba(19, 155, 253, 0.16);
-    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.04);
-    transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(246, 250, 255, 0.9) 100%);
+    border: 1px solid rgba(19, 155, 253, 0.14);
+    box-shadow: 0 4px 24px -2px rgba(0, 0, 0, 0.04);
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    backdrop-filter: blur(12px);
 }
 
 .dark .cv-card {
-    background: radial-gradient(120% 120% at 50% 0%, rgba(19, 155, 253, 0.07) 0%, rgba(1, 14, 22, 0.85) 100%), #010e16;
-    border: 1px solid rgba(19, 215, 253, 0.16);
-    box-shadow: 0 4px 25px -4px rgba(0, 0, 0, 0.45);
+    background: radial-gradient(120% 120% at 50% 0%, rgba(19, 155, 253, 0.06) 0%, rgba(1, 14, 22, 0.92) 100%), #010e16;
+    border: 1px solid rgba(19, 215, 253, 0.12);
+    box-shadow: 0 4px 30px -4px rgba(0, 0, 0, 0.5);
 }
 
 .cv-card:hover {
-    transform: translateY(-4px);
-    border-color: rgba(19, 155, 253, 0.45);
-    box-shadow: 0 16px 36px -8px rgba(19, 155, 253, 0.16);
+    transform: translateY(-6px);
+    border-color: rgba(19, 155, 253, 0.5);
+    box-shadow: 0 20px 40px -10px rgba(19, 155, 253, 0.18), 0 0 20px rgba(19, 253, 253, 0.1);
 }
 
 .dark .cv-card:hover {
-    border-color: rgba(19, 253, 253, 0.45);
-    box-shadow: 0 0 35px -5px rgba(19, 155, 253, 0.22), 0 16px 36px -8px rgba(0, 0, 0, 0.6);
+    border-color: rgba(19, 253, 253, 0.5);
+    box-shadow: 0 0 40px -5px rgba(19, 155, 253, 0.25), 0 20px 45px -10px rgba(0, 0, 0, 0.7);
+}
+
+/* Service Card Hover Spotlight Overlay */
+.cv-service-card {
+    position: relative;
+    overflow: hidden;
+}
+
+.cv-service-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #13fdfd, #139bfd, transparent);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+
+.cv-service-card:hover::after {
+    opacity: 1;
 }
 
 /* Radiant Stroke Border Gradient */

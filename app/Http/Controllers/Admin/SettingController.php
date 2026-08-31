@@ -66,6 +66,8 @@ class SettingController extends Controller
                 $group = 'contact';
             } elseif (in_array($key, ['faqs_json', 'faqs'])) {
                 $group = 'faqs';
+            } elseif (in_array($key, ['services_title', 'services_subtitle', 'services_json'])) {
+                $group = 'services';
             }
 
             AppSetting::set($key, is_null($value) ? '' : (string)$value, $group);

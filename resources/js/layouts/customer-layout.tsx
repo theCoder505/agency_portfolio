@@ -144,10 +144,23 @@ export const CustomerLayout: React.FC<CustomerLayoutProps> = ({
                                     className="h-full w-full object-contain transition-transform group-hover:scale-105"
                                 />
                             </div>
-                        ) : app_settings?.logo ? (
+                        ) : (app_settings?.logo_dark && app_settings?.logo) ? (
                             <div className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-slate-800 p-1 flex items-center justify-center overflow-hidden flex-shrink-0 border border-slate-200 dark:border-slate-700 shadow-xs group-hover:border-indigo-500/50 transition-colors">
                                 <img
                                     src={app_settings.logo}
+                                    alt={brandName}
+                                    className="h-full w-full object-contain transition-transform group-hover:scale-105 dark:hidden"
+                                />
+                                <img
+                                    src={app_settings.logo_dark}
+                                    alt={brandName}
+                                    className="h-full w-full object-contain transition-transform group-hover:scale-105 hidden dark:block"
+                                />
+                            </div>
+                        ) : (app_settings?.logo_dark || app_settings?.logo) ? (
+                            <div className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-slate-800 p-1 flex items-center justify-center overflow-hidden flex-shrink-0 border border-slate-200 dark:border-slate-700 shadow-xs group-hover:border-indigo-500/50 transition-colors">
+                                <img
+                                    src={app_settings?.logo_dark || app_settings?.logo}
                                     alt={brandName}
                                     className="h-full w-full object-contain transition-transform group-hover:scale-105"
                                 />

@@ -13,7 +13,8 @@ export const SurfaceHeader: React.FC = () => {
     const { url } = usePage();
 
     const brandName = app_settings?.brand_name || 'CodeVenture Tech';
-    const logoUrl = app_settings?.logo;
+    const logoLight = app_settings?.logo;
+    const logoDark = app_settings?.logo_dark;
 
     useEffect(() => {
         const handleScroll = () => {
@@ -71,9 +72,28 @@ export const SurfaceHeader: React.FC = () => {
                 <div className="flex items-center justify-between">
                     {/* Brand Logo & Name */}
                     <Link href="/" className="flex items-center space-x-3 group">
-                        {logoUrl ? (
+                        {logoDark && logoLight ? (
+                            <>
+                                <img
+                                    src={logoLight}
+                                    alt={brandName}
+                                    className="h-9 w-auto object-contain transition-transform group-hover:scale-105 dark:hidden"
+                                />
+                                <img
+                                    src={logoDark}
+                                    alt={brandName}
+                                    className="h-9 w-auto object-contain transition-transform group-hover:scale-105 hidden dark:block"
+                                />
+                            </>
+                        ) : logoDark ? (
                             <img
-                                src={logoUrl}
+                                src={logoDark}
+                                alt={brandName}
+                                className="h-9 w-auto object-contain transition-transform group-hover:scale-105"
+                            />
+                        ) : logoLight ? (
+                            <img
+                                src={logoLight}
                                 alt={brandName}
                                 className="h-9 w-auto object-contain transition-transform group-hover:scale-105"
                             />
