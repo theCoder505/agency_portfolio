@@ -25,7 +25,6 @@ import {
 import { showToast, showConfirmDialog } from '@/lib/swal';
 import { useClientDataTable } from '@/hooks/use-client-data-table';
 import { Pagination } from '@/components/ui/pagination';
-import { formatCurrency } from '@/lib/formatters';
 
 interface SubscriptionShowProps {
     subscription: SaasSubscription;

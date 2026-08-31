@@ -197,6 +197,8 @@ export interface SaasSubscription {
     billing_cycle: 'monthly' | 'half_yearly' | 'yearly';
     amount: number;
     currency: string;
+    exchange_rate_to_bdt?: number | null;
+    effective_exchange_rate?: number;
     status: 'pending' | 'active' | 'expired' | 'rejected' | 'cancelled';
     payment_method: string;
     sender_number?: string | null;
@@ -241,6 +243,8 @@ export interface SubscriptionInvoice {
     billing_cycle: 'monthly' | 'half_yearly' | 'yearly';
     amount: number;
     currency: string;
+    exchange_rate_to_bdt?: number | null;
+    effective_exchange_rate?: number;
     payment_method: string;
     sender_number?: string | null;
     transaction_id?: string | null;
@@ -341,6 +345,8 @@ export interface CustomOrderMilestone {
     title: string;
     description?: string | null;
     amount: number;
+    exchange_rate_to_bdt?: number | null;
+    effective_exchange_rate?: number;
     due_date?: string | null;
     payment_status: 'waiting-client-to-pay' | 'paid-and-bank-processing' | 'collected' | 'refunded';
     payment_method?: string | null;
@@ -390,6 +396,8 @@ export interface CustomOrder {
     proposed_budget_at?: string | null;
     budget_update_status?: 'none' | 'pending' | 'approved' | 'rejected';
     currency: string;
+    exchange_rate_to_bdt?: number | null;
+    effective_exchange_rate?: number;
     client_whatsapp?: string | null;
     client_email?: string | null;
     target_deadline?: string | null;

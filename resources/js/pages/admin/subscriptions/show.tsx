@@ -15,7 +15,9 @@ import {
     X,
     XCircle,
     AlertTriangle,
-    Info
+    Info,
+    Coins,
+    Edit3
 } from 'lucide-react';
 import { showConfirmDialog, showToast } from '@/lib/swal';
 import { WhatsAppIcon } from '@/components/icons/whatsapp-icon';
@@ -33,6 +35,7 @@ export default function SubscriptionShow({
 }: SubscriptionShowProps) {
     const [copiedLabel, setCopiedLabel] = useState<string | null>(null);
     const [isRejecting, setIsRejecting] = useState(false);
+    const [isRateModalOpen, setIsRateModalOpen] = useState(false);
     const [rejectingInvoiceId, setRejectingInvoiceId] = useState<number | null>(null);
     const [invoiceRejectionReason, setInvoiceRejectionReason] = useState('');
 
@@ -115,14 +118,39 @@ export default function SubscriptionShow({
         return d.toISOString().split('T')[0];
     };
 
-    const approvalForm = useForm({
+    const approvalForm = useForm<{
+        starts_at: string;
+        expires_at: string;
+        domain: string;
+        subdomain: string;
+        exchange_rate_to_bdt: number | string;
+        admin_notes: string;
+        invoice_id: number | string;
+    }>({
         starts_at: subscription.starts_at ? subscription.starts_at.split('T')[0] : todayStr,
         expires_at: getDefaultExpiryDate(),
         domain: subscription.domain || '',
         subdomain: subscription.subdomain || '',
+        exchange_rate_to_bdt: subscription.exchange_rate_to_bdt || subscription.effective_exchange_rate || (subscription.currency === 'EUR' ? 130 : (subscription.currency === 'USD' ? 120 : 1)),
         admin_notes: subscription.admin_notes || '',
         invoice_id: pendingRenewalInvoice?.id || '',
     });
+
+    const rateForm = useForm<{
+        exchange_rate_to_bdt: number | string;
+    }>({
+        exchange_rate_to_bdt: subscription.exchange_rate_to_bdt || subscription.effective_exchange_rate || (subscription.currency === 'EUR' ? 130 : (subscription.currency === 'USD' ? 120 : 1)),
+    });
+
+    const handleRateSubmit: FormEventHandler = (e) => {
+        e.preventDefault();
+        rateForm.post(`/admin/subscriptions/${targetSubKey}/exchange-rate`, {
+            onSuccess: () => {
+                setIsRateModalOpen(false);
+                showToast('Exchange rate updated successfully!', 'success');
+            },
+        });
+    };
 
     const rejectionForm = useForm({
         rejection_reason: '',
@@ -351,9 +379,26 @@ export default function SubscriptionShow({
                             </div>
                             <div className="flex justify-between items-center">
                                 <span className="text-slate-400">Amount Charged:</span>
-                                <span className="font-black text-slate-900 dark:text-white">
-                                    {currencySymbol}{subscription.amount.toLocaleString()} {subscription.currency}
-                                </span>
+                                <div className="text-right">
+                                    <span className="font-black text-slate-900 dark:text-white">
+                                        {currencySymbol}{subscription.amount.toLocaleString()} {subscription.currency}
+                                    </span>
+                                    {subscription.currency !== 'BDT' && (
+                                        <div className="flex items-center justify-end space-x-1.5 mt-0.5">
+                                            <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400">
+                                                ≈ ৳{(subscription.amount * (subscription.exchange_rate_to_bdt || subscription.effective_exchange_rate || (subscription.currency === 'EUR' ? 130 : 120))).toLocaleString()} BDT (1 {subscription.currency} = ৳{subscription.exchange_rate_to_bdt || subscription.effective_exchange_rate || (subscription.currency === 'EUR' ? 130 : 120)})
+                                            </span>
+                                            <button
+                                                type="button"
+                                                onClick={() => setIsRateModalOpen(true)}
+                                                className="p-1 rounded bg-amber-100 hover:bg-amber-200 dark:bg-amber-900/50 dark:hover:bg-amber-900 text-amber-700 dark:text-amber-300 transition-colors"
+                                                title="Edit Historical Conversion Rate"
+                                            >
+                                                <Edit3 className="h-3 w-3" />
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                             <div className="flex justify-between items-center">
                                 <span className="text-slate-400">Payment Gateway:</span>
@@ -436,8 +481,8 @@ export default function SubscriptionShow({
                         </form>
                     ) : (
                         <form onSubmit={handleApprove} className="space-y-4">
-                            {/* Dates */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            {/* Dates & Exchange Rate */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                                 <div>
                                     <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                                         Subscription Start Date *
@@ -466,6 +511,30 @@ export default function SubscriptionShow({
                                         Calculated for {subscription.billing_cycle.replace('_', ' ')} duration.
                                     </span>
                                 </div>
+
+                                {subscription.currency !== 'BDT' && (
+                                    <div>
+                                        <label className="block text-xs font-bold text-amber-800 dark:text-amber-300 mb-1">
+                                            1 {subscription.currency} = Exchange Rate to BDT (৳) *
+                                        </label>
+                                        <div className="relative">
+                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-xs">৳</span>
+                                            <input
+                                                type="number"
+                                                min="0.01"
+                                                step="any"
+                                                required
+                                                value={approvalForm.data.exchange_rate_to_bdt}
+                                                onChange={(e) => approvalForm.setData('exchange_rate_to_bdt', e.target.value)}
+                                                placeholder={subscription.currency === 'EUR' ? '130.00' : '120.00'}
+                                                className="w-full pl-7 pr-3 py-2 rounded-xl border border-amber-300 dark:border-amber-800 bg-white dark:bg-slate-950 text-xs font-mono font-bold focus:ring-2 focus:ring-amber-500"
+                                            />
+                                        </div>
+                                        <span className="text-[10px] text-slate-400 mt-1 block">
+                                            Applied historical rate at time of order.
+                                        </span>
+                                    </div>
+                                )}
                             </div>
 
                             {/* Domain & Subdomain Setup */}
@@ -874,6 +943,73 @@ export default function SubscriptionShow({
                                 Close
                             </button>
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* DIRECT EXCHANGE RATE UPDATE MODAL */}
+            {isRateModalOpen && (
+                <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+                    <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 max-w-md w-full p-6 sm:p-8 shadow-2xl space-y-5 animate-in zoom-in-95">
+                        <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
+                            <div>
+                                <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center space-x-2">
+                                    <Coins className="h-5 w-5 text-amber-500" />
+                                    <span>Set Historical Exchange Rate</span>
+                                </h3>
+                                <p className="text-xs text-slate-500">
+                                    Conversion rate to BDT for Order #{subscription.order_number}
+                                </p>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setIsRateModalOpen(false)}
+                                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
+                            >
+                                <X className="h-5 w-5" />
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleRateSubmit} className="space-y-4">
+                            <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/40 space-y-2">
+                                <label className="block text-xs font-bold uppercase tracking-wider text-amber-900 dark:text-amber-300">
+                                    1 {subscription.currency} = Conversion Rate to BDT (৳) <span className="text-rose-500">*</span>
+                                </label>
+                                <div className="relative">
+                                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 font-bold text-slate-400">৳</span>
+                                    <input
+                                        type="number"
+                                        min="0.01"
+                                        step="any"
+                                        value={rateForm.data.exchange_rate_to_bdt}
+                                        onChange={(e) => rateForm.setData('exchange_rate_to_bdt', e.target.value)}
+                                        required
+                                        placeholder={subscription.currency === 'EUR' ? '130.00' : '120.00'}
+                                        className="w-full pl-8 pr-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-amber-300 dark:border-amber-800 text-slate-900 dark:text-white text-xs font-mono font-bold focus:ring-2 focus:ring-amber-500"
+                                    />
+                                </div>
+                                <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-tight">
+                                    Enter the historical exchange rate that was active when this order was approved (e.g. 84.00 in 2022 or 120.00 today).
+                                </p>
+                            </div>
+
+                            <div className="flex items-center justify-end space-x-3 pt-2 border-t border-slate-100 dark:border-slate-800">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsRateModalOpen(false)}
+                                    className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={rateForm.processing}
+                                    className="px-6 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shadow-md disabled:opacity-50"
+                                >
+                                    {rateForm.processing ? 'Saving...' : 'Save Exchange Rate'}
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             )}

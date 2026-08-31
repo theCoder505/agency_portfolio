@@ -36,11 +36,15 @@ class AppSetting extends Model
 
     public static function getAllGrouped(): array
     {
-        $settings = static::all();
-        $grouped = [];
-        foreach ($settings as $setting) {
-            $grouped[$setting->key] = $setting->value;
+        try {
+            $settings = static::all();
+            $grouped = [];
+            foreach ($settings as $setting) {
+                $grouped[$setting->key] = $setting->value;
+            }
+            return $grouped;
+        } catch (\Throwable $e) {
+            return [];
         }
-        return $grouped;
     }
 }

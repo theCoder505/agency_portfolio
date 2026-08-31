@@ -21,6 +21,7 @@ class SaasSubscription extends Model
         'billing_cycle',
         'amount',
         'currency',
+        'exchange_rate_to_bdt',
         'status',
         'payment_method',
         'sender_number',
@@ -43,6 +44,7 @@ class SaasSubscription extends Model
 
     protected $casts = [
         'amount' => 'float',
+        'exchange_rate_to_bdt' => 'float',
         'starts_at' => 'datetime',
         'expires_at' => 'datetime',
         'approved_at' => 'datetime',
@@ -50,6 +52,7 @@ class SaasSubscription extends Model
     ];
 
     protected $appends = [
+        'effective_exchange_rate',
         'days_remaining',
         'is_active_now',
         'is_expired_now',
@@ -61,12 +64,23 @@ class SaasSubscription extends Model
         'pending_invoice',
     ];
 
+    public function getEffectiveExchangeRateAttribute(): float
+    {
+        if ($this->currency === 'BDT') {
+            return 1.0;
+        }
+        if ($this->exchange_rate_to_bdt && $this->exchange_rate_to_bdt > 0) {
+            return (float) $this->exchange_rate_to_bdt;
+        }
+        return $this->currency === 'EUR' ? 130.0 : 120.0;
+    }
+
     public function getHasPendingInvoiceAttribute(): bool
     {
         if ($this->relationLoaded('invoices')) {
             return $this->invoices->contains('status', 'pending');
         }
-        return $this->invoices()->where('status', 'pending')->exists();
+        return false;
     }
 
     public function getPendingInvoicesCountAttribute(): int
@@ -74,7 +88,7 @@ class SaasSubscription extends Model
         if ($this->relationLoaded('invoices')) {
             return $this->invoices->where('status', 'pending')->count();
         }
-        return $this->invoices()->where('status', 'pending')->count();
+        return 0;
     }
 
     public function getPendingInvoiceAttribute(): ?SubscriptionInvoice
@@ -82,7 +96,7 @@ class SaasSubscription extends Model
         if ($this->relationLoaded('invoices')) {
             return $this->invoices->firstWhere('status', 'pending');
         }
-        return $this->invoices()->where('status', 'pending')->latest()->first();
+        return null;
     }
 
     public function getRequestedDomainDisplayAttribute(): ?string

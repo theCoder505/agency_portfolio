@@ -38,6 +38,7 @@ class PnLController extends Controller
     /**
      * Display P&L (Profit & Loss / Revenue Analytics) representing:
      * Cleared Income = Collected Custom Order Milestones + Paid/Approved Subscriptions
+     * Converted using order-specific historical exchange rates (admin-defined at time of order).
      * Plus Separate Metrics for Cancelled, Rejected, and Returned / Refunded orders.
      */
     public function index(Request $request): Response
@@ -139,7 +140,6 @@ class PnLController extends Controller
             ->get();
 
         // 2C. Fetch Collected Custom Orders Milestones within the exact date range
-        // Only payment_status = 'collected' is counted as cleared income
         $milestones = CustomOrderMilestone::with(['customOrder.user'])
             ->where('payment_status', 'collected')
             ->where(function ($q) use ($startDate, $endDate) {
@@ -170,7 +170,7 @@ class PnLController extends Controller
             ->get();
 
         // -------------------------------------------------------------
-        // 3. AGGREGATE CLEARED INCOME
+        // 3. AGGREGATE CLEARED INCOME WITH ORDER-SPECIFIC EXCHANGE RATES
         // -------------------------------------------------------------
         $totalBdt = 0.0;
         $totalUsd = 0.0;
@@ -179,10 +179,12 @@ class PnLController extends Controller
         $subscriptionsBdt = 0.0;
         $subscriptionsUsd = 0.0;
         $subscriptionsEur = 0.0;
+        $subscriptionsBdtEquivalent = 0.0;
 
         $customOrdersBdt = 0.0;
         $customOrdersUsd = 0.0;
         $customOrdersEur = 0.0;
+        $customOrdersBdtEquivalent = 0.0;
 
         $gatewayCounts = [];
         $allTransactions = [];
@@ -192,6 +194,14 @@ class PnLController extends Controller
             $curr = $this->normalizeCurrency($inv->currency);
             $amt = (float) $inv->amount;
             $paidDate = $inv->paid_at ?? $inv->created_at;
+
+            // Historical exchange rate stored on invoice or subscription
+            $rate = (float) ($inv->exchange_rate_to_bdt ?: ($inv->subscription?->exchange_rate_to_bdt ?: ($curr === 'EUR' ? 130.0 : ($curr === 'USD' ? 120.0 : 1.0))));
+            if ($curr === 'BDT') {
+                $rate = 1.0;
+            }
+
+            $bdtVal = ($curr === 'BDT') ? $amt : ($amt * $rate);
 
             if ($curr === 'BDT') {
                 $totalBdt += $amt;
@@ -204,8 +214,10 @@ class PnLController extends Controller
                 $subscriptionsEur += $amt;
             }
 
+            $subscriptionsBdtEquivalent += $bdtVal;
+
             $method = strtoupper($inv->payment_method ?: 'bKash/Nagad');
-            $gatewayCounts[$method] = ($gatewayCounts[$method] ?? 0) + $amt;
+            $gatewayCounts[$method] = ($gatewayCounts[$method] ?? 0) + $bdtVal;
 
             $allTransactions[] = [
                 'id' => 'INV-' . $inv->id,
@@ -219,6 +231,8 @@ class PnLController extends Controller
                 'title' => ($inv->subscription?->product?->name ?? 'SaaS Product') . ' (' . ucfirst($inv->type ?: 'initial') . ' • ' . ucfirst(str_replace('_', ' ', $inv->billing_cycle ?: 'monthly')) . ')',
                 'amount' => $amt,
                 'currency' => $curr,
+                'exchange_rate' => $rate,
+                'bdt_equivalent' => $bdtVal,
                 'payment_method' => $inv->payment_method ?: 'bKash/Nagad',
                 'transaction_id' => $inv->transaction_id ?: 'N/A',
                 'paid_at' => $paidDate ? $paidDate->toIso8601String() : null,
@@ -233,6 +247,13 @@ class PnLController extends Controller
             $amt = (float) $sub->amount;
             $paidDate = $sub->approved_at ?? $sub->created_at;
 
+            $rate = (float) ($sub->exchange_rate_to_bdt ?: ($curr === 'EUR' ? 130.0 : ($curr === 'USD' ? 120.0 : 1.0)));
+            if ($curr === 'BDT') {
+                $rate = 1.0;
+            }
+
+            $bdtVal = ($curr === 'BDT') ? $amt : ($amt * $rate);
+
             if ($curr === 'BDT') {
                 $totalBdt += $amt;
                 $subscriptionsBdt += $amt;
@@ -244,8 +265,10 @@ class PnLController extends Controller
                 $subscriptionsEur += $amt;
             }
 
+            $subscriptionsBdtEquivalent += $bdtVal;
+
             $method = strtoupper($sub->payment_method ?: 'bKash/Nagad');
-            $gatewayCounts[$method] = ($gatewayCounts[$method] ?? 0) + $amt;
+            $gatewayCounts[$method] = ($gatewayCounts[$method] ?? 0) + $bdtVal;
 
             $allTransactions[] = [
                 'id' => 'SUB-' . $sub->id,
@@ -259,6 +282,8 @@ class PnLController extends Controller
                 'title' => ($sub->product?->name ?? 'SaaS Product') . ' (Direct Approval • ' . ucfirst(str_replace('_', ' ', $sub->billing_cycle ?: 'monthly')) . ')',
                 'amount' => $amt,
                 'currency' => $curr,
+                'exchange_rate' => $rate,
+                'bdt_equivalent' => $bdtVal,
                 'payment_method' => $sub->payment_method ?: 'bKash/Nagad',
                 'transaction_id' => $sub->transaction_id ?: 'N/A',
                 'paid_at' => $paidDate ? $paidDate->toIso8601String() : null,
@@ -273,6 +298,14 @@ class PnLController extends Controller
             $amt = (float) $ms->amount;
             $paidDate = $ms->collected_at ?? $ms->client_paid_at ?? $ms->updated_at;
 
+            // Historical exchange rate stored on milestone or custom order
+            $rate = (float) ($ms->exchange_rate_to_bdt ?: ($ms->customOrder?->exchange_rate_to_bdt ?: ($curr === 'EUR' ? 130.0 : ($curr === 'USD' ? 120.0 : 1.0))));
+            if ($curr === 'BDT') {
+                $rate = 1.0;
+            }
+
+            $bdtVal = ($curr === 'BDT') ? $amt : ($amt * $rate);
+
             if ($curr === 'BDT') {
                 $totalBdt += $amt;
                 $customOrdersBdt += $amt;
@@ -284,8 +317,10 @@ class PnLController extends Controller
                 $customOrdersEur += $amt;
             }
 
+            $customOrdersBdtEquivalent += $bdtVal;
+
             $method = strtoupper($ms->client_payment_method ?: $ms->payment_method ?: 'Direct');
-            $gatewayCounts[$method] = ($gatewayCounts[$method] ?? 0) + $amt;
+            $gatewayCounts[$method] = ($gatewayCounts[$method] ?? 0) + $bdtVal;
 
             $allTransactions[] = [
                 'id' => 'MS-' . $ms->id,
@@ -299,6 +334,8 @@ class PnLController extends Controller
                 'title' => ($ms->customOrder?->title ?? 'Custom Project') . ' • ' . $ms->title,
                 'amount' => $amt,
                 'currency' => $curr,
+                'exchange_rate' => $rate,
+                'bdt_equivalent' => $bdtVal,
                 'payment_method' => $ms->client_payment_method ?: $ms->payment_method ?: 'Direct',
                 'transaction_id' => $ms->client_trx_id ?: 'N/A',
                 'paid_at' => $paidDate ? $paidDate->toIso8601String() : null,
@@ -313,6 +350,13 @@ class PnLController extends Controller
             $amt = (float) ($co->agreed_price ?: $co->estimated_budget ?: 0);
             $paidDate = $co->completed_at ?? $co->updated_at;
 
+            $rate = (float) ($co->exchange_rate_to_bdt ?: ($curr === 'EUR' ? 130.0 : ($curr === 'USD' ? 120.0 : 1.0)));
+            if ($curr === 'BDT') {
+                $rate = 1.0;
+            }
+
+            $bdtVal = ($curr === 'BDT') ? $amt : ($amt * $rate);
+
             if ($amt > 0) {
                 if ($curr === 'BDT') {
                     $totalBdt += $amt;
@@ -325,8 +369,10 @@ class PnLController extends Controller
                     $customOrdersEur += $amt;
                 }
 
+                $customOrdersBdtEquivalent += $bdtVal;
+
                 $method = 'DIRECT / SETTLED';
-                $gatewayCounts[$method] = ($gatewayCounts[$method] ?? 0) + $amt;
+                $gatewayCounts[$method] = ($gatewayCounts[$method] ?? 0) + $bdtVal;
 
                 $allTransactions[] = [
                     'id' => 'CO-' . $co->id,
@@ -340,6 +386,8 @@ class PnLController extends Controller
                     'title' => ($co->title ?? 'Custom Project') . ' (Direct Contract Settlement)',
                     'amount' => $amt,
                     'currency' => $curr,
+                    'exchange_rate' => $rate,
+                    'bdt_equivalent' => $bdtVal,
                     'payment_method' => 'Direct Settlement',
                     'transaction_id' => 'SETTLED',
                     'paid_at' => $paidDate ? $paidDate->toIso8601String() : null,
@@ -362,16 +410,19 @@ class PnLController extends Controller
         $refundedBdt = 0.0;
         $refundedUsd = 0.0;
         $refundedEur = 0.0;
+        $refundedBdtEquivalent = 0.0;
         $refundedCount = 0;
 
         $rejectedSubscriptionsBdt = 0.0;
         $rejectedSubscriptionsUsd = 0.0;
         $rejectedSubscriptionsEur = 0.0;
+        $rejectedSubscriptionsBdtEquivalent = 0.0;
         $rejectedSubscriptionsCount = 0;
 
         $cancelledCustomOrdersBdt = 0.0;
         $cancelledCustomOrdersUsd = 0.0;
         $cancelledCustomOrdersEur = 0.0;
+        $cancelledCustomOrdersBdtEquivalent = 0.0;
         $cancelledCustomOrdersCount = 0;
 
         // 4A. Refunded / Returned Custom Order Milestones
@@ -391,9 +442,14 @@ class PnLController extends Controller
             $amt = (float) ($rf->refund_amount ?: $rf->amount);
             $date = $rf->refunded_at ?? $rf->updated_at;
 
+            $rate = (float) ($rf->exchange_rate_to_bdt ?: ($rf->customOrder?->exchange_rate_to_bdt ?: ($curr === 'EUR' ? 130.0 : ($curr === 'USD' ? 120.0 : 1.0))));
+            if ($curr === 'BDT') $rate = 1.0;
+            $bdtVal = ($curr === 'BDT') ? $amt : ($amt * $rate);
+
             if ($curr === 'BDT') $refundedBdt += $amt;
             elseif ($curr === 'USD') $refundedUsd += $amt;
             elseif ($curr === 'EUR') $refundedEur += $amt;
+            $refundedBdtEquivalent += $bdtVal;
             $refundedCount++;
 
             $nonClearedItems[] = [
@@ -410,6 +466,8 @@ class PnLController extends Controller
                 'title' => ($rf->customOrder?->title ?? 'Custom Project') . ' • ' . $rf->title,
                 'amount' => $amt,
                 'currency' => $curr,
+                'exchange_rate' => $rate,
+                'bdt_equivalent' => $bdtVal,
                 'reason' => $rf->refund_reason ?: 'Payment returned / refunded to client',
                 'transaction_id' => $rf->refund_trx_id ?: ($rf->client_trx_id ?: 'N/A'),
                 'occurred_at' => $date ? $date->toIso8601String() : null,
@@ -428,9 +486,14 @@ class PnLController extends Controller
             $amt = (float) ($co->agreed_price ?: $co->estimated_budget ?: 0);
             $date = $co->updated_at;
 
+            $rate = (float) ($co->exchange_rate_to_bdt ?: ($curr === 'EUR' ? 130.0 : ($curr === 'USD' ? 120.0 : 1.0)));
+            if ($curr === 'BDT') $rate = 1.0;
+            $bdtVal = ($curr === 'BDT') ? $amt : ($amt * $rate);
+
             if ($curr === 'BDT') $cancelledCustomOrdersBdt += $amt;
             elseif ($curr === 'USD') $cancelledCustomOrdersUsd += $amt;
             elseif ($curr === 'EUR') $cancelledCustomOrdersEur += $amt;
+            $cancelledCustomOrdersBdtEquivalent += $bdtVal;
             $cancelledCustomOrdersCount++;
 
             $nonClearedItems[] = [
@@ -447,6 +510,8 @@ class PnLController extends Controller
                 'title' => $co->title ?? 'Custom Project',
                 'amount' => $amt,
                 'currency' => $curr,
+                'exchange_rate' => $rate,
+                'bdt_equivalent' => $bdtVal,
                 'reason' => $co->rejection_reason ?: ($co->admin_notes ?: 'Project cancelled or denied by admin'),
                 'transaction_id' => 'N/A',
                 'occurred_at' => $date ? $date->toIso8601String() : null,
@@ -465,9 +530,14 @@ class PnLController extends Controller
             $amt = (float) $rjInv->amount;
             $date = $rjInv->updated_at;
 
+            $rate = (float) ($rjInv->exchange_rate_to_bdt ?: ($rjInv->subscription?->exchange_rate_to_bdt ?: ($curr === 'EUR' ? 130.0 : ($curr === 'USD' ? 120.0 : 1.0))));
+            if ($curr === 'BDT') $rate = 1.0;
+            $bdtVal = ($curr === 'BDT') ? $amt : ($amt * $rate);
+
             if ($curr === 'BDT') $rejectedSubscriptionsBdt += $amt;
             elseif ($curr === 'USD') $rejectedSubscriptionsUsd += $amt;
             elseif ($curr === 'EUR') $rejectedSubscriptionsEur += $amt;
+            $rejectedSubscriptionsBdtEquivalent += $bdtVal;
             $rejectedSubscriptionsCount++;
 
             $nonClearedItems[] = [
@@ -484,6 +554,8 @@ class PnLController extends Controller
                 'title' => ($rjInv->subscription?->product?->name ?? 'SaaS Product') . ' (' . ucfirst($rjInv->type ?: 'initial') . ')',
                 'amount' => $amt,
                 'currency' => $curr,
+                'exchange_rate' => $rate,
+                'bdt_equivalent' => $bdtVal,
                 'reason' => $rjInv->rejection_reason ?: 'Payment verification rejected',
                 'transaction_id' => $rjInv->transaction_id ?: 'N/A',
                 'occurred_at' => $date ? $date->toIso8601String() : null,
@@ -505,9 +577,14 @@ class PnLController extends Controller
             $amt = (float) $rjSub->amount;
             $date = $rjSub->updated_at;
 
+            $rate = (float) ($rjSub->exchange_rate_to_bdt ?: ($curr === 'EUR' ? 130.0 : ($curr === 'USD' ? 120.0 : 1.0)));
+            if ($curr === 'BDT') $rate = 1.0;
+            $bdtVal = ($curr === 'BDT') ? $amt : ($amt * $rate);
+
             if ($curr === 'BDT') $rejectedSubscriptionsBdt += $amt;
             elseif ($curr === 'USD') $rejectedSubscriptionsUsd += $amt;
             elseif ($curr === 'EUR') $rejectedSubscriptionsEur += $amt;
+            $rejectedSubscriptionsBdtEquivalent += $bdtVal;
             $rejectedSubscriptionsCount++;
 
             $nonClearedItems[] = [
@@ -524,6 +601,8 @@ class PnLController extends Controller
                 'title' => ($rjSub->product?->name ?? 'SaaS Product') . ' (' . ucfirst(str_replace('_', ' ', $rjSub->billing_cycle ?: 'monthly')) . ')',
                 'amount' => $amt,
                 'currency' => $curr,
+                'exchange_rate' => $rate,
+                'bdt_equivalent' => $bdtVal,
                 'reason' => $rjSub->rejection_reason ?: 'Subscription rejected or cancelled',
                 'transaction_id' => $rjSub->transaction_id ?: 'N/A',
                 'occurred_at' => $date ? $date->toIso8601String() : null,
@@ -550,21 +629,32 @@ class PnLController extends Controller
         $pendingBdt = 0.0;
         $pendingUsd = 0.0;
         $pendingEur = 0.0;
+        $pendingBdtEquivalent = 0.0;
 
         foreach ($pendingMilestones as $pm) {
             $curr = $this->normalizeCurrency($pm->customOrder?->currency);
             $amt = (float) $pm->amount;
+            $rate = (float) ($pm->exchange_rate_to_bdt ?: ($pm->customOrder?->exchange_rate_to_bdt ?: ($curr === 'EUR' ? 130.0 : ($curr === 'USD' ? 120.0 : 1.0))));
+            if ($curr === 'BDT') $rate = 1.0;
+
             if ($curr === 'BDT') $pendingBdt += $amt;
             elseif ($curr === 'USD') $pendingUsd += $amt;
             elseif ($curr === 'EUR') $pendingEur += $amt;
+
+            $pendingBdtEquivalent += ($curr === 'BDT') ? $amt : ($amt * $rate);
         }
 
         foreach ($pendingInvoices as $pi) {
             $curr = $this->normalizeCurrency($pi->currency);
             $amt = (float) $pi->amount;
+            $rate = (float) ($pi->exchange_rate_to_bdt ?: ($pi->subscription?->exchange_rate_to_bdt ?: ($curr === 'EUR' ? 130.0 : ($curr === 'USD' ? 120.0 : 1.0))));
+            if ($curr === 'BDT') $rate = 1.0;
+
             if ($curr === 'BDT') $pendingBdt += $amt;
             elseif ($curr === 'USD') $pendingUsd += $amt;
             elseif ($curr === 'EUR') $pendingEur += $amt;
+
+            $pendingBdtEquivalent += ($curr === 'BDT') ? $amt : ($amt * $rate);
         }
 
         // -------------------------------------------------------------
@@ -698,17 +788,20 @@ class PnLController extends Controller
                 'total_bdt' => $totalBdt,
                 'total_usd' => $totalUsd,
                 'total_eur' => $totalEur,
+                'total_bdt_equivalent' => $subscriptionsBdtEquivalent + $customOrdersBdtEquivalent,
                 'total_transactions' => count($allTransactions),
                 'subscriptions_breakdown' => [
                     'bdt' => $subscriptionsBdt,
                     'usd' => $subscriptionsUsd,
                     'eur' => $subscriptionsEur,
+                    'bdt_equivalent' => $subscriptionsBdtEquivalent,
                     'count' => $invoices->count() + $activeSubscriptionsWithoutInvoices->count(),
                 ],
                 'custom_orders_breakdown' => [
                     'bdt' => $customOrdersBdt,
                     'usd' => $customOrdersUsd,
                     'eur' => $customOrdersEur,
+                    'bdt_equivalent' => $customOrdersBdtEquivalent,
                     'count' => $milestones->count() + $completedOrdersWithoutMilestones->count(),
                 ],
             ],
@@ -716,23 +809,27 @@ class PnLController extends Controller
                 'total_bdt' => $refundedBdt + $rejectedSubscriptionsBdt + $cancelledCustomOrdersBdt,
                 'total_usd' => $refundedUsd + $rejectedSubscriptionsUsd + $cancelledCustomOrdersUsd,
                 'total_eur' => $refundedEur + $rejectedSubscriptionsEur + $cancelledCustomOrdersEur,
+                'total_bdt_equivalent' => $refundedBdtEquivalent + $rejectedSubscriptionsBdtEquivalent + $cancelledCustomOrdersBdtEquivalent,
                 'total_count' => count($nonClearedItems),
                 'refunded' => [
                     'bdt' => $refundedBdt,
                     'usd' => $refundedUsd,
                     'eur' => $refundedEur,
+                    'bdt_equivalent' => $refundedBdtEquivalent,
                     'count' => $refundedCount,
                 ],
                 'rejected_subscriptions' => [
                     'bdt' => $rejectedSubscriptionsBdt,
                     'usd' => $rejectedSubscriptionsUsd,
                     'eur' => $rejectedSubscriptionsEur,
+                    'bdt_equivalent' => $rejectedSubscriptionsBdtEquivalent,
                     'count' => $rejectedSubscriptionsCount,
                 ],
                 'cancelled_custom_orders' => [
                     'bdt' => $cancelledCustomOrdersBdt,
                     'usd' => $cancelledCustomOrdersUsd,
                     'eur' => $cancelledCustomOrdersEur,
+                    'bdt_equivalent' => $cancelledCustomOrdersBdtEquivalent,
                     'count' => $cancelledCustomOrdersCount,
                 ],
             ],
@@ -740,6 +837,7 @@ class PnLController extends Controller
                 'pending_bdt' => $pendingBdt,
                 'pending_usd' => $pendingUsd,
                 'pending_eur' => $pendingEur,
+                'pending_bdt_equivalent' => $pendingBdtEquivalent,
                 'pending_milestones_count' => $pendingMilestones->count(),
                 'pending_invoices_count' => $pendingInvoices->count(),
             ],

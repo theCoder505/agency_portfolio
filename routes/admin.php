@@ -72,6 +72,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('subscriptions/{id}', [SubscriptionController::class, 'show'])->name('subscriptions.show');
         Route::get('subscriptions/{id}/edit', [SubscriptionController::class, 'edit'])->name('subscriptions.edit');
         Route::put('subscriptions/{id}', [SubscriptionController::class, 'update'])->name('subscriptions.update');
+        Route::post('subscriptions/{id}/exchange-rate', [SubscriptionController::class, 'updateExchangeRate'])->name('subscriptions.exchange-rate');
         Route::post('subscriptions/{id}/approve', [SubscriptionController::class, 'approve'])->name('subscriptions.approve');
         Route::post('subscriptions/{id}/reject', [SubscriptionController::class, 'reject'])->name('subscriptions.reject');
         Route::post('subscriptions/{id}/invoices/{invoiceId}/approve', [SubscriptionController::class, 'approveInvoice'])->name('subscriptions.invoices.approve');

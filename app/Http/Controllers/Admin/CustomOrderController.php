@@ -109,6 +109,7 @@ class CustomOrderController extends Controller
             'estimated_budget' => 'nullable|numeric|min:0',
             'agreed_price' => 'nullable|numeric|min:0',
             'currency' => 'required|string|in:BDT,USD,EUR',
+            'exchange_rate_to_bdt' => 'nullable|numeric|min:0.01',
             'client_whatsapp' => 'nullable|string|max:40',
             'client_email' => 'nullable|email|max:255',
             'target_deadline' => 'nullable|date',
@@ -127,6 +128,10 @@ class CustomOrderController extends Controller
         }
         if (empty($validated['client_email']) && $user) {
             $validated['client_email'] = $user->email;
+        }
+
+        if (empty($validated['exchange_rate_to_bdt'])) {
+            $validated['exchange_rate_to_bdt'] = ($validated['currency'] === 'EUR') ? 130.0 : (($validated['currency'] === 'USD') ? 120.0 : 1.0);
         }
 
         if ($validated['status'] === 'accepted' || $validated['status'] === 'in_progress') {
@@ -185,6 +190,7 @@ class CustomOrderController extends Controller
             'estimated_budget' => 'nullable|numeric|min:0',
             'agreed_price' => 'nullable|numeric|min:0',
             'currency' => 'nullable|string|in:BDT,USD,EUR',
+            'exchange_rate_to_bdt' => 'nullable|numeric|min:0.01',
             'client_whatsapp' => 'nullable|string|max:40',
             'client_email' => 'nullable|email|max:255',
             'target_deadline' => 'nullable|date',
@@ -397,13 +403,18 @@ class CustomOrderController extends Controller
             'agreed_price' => 'nullable|numeric|min:0',
             'estimated_budget' => 'nullable|numeric|min:0',
             'currency' => 'required|string|in:BDT,USD,EUR',
+            'exchange_rate_to_bdt' => 'nullable|numeric|min:0.01',
             'admin_notes' => 'nullable|string',
         ]);
+
+        if (empty($validated['exchange_rate_to_bdt'])) {
+            $validated['exchange_rate_to_bdt'] = ($validated['currency'] === 'EUR') ? 130.0 : (($validated['currency'] === 'USD') ? 120.0 : 1.0);
+        }
 
         $order->update($validated);
 
         return redirect($order->admin_show_url)
-            ->with('success', 'Project budget & currency updated successfully!');
+            ->with('success', 'Project budget, currency & exchange rate updated successfully!');
     }
 
     /**
@@ -421,6 +432,7 @@ class CustomOrderController extends Controller
         $validated = $request->validate([
             'agreed_price' => 'required|numeric|min:1',
             'currency' => 'nullable|string|in:BDT,USD,EUR',
+            'exchange_rate_to_bdt' => 'nullable|numeric|min:0.01',
             'target_deadline' => 'nullable|date',
             'admin_notes' => 'nullable|string',
             'initial_milestones' => 'nullable|array',
@@ -442,6 +454,9 @@ class CustomOrderController extends Controller
 
         if (!empty($validated['currency'])) {
             $updateData['currency'] = $validated['currency'];
+            $updateData['exchange_rate_to_bdt'] = $validated['exchange_rate_to_bdt'] ?? (($validated['currency'] === 'EUR') ? 130.0 : (($validated['currency'] === 'USD') ? 120.0 : 1.0));
+        } elseif (!empty($validated['exchange_rate_to_bdt'])) {
+            $updateData['exchange_rate_to_bdt'] = $validated['exchange_rate_to_bdt'];
         }
 
         if (!empty($validated['initial_milestones'])) {

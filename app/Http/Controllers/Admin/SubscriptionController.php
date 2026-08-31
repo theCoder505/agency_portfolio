@@ -206,6 +206,8 @@ class SubscriptionController extends Controller
             'package_tier' => 'nullable|string|in:basic,standard,premium',
             'billing_cycle' => 'required|in:monthly,half_yearly,yearly',
             'amount' => 'required|numeric|min:0',
+            'currency' => 'nullable|string|in:BDT,USD,EUR',
+            'exchange_rate_to_bdt' => 'nullable|numeric|min:0.01',
             'status' => 'required|in:pending,active,expired,rejected,cancelled',
             'domain' => 'nullable|string|max:100',
             'subdomain' => 'nullable|string|max:50',
@@ -223,6 +225,31 @@ class SubscriptionController extends Controller
     }
 
     /**
+     * Update exchange rate to BDT for a subscription and its invoices.
+     */
+    public function updateExchangeRate(Request $request, string|int $id): RedirectResponse
+    {
+        $subscription = $this->findSubscription($id);
+
+        $validated = $request->validate([
+            'exchange_rate_to_bdt' => 'required|numeric|min:0.01',
+        ]);
+
+        $rate = (float) $validated['exchange_rate_to_bdt'];
+
+        $subscription->update([
+            'exchange_rate_to_bdt' => $rate,
+        ]);
+
+        SubscriptionInvoice::where('subscription_id', $subscription->id)->update([
+            'exchange_rate_to_bdt' => $rate,
+        ]);
+
+        return redirect()->route('admin.subscriptions.show', $subscription->order_number)
+            ->with('success', "Exchange rate updated: 1 {$subscription->currency} = ৳" . number_format($rate, 2) . " BDT");
+    }
+
+    /**
      * Cross-check & Approve an order/subscription.
      */
     public function approve(Request $request, string|int $id): RedirectResponse
@@ -234,6 +261,7 @@ class SubscriptionController extends Controller
             'expires_at' => 'required|date|after_or_equal:starts_at',
             'domain' => 'nullable|string|max:100',
             'subdomain' => 'nullable|string|max:50',
+            'exchange_rate_to_bdt' => 'nullable|numeric|min:0.01',
             'admin_notes' => 'nullable|string',
             'invoice_id' => 'nullable|exists:subscription_invoices,id',
         ]);
@@ -241,6 +269,9 @@ class SubscriptionController extends Controller
         $admin = Auth::guard('admin')->user();
         $startsAt = Carbon::parse($validated['starts_at']);
         $expiresAt = Carbon::parse($validated['expires_at']);
+        $rate = !empty($validated['exchange_rate_to_bdt']) 
+            ? (float) $validated['exchange_rate_to_bdt'] 
+            : ($subscription->exchange_rate_to_bdt ?: (($subscription->currency === 'EUR') ? 130.0 : (($subscription->currency === 'USD') ? 120.0 : 1.0)));
 
         $subscription->update([
             'status' => 'active',
@@ -248,6 +279,7 @@ class SubscriptionController extends Controller
             'expires_at' => $expiresAt,
             'domain' => $validated['domain'],
             'subdomain' => $validated['subdomain'],
+            'exchange_rate_to_bdt' => $rate,
             'admin_notes' => $validated['admin_notes'],
             'approved_at' => Carbon::now(),
             'approved_by' => $admin?->id,
@@ -270,6 +302,7 @@ class SubscriptionController extends Controller
                 'status' => 'paid',
                 'period_start' => $startsAt->toDateString(),
                 'period_end' => $expiresAt->toDateString(),
+                'exchange_rate_to_bdt' => $rate,
                 'paid_at' => Carbon::now(),
             ]);
         }
@@ -288,6 +321,7 @@ class SubscriptionController extends Controller
             ->findOrFail($invoiceId);
 
         $admin = Auth::guard('admin')->user();
+        $rate = $invoice->exchange_rate_to_bdt ?: ($subscription->exchange_rate_to_bdt ?: (($subscription->currency === 'EUR') ? 130.0 : (($subscription->currency === 'USD') ? 120.0 : 1.0)));
 
         // Calculate continuous extension period
         if ($invoice->type === 'renewal') {
@@ -310,6 +344,7 @@ class SubscriptionController extends Controller
                 'status' => 'paid',
                 'period_start' => $baseDate->toDateString(),
                 'period_end' => $newExpiresAt->toDateString(),
+                'exchange_rate_to_bdt' => $rate,
                 'paid_at' => Carbon::now(),
             ]);
         } else {
@@ -329,6 +364,7 @@ class SubscriptionController extends Controller
                 'status' => 'paid',
                 'period_start' => $startsAt->toDateString(),
                 'period_end' => $expiresAt->toDateString(),
+                'exchange_rate_to_bdt' => $rate,
                 'paid_at' => Carbon::now(),
             ]);
         }

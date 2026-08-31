@@ -27,6 +27,7 @@ class CustomOrder extends Model
         'proposed_budget_at',
         'budget_update_status',
         'currency',
+        'exchange_rate_to_bdt',
         'client_whatsapp',
         'client_email',
         'target_deadline',
@@ -47,6 +48,7 @@ class CustomOrder extends Model
         'estimated_budget' => 'float',
         'agreed_price' => 'float',
         'proposed_budget' => 'float',
+        'exchange_rate_to_bdt' => 'float',
         'proposed_budget_at' => 'datetime',
         'attachments' => 'array',
         'target_deadline' => 'date',
@@ -55,6 +57,7 @@ class CustomOrder extends Model
     ];
 
     protected $appends = [
+        'effective_exchange_rate',
         'total_milestones_amount',
         'total_active_milestones_amount',
         'unallocated_milestone_amount',
@@ -101,12 +104,26 @@ class CustomOrder extends Model
         return $this->hasOne(Review::class, 'custom_order_id');
     }
 
+    public function getEffectiveExchangeRateAttribute(): float
+    {
+        if ($this->currency === 'BDT') {
+            return 1.0;
+        }
+        if ($this->exchange_rate_to_bdt && $this->exchange_rate_to_bdt > 0) {
+            return (float) $this->exchange_rate_to_bdt;
+        }
+        return $this->currency === 'EUR' ? 130.0 : 120.0;
+    }
+
     /**
      * Compute the sum of all milestones settled amounts.
      */
     public function getTotalMilestonesAmountAttribute(): float
     {
-        return (float) $this->milestones->sum('amount');
+        if ($this->relationLoaded('milestones')) {
+            return (float) $this->milestones->sum('amount');
+        }
+        return (float) $this->milestones()->sum('amount');
     }
 
     /**
@@ -114,7 +131,10 @@ class CustomOrder extends Model
      */
     public function getTotalActiveMilestonesAmountAttribute(): float
     {
-        return (float) $this->milestones->where('payment_status', '!=', 'refunded')->sum('amount');
+        if ($this->relationLoaded('milestones')) {
+            return (float) $this->milestones->where('payment_status', '!=', 'refunded')->sum('amount');
+        }
+        return (float) $this->milestones()->where('payment_status', '!=', 'refunded')->sum('amount');
     }
 
     /**
@@ -122,7 +142,8 @@ class CustomOrder extends Model
      */
     public function getUnallocatedMilestoneAmountAttribute(): float
     {
-        $agreedPrice = (float) ($this->agreed_price ?: $this->milestones->sum('amount') ?: $this->estimated_budget ?: 0);
+        $milestonesSum = $this->relationLoaded('milestones') ? $this->milestones->sum('amount') : $this->milestones()->sum('amount');
+        $agreedPrice = (float) ($this->agreed_price ?: $milestonesSum ?: $this->estimated_budget ?: 0);
         return max(0, $agreedPrice - $this->total_active_milestones_amount);
     }
 
@@ -131,7 +152,10 @@ class CustomOrder extends Model
      */
     public function getTotalCollectedAmountAttribute(): float
     {
-        return (float) $this->milestones->where('payment_status', 'collected')->sum('amount');
+        if ($this->relationLoaded('milestones')) {
+            return (float) $this->milestones->where('payment_status', 'collected')->sum('amount');
+        }
+        return (float) $this->milestones()->where('payment_status', 'collected')->sum('amount');
     }
 
     /**
@@ -139,7 +163,10 @@ class CustomOrder extends Model
      */
     public function getTotalProcessingAmountAttribute(): float
     {
-        return (float) $this->milestones->where('payment_status', 'paid-and-bank-processing')->sum('amount');
+        if ($this->relationLoaded('milestones')) {
+            return (float) $this->milestones->where('payment_status', 'paid-and-bank-processing')->sum('amount');
+        }
+        return (float) $this->milestones()->where('payment_status', 'paid-and-bank-processing')->sum('amount');
     }
 
     /**
@@ -147,7 +174,10 @@ class CustomOrder extends Model
      */
     public function getTotalPendingAmountAttribute(): float
     {
-        return (float) $this->milestones->where('payment_status', 'waiting-client-to-pay')->sum('amount');
+        if ($this->relationLoaded('milestones')) {
+            return (float) $this->milestones->where('payment_status', 'waiting-client-to-pay')->sum('amount');
+        }
+        return (float) $this->milestones()->where('payment_status', 'waiting-client-to-pay')->sum('amount');
     }
 
     /**
@@ -155,9 +185,12 @@ class CustomOrder extends Model
      */
     public function getTotalRefundedAmountAttribute(): float
     {
-        return (float) $this->milestones->sum(function ($m) {
-            return (float) ($m->refund_amount ?: ($m->payment_status === 'refunded' ? $m->amount : 0));
-        });
+        if ($this->relationLoaded('milestones')) {
+            return (float) $this->milestones->sum(function ($m) {
+                return (float) ($m->refund_amount ?: ($m->payment_status === 'refunded' ? $m->amount : 0));
+            });
+        }
+        return (float) $this->milestones()->whereNotNull('refund_amount')->sum('refund_amount');
     }
 
     /**
@@ -165,7 +198,8 @@ class CustomOrder extends Model
      */
     public function getRemainingBalanceAttribute(): float
     {
-        $agreed = (float) ($this->agreed_price ?: $this->milestones->sum('amount') ?: $this->estimated_budget);
+        $milestonesSum = $this->relationLoaded('milestones') ? $this->milestones->sum('amount') : $this->milestones()->sum('amount');
+        $agreed = (float) ($this->agreed_price ?: $milestonesSum ?: $this->estimated_budget);
         return max(0, $agreed - $this->total_collected_amount);
     }
 
@@ -178,7 +212,8 @@ class CustomOrder extends Model
             return 100;
         }
 
-        $agreedPrice = (float) ($this->agreed_price ?: $this->milestones->sum('amount') ?: $this->estimated_budget);
+        $milestonesSum = $this->relationLoaded('milestones') ? $this->milestones->sum('amount') : $this->milestones()->sum('amount');
+        $agreedPrice = (float) ($this->agreed_price ?: $milestonesSum ?: $this->estimated_budget);
         if ($agreedPrice <= 0) {
             return match ($this->status) {
                 'in_progress', 'accepted' => 20,
@@ -187,7 +222,7 @@ class CustomOrder extends Model
             };
         }
 
-        $collectedAmount = (float) $this->milestones->where('payment_status', 'collected')->sum('amount');
+        $collectedAmount = $this->total_collected_amount;
         $calc = ($collectedAmount / $agreedPrice) * 100;
         return min(100, max(0, (int) round($calc)));
     }
@@ -232,11 +267,18 @@ class CustomOrder extends Model
     public function getLateMilestonesCountAttribute(): int
     {
         $today = Carbon::today();
-        return $this->milestones->filter(function ($m) use ($today) {
-            return $m->due_date && 
-                   !in_array($m->payment_status, ['collected', 'refunded']) &&
-                   $today->greaterThan(Carbon::parse($m->due_date)->startOfDay());
-        })->count();
+        if ($this->relationLoaded('milestones')) {
+            return $this->milestones->filter(function ($m) use ($today) {
+                return $m->due_date && 
+                       !in_array($m->payment_status, ['collected', 'refunded']) &&
+                       $today->greaterThan(Carbon::parse($m->due_date)->startOfDay());
+            })->count();
+        }
+        return $this->milestones()
+            ->whereNotNull('due_date')
+            ->whereNotIn('payment_status', ['collected', 'refunded'])
+            ->where('due_date', '<', $today->toDateString())
+            ->count();
     }
 
     /**
@@ -252,7 +294,8 @@ class CustomOrder extends Model
      */
     public function getIsFullyPaidAttribute(): bool
     {
-        $agreed = (float) ($this->agreed_price ?: $this->milestones->sum('amount') ?: $this->estimated_budget);
+        $milestonesSum = $this->relationLoaded('milestones') ? $this->milestones->sum('amount') : $this->milestones()->sum('amount');
+        $agreed = (float) ($this->agreed_price ?: $milestonesSum ?: $this->estimated_budget);
         if ($agreed <= 0) {
             return false;
         }

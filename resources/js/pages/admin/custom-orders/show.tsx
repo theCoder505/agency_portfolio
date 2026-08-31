@@ -129,10 +129,17 @@ export default function CustomOrderAdminShow({
     };
 
     // Budget & Currency Update Form
-    const budgetForm = useForm({
+    const budgetForm = useForm<{
+        agreed_price: number | string;
+        estimated_budget: number | string;
+        currency: string;
+        exchange_rate_to_bdt: number | string;
+        admin_notes: string;
+    }>({
         agreed_price: order.agreed_price || order.estimated_budget || 0,
         estimated_budget: order.estimated_budget || 0,
         currency: order.currency || 'BDT',
+        exchange_rate_to_bdt: order.exchange_rate_to_bdt || order.effective_exchange_rate || (order.currency === 'EUR' ? 130 : (order.currency === 'USD' ? 120 : 1)),
         admin_notes: order.admin_notes || '',
     });
 
@@ -141,15 +148,22 @@ export default function CustomOrderAdminShow({
         budgetForm.put(`/admin/custom-orders/${order.id}/budget`, {
             onSuccess: () => {
                 setIsBudgetModalOpen(false);
-                showToast('Budget and pricing terms updated!', 'success');
+                showToast('Budget, currency and exchange rate updated!', 'success');
             },
         });
     };
 
     // Accept Proposal Form
-    const acceptForm = useForm({
+    const acceptForm = useForm<{
+        agreed_price: number | string;
+        currency: string;
+        exchange_rate_to_bdt: number | string;
+        target_deadline: string;
+        admin_notes: string;
+    }>({
         agreed_price: order.agreed_price || order.estimated_budget || 0,
         currency: order.currency || 'BDT',
+        exchange_rate_to_bdt: order.exchange_rate_to_bdt || order.effective_exchange_rate || (order.currency === 'EUR' ? 130 : (order.currency === 'USD' ? 120 : 1)),
         target_deadline: order.target_deadline ? String(order.target_deadline).substring(0, 10) : '',
         admin_notes: order.admin_notes || '',
     });
@@ -180,13 +194,28 @@ export default function CustomOrderAdminShow({
     };
 
     // Milestone Form (Create & Edit) with ISO Date slice fix
-    const milestoneForm = useForm({
+    const milestoneForm = useForm<{
+        title: string;
+        description: string;
+        amount: string | number;
+        due_date: string;
+        order: number;
+        payment_status: 'waiting-client-to-pay' | 'paid-and-bank-processing' | 'collected' | 'refunded';
+        payment_method: string;
+        payment_details: string;
+        payment_instructions: string;
+        github_repo_url: string;
+        drive_link: string;
+        live_demo_url: string;
+        deliverable_notes: string;
+        is_deliverable_unlocked: boolean;
+    }>({
         title: '',
         description: '',
-        amount: '' as string | number,
+        amount: '',
         due_date: '',
-        order: (milestones.length + 1) as number,
-        payment_status: 'waiting-client-to-pay' as 'waiting-client-to-pay' | 'paid-and-bank-processing' | 'collected' | 'refunded',
+        order: milestones.length + 1,
+        payment_status: 'waiting-client-to-pay',
         payment_method: 'Payoneer',
         payment_details: '',
         payment_instructions: '',
@@ -626,6 +655,11 @@ export default function CustomOrderAdminShow({
                             <span className="text-xl font-black text-slate-900 dark:text-white mt-1 block">
                                 {order.currency} {agreedPrice.toLocaleString()}
                             </span>
+                            {order.currency !== 'BDT' && (
+                                <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 block mt-0.5">
+                                    ≈ ৳{((order.agreed_price || order.estimated_budget || 0) * (order.exchange_rate_to_bdt || order.effective_exchange_rate || (order.currency === 'EUR' ? 130 : 120))).toLocaleString()} BDT (Rate: ৳{order.exchange_rate_to_bdt || order.effective_exchange_rate || (order.currency === 'EUR' ? 130 : 120)})
+                                </span>
+                            )}
                             {order.estimated_budget && order.estimated_budget !== agreedPrice && (
                                 <span className="text-[10px] text-slate-400 block mt-0.5">
                                     Requested: {order.currency} {order.estimated_budget.toLocaleString()}
@@ -1545,6 +1579,35 @@ export default function CustomOrderAdminShow({
                                 />
                             </div>
 
+                            {acceptForm.data.currency !== 'BDT' && (
+                                <div className="p-3.5 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/40 rounded-2xl space-y-1.5">
+                                    <div className="flex items-center justify-between">
+                                        <label className="block text-xs font-bold uppercase tracking-wider text-amber-900 dark:text-amber-300">
+                                            1 {acceptForm.data.currency} = Exchange Rate to BDT (৳) <span className="text-rose-500">*</span>
+                                        </label>
+                                        <span className="text-[10px] font-bold text-amber-700 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/50 px-2 py-0.5 rounded-full">
+                                            Historical P&L Rate
+                                        </span>
+                                    </div>
+                                    <div className="relative">
+                                        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 font-bold text-slate-400">৳</span>
+                                        <input
+                                            type="number"
+                                            min="0.01"
+                                            step="any"
+                                            value={acceptForm.data.exchange_rate_to_bdt}
+                                            onChange={(e) => acceptForm.setData('exchange_rate_to_bdt', e.target.value)}
+                                            required
+                                            placeholder={acceptForm.data.currency === 'EUR' ? '130.00' : '120.00'}
+                                            className="w-full pl-8 pr-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-amber-300 dark:border-amber-800 text-slate-900 dark:text-white text-xs font-mono font-bold focus:ring-2 focus:ring-amber-500"
+                                        />
+                                    </div>
+                                    <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-tight">
+                                        Applied rate at time of order (e.g. 84.00 in 2022 vs 120.00 today).
+                                    </p>
+                                </div>
+                            )}
+
                             <div>
                                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
                                     Target Completion Deadline
@@ -1661,7 +1724,7 @@ export default function CustomOrderAdminShow({
                                     <span>Edit Contract Budget & Currency</span>
                                 </h3>
                                 <p className="text-xs text-slate-500">
-                                    Modify official financial pricing for Order #{order.order_number}.
+                                    Modify official financial pricing & historical exchange rate for Order #{order.order_number}.
                                 </p>
                             </div>
                             <button
@@ -1683,7 +1746,16 @@ export default function CustomOrderAdminShow({
                                         <button
                                             key={cur.code}
                                             type="button"
-                                            onClick={() => budgetForm.setData('currency', cur.code)}
+                                            onClick={() => {
+                                                budgetForm.setData('currency', cur.code);
+                                                if (cur.code === 'BDT') {
+                                                    budgetForm.setData('exchange_rate_to_bdt', 1);
+                                                } else if (cur.code === 'EUR') {
+                                                    budgetForm.setData('exchange_rate_to_bdt', 130);
+                                                } else if (cur.code === 'USD') {
+                                                    budgetForm.setData('exchange_rate_to_bdt', 120);
+                                                }
+                                            }}
                                             className={`py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-1.5 border ${
                                                 budgetForm.data.currency === cur.code
                                                     ? 'bg-indigo-600 border-indigo-600 text-white shadow-xs'
@@ -1712,6 +1784,35 @@ export default function CustomOrderAdminShow({
                                 />
                             </div>
 
+                            {budgetForm.data.currency !== 'BDT' && (
+                                <div className="p-3.5 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/40 rounded-2xl space-y-1.5">
+                                    <div className="flex items-center justify-between">
+                                        <label className="block text-xs font-bold uppercase tracking-wider text-amber-900 dark:text-amber-300">
+                                            1 {budgetForm.data.currency} = Exchange Rate to BDT (৳) <span className="text-rose-500">*</span>
+                                        </label>
+                                        <span className="text-[10px] font-bold text-amber-700 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/50 px-2 py-0.5 rounded-full">
+                                            Historical P&L Accounting
+                                        </span>
+                                    </div>
+                                    <div className="relative">
+                                        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 font-bold text-slate-400">৳</span>
+                                        <input
+                                            type="number"
+                                            min="0.01"
+                                            step="any"
+                                            value={budgetForm.data.exchange_rate_to_bdt}
+                                            onChange={(e) => budgetForm.setData('exchange_rate_to_bdt', e.target.value)}
+                                            required
+                                            placeholder={budgetForm.data.currency === 'EUR' ? '130.00' : '120.00'}
+                                            className="w-full pl-8 pr-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-amber-300 dark:border-amber-800 text-slate-900 dark:text-white text-xs font-mono font-bold focus:ring-2 focus:ring-amber-500"
+                                        />
+                                    </div>
+                                    <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-tight">
+                                        Sets the exact historical currency exchange rate at the time of this order (e.g. 84.00 in 2022 vs 120.00 today).
+                                    </p>
+                                </div>
+                            )}
+
                             <div>
                                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
                                     Administrative Notes
@@ -1738,7 +1839,7 @@ export default function CustomOrderAdminShow({
                                     disabled={budgetForm.processing}
                                     className="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md disabled:opacity-50"
                                 >
-                                    {budgetForm.processing ? 'Saving...' : 'Update Budget'}
+                                    {budgetForm.processing ? 'Saving...' : 'Update Budget & Rate'}
                                 </button>
                             </div>
                         </form>

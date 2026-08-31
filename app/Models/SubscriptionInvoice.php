@@ -18,6 +18,7 @@ class SubscriptionInvoice extends Model
         'billing_cycle',
         'amount',
         'currency',
+        'exchange_rate_to_bdt',
         'payment_method',
         'sender_number',
         'transaction_id',
@@ -32,10 +33,32 @@ class SubscriptionInvoice extends Model
 
     protected $casts = [
         'amount' => 'float',
+        'exchange_rate_to_bdt' => 'float',
         'period_start' => 'date',
         'period_end' => 'date',
         'paid_at' => 'datetime',
     ];
+
+    protected $appends = [
+        'effective_exchange_rate',
+    ];
+
+    public function getEffectiveExchangeRateAttribute(): float
+    {
+        if ($this->currency === 'BDT') {
+            return 1.0;
+        }
+        if ($this->exchange_rate_to_bdt && $this->exchange_rate_to_bdt > 0) {
+            return (float) $this->exchange_rate_to_bdt;
+        }
+        if ($this->relationLoaded('subscription') && $this->subscription) {
+            $subRate = $this->subscription->exchange_rate_to_bdt;
+            if ($subRate && $subRate > 0) {
+                return (float) $subRate;
+            }
+        }
+        return ($this->currency === 'EUR') ? 130.0 : 120.0;
+    }
 
     protected static function boot()
     {

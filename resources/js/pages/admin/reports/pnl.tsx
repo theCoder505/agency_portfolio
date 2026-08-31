@@ -77,6 +77,8 @@ interface TransactionItem {
     title: string;
     amount: number;
     currency: string;
+    exchange_rate?: number;
+    bdt_equivalent?: number;
     payment_method: string;
     transaction_id: string;
     paid_at: string | null;
@@ -98,6 +100,8 @@ interface NonClearedItem {
     title: string;
     amount: number;
     currency: string;
+    exchange_rate?: number;
+    bdt_equivalent?: number;
     reason: string;
     transaction_id: string;
     occurred_at: string | null;
@@ -116,17 +120,20 @@ interface PnLProps {
         total_bdt: number;
         total_usd: number;
         total_eur: number;
+        total_bdt_equivalent?: number;
         total_transactions: number;
         subscriptions_breakdown: {
             bdt: number;
             usd: number;
             eur: number;
+            bdt_equivalent?: number;
             count: number;
         };
         custom_orders_breakdown: {
             bdt: number;
             usd: number;
             eur: number;
+            bdt_equivalent?: number;
             count: number;
         };
     };
@@ -134,15 +141,17 @@ interface PnLProps {
         total_bdt: number;
         total_usd: number;
         total_eur: number;
+        total_bdt_equivalent?: number;
         total_count: number;
-        refunded: { bdt: number; usd: number; eur: number; count: number };
-        rejected_subscriptions: { bdt: number; usd: number; eur: number; count: number };
-        cancelled_custom_orders: { bdt: number; usd: number; eur: number; count: number };
+        refunded: { bdt: number; usd: number; eur: number; bdt_equivalent?: number; count: number };
+        rejected_subscriptions: { bdt: number; usd: number; eur: number; bdt_equivalent?: number; count: number };
+        cancelled_custom_orders: { bdt: number; usd: number; eur: number; bdt_equivalent?: number; count: number };
     };
     pipelineSummary?: {
         pending_bdt: number;
         pending_usd: number;
         pending_eur: number;
+        pending_bdt_equivalent?: number;
         pending_milestones_count: number;
         pending_invoices_count: number;
     };
@@ -293,8 +302,8 @@ export default function PnLReport({
         datasets: [
             {
                 data: [
-                    summary.subscriptions_breakdown.bdt + (summary.subscriptions_breakdown.usd * 120) + (summary.subscriptions_breakdown.eur * 130),
-                    summary.custom_orders_breakdown.bdt + (summary.custom_orders_breakdown.usd * 120) + (summary.custom_orders_breakdown.eur * 130)
+                    summary.subscriptions_breakdown.bdt_equivalent ?? (summary.subscriptions_breakdown.bdt + (summary.subscriptions_breakdown.usd * 120) + (summary.subscriptions_breakdown.eur * 130)),
+                    summary.custom_orders_breakdown.bdt_equivalent ?? (summary.custom_orders_breakdown.bdt + (summary.custom_orders_breakdown.usd * 120) + (summary.custom_orders_breakdown.eur * 130))
                 ],
                 backgroundColor: ['#6366f1', '#06b6d4'],
                 borderWidth: 0,
@@ -736,30 +745,37 @@ export default function PnLReport({
                         </div>
 
                         <div className="grid grid-cols-2 gap-3 pt-2 text-xs border-t border-slate-100 dark:border-slate-800">
-                            <div className="p-3 rounded-2xl bg-indigo-50/50 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/40">
+                            <div className="p-3.5 rounded-2xl bg-indigo-50/50 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/40 space-y-1">
                                 <span className="text-[10px] font-black uppercase text-indigo-600 dark:text-cyan-400 block">
                                     Orders &amp; Subscriptions
                                 </span>
-                                <span className="font-bold text-slate-900 dark:text-white mt-1 block">
-                                    ৳{formatNumberEnUs(summary.subscriptions_breakdown.bdt)}
+                                <span className="font-bold text-slate-900 dark:text-white block text-sm">
+                                    ৳{formatNumberEnUs(summary.subscriptions_breakdown.bdt_equivalent ?? summary.subscriptions_breakdown.bdt)}
                                 </span>
-                                <span className="text-[10px] text-slate-400">
-                                    ${formatNumberEnUs(summary.subscriptions_breakdown.usd)} • €{formatNumberEnUs(summary.subscriptions_breakdown.eur)}
-                                </span>
+                                <div className="text-[10px] text-slate-500 dark:text-slate-400">
+                                    <span>Direct: ৳{formatNumberEnUs(summary.subscriptions_breakdown.bdt)}</span>
+                                    {summary.subscriptions_breakdown.usd > 0 && <span> • ${formatNumberEnUs(summary.subscriptions_breakdown.usd)}</span>}
+                                    {summary.subscriptions_breakdown.eur > 0 && <span> • €{formatNumberEnUs(summary.subscriptions_breakdown.eur)}</span>}
+                                </div>
                             </div>
 
-                            <div className="p-3 rounded-2xl bg-cyan-50/50 dark:bg-cyan-950/30 border border-cyan-100 dark:border-cyan-900/40">
+                            <div className="p-3.5 rounded-2xl bg-cyan-50/50 dark:bg-cyan-950/30 border border-cyan-100 dark:border-cyan-900/40 space-y-1">
                                 <span className="text-[10px] font-black uppercase text-cyan-600 dark:text-cyan-400 block">
                                     Custom Orders
                                 </span>
-                                <span className="font-bold text-slate-900 dark:text-white mt-1 block">
-                                    ৳{formatNumberEnUs(summary.custom_orders_breakdown.bdt)}
+                                <span className="font-bold text-slate-900 dark:text-white block text-sm">
+                                    ৳{formatNumberEnUs(summary.custom_orders_breakdown.bdt_equivalent ?? summary.custom_orders_breakdown.bdt)}
                                 </span>
-                                <span className="text-[10px] text-slate-400">
-                                    ${formatNumberEnUs(summary.custom_orders_breakdown.usd)} • €{formatNumberEnUs(summary.custom_orders_breakdown.eur)}
-                                </span>
+                                <div className="text-[10px] text-slate-500 dark:text-slate-400">
+                                    <span>Direct: ৳{formatNumberEnUs(summary.custom_orders_breakdown.bdt)}</span>
+                                    {summary.custom_orders_breakdown.usd > 0 && <span> • ${formatNumberEnUs(summary.custom_orders_breakdown.usd)}</span>}
+                                    {summary.custom_orders_breakdown.eur > 0 && <span> • €{formatNumberEnUs(summary.custom_orders_breakdown.eur)}</span>}
+                                </div>
                             </div>
                         </div>
+                        <p className="text-[10px] text-slate-400 dark:text-slate-500 text-center italic">
+                            * Foreign currency values are converted using the admin-assigned historical rate at time of order.
+                        </p>
                     </div>
 
                     {/* Gateway / Collection Channels */}
@@ -936,12 +952,19 @@ export default function PnLReport({
                                                             {tx.title}
                                                         </td>
                                                         <td className="py-3.5">
-                                                            <span className="font-black text-sm text-emerald-600 dark:text-emerald-400">
-                                                                {formatCurrency(tx.amount, tx.currency)}
-                                                            </span>
-                                                            <span className="text-[10px] font-mono font-bold text-slate-400 ml-1 uppercase">
-                                                                ({tx.currency})
-                                                            </span>
+                                                            <div className="flex items-baseline space-x-1">
+                                                                <span className="font-black text-sm text-emerald-600 dark:text-emerald-400">
+                                                                    {formatCurrency(tx.amount, tx.currency)}
+                                                                </span>
+                                                                <span className="text-[10px] font-mono font-bold text-slate-400 uppercase">
+                                                                    ({tx.currency})
+                                                                </span>
+                                                            </div>
+                                                            {tx.currency !== 'BDT' && tx.bdt_equivalent && (
+                                                                <div className="text-[10px] font-bold text-amber-600 dark:text-amber-400 font-mono">
+                                                                    ≈ ৳{formatNumberEnUs(tx.bdt_equivalent)} (Rate: ৳{tx.exchange_rate})
+                                                                </div>
+                                                            )}
                                                         </td>
                                                         <td className="py-3.5">
                                                             <div className="font-bold uppercase text-[11px] text-slate-700 dark:text-slate-300">
@@ -1038,12 +1061,19 @@ export default function PnLReport({
                                                             {item.title}
                                                         </td>
                                                         <td className="py-3.5">
-                                                            <span className="font-black text-sm text-rose-600 dark:text-rose-400 line-through">
-                                                                {formatCurrency(item.amount, item.currency)}
-                                                            </span>
-                                                            <span className="text-[10px] font-mono font-bold text-slate-400 ml-1 uppercase">
-                                                                ({item.currency})
-                                                            </span>
+                                                            <div className="flex items-baseline space-x-1">
+                                                                <span className="font-black text-sm text-rose-600 dark:text-rose-400 line-through">
+                                                                    {formatCurrency(item.amount, item.currency)}
+                                                                </span>
+                                                                <span className="text-[10px] font-mono font-bold text-slate-400 uppercase">
+                                                                    ({item.currency})
+                                                                </span>
+                                                            </div>
+                                                            {item.currency !== 'BDT' && item.bdt_equivalent && (
+                                                                <div className="text-[10px] font-bold text-rose-600/80 dark:text-rose-400/80 font-mono">
+                                                                    ≈ ৳{formatNumberEnUs(item.bdt_equivalent)} (Rate: ৳{item.exchange_rate})
+                                                                </div>
+                                                            )}
                                                         </td>
                                                         <td className="py-3.5 max-w-xs">
                                                             <div className="text-slate-700 dark:text-slate-300 font-medium truncate" title={item.reason}>

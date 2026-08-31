@@ -17,6 +17,7 @@ class CustomOrderMilestone extends Model
         'title',
         'description',
         'amount',
+        'exchange_rate_to_bdt',
         'due_date',
         'payment_status',
         'payment_method',
@@ -43,6 +44,7 @@ class CustomOrderMilestone extends Model
     protected $casts = [
         'amount' => 'float',
         'refund_amount' => 'float',
+        'exchange_rate_to_bdt' => 'float',
         'order' => 'integer',
         'due_date' => 'date',
         'client_paid_at' => 'datetime',
@@ -52,6 +54,7 @@ class CustomOrderMilestone extends Model
     ];
 
     protected $appends = [
+        'effective_exchange_rate',
         'status_badge',
         'has_deliverables',
         'is_late',
@@ -61,6 +64,24 @@ class CustomOrderMilestone extends Model
     public function customOrder(): BelongsTo
     {
         return $this->belongsTo(CustomOrder::class, 'custom_order_id');
+    }
+
+    public function getEffectiveExchangeRateAttribute(): float
+    {
+        if ($this->exchange_rate_to_bdt && $this->exchange_rate_to_bdt > 0) {
+            return (float) $this->exchange_rate_to_bdt;
+        }
+        if ($this->relationLoaded('customOrder') && $this->customOrder) {
+            $orderRate = $this->customOrder->exchange_rate_to_bdt;
+            if ($orderRate && $orderRate > 0) {
+                return (float) $orderRate;
+            }
+            if ($this->customOrder->currency === 'BDT') {
+                return 1.0;
+            }
+            return ($this->customOrder->currency === 'EUR') ? 130.0 : 120.0;
+        }
+        return 120.0;
     }
 
     public function getStatusBadgeAttribute(): array
