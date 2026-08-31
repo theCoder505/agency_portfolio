@@ -23,15 +23,26 @@ class SubscriptionController extends Controller
      */
     public function index(Request $request): Response
     {
-        $subscriptions = SaasSubscription::with(['user', 'product', 'approver'])
+        $subscriptions = SaasSubscription::with(['user', 'product', 'approver', 'invoices'])
             ->orderBy('created_at', 'desc')
             ->get();
 
+        $pendingSubscriptionsCount = SaasSubscription::where('status', 'pending')->count();
+        $pendingInvoicesCount = SubscriptionInvoice::where('status', 'pending')->count();
+        $pendingRenewalsCount = SubscriptionInvoice::where('status', 'pending')->where('type', 'renewal')->count();
+        $subscriptionsWithPendingInvoices = SaasSubscription::where('status', 'pending')
+            ->orWhereHas('invoices', fn($q) => $q->where('status', 'pending'))
+            ->count();
+
         $kpis = [
             'total' => SaasSubscription::count(),
-            'pending' => SaasSubscription::where('status', 'pending')->count(),
+            'pending' => $pendingSubscriptionsCount,
+            'pending_invoices' => $pendingInvoicesCount,
+            'pending_renewals' => $pendingRenewalsCount,
+            'total_pending_actions' => $subscriptionsWithPendingInvoices,
             'active' => SaasSubscription::where('status', 'active')->count(),
             'expired' => SaasSubscription::where('status', 'expired')->count(),
+            'rejected' => SaasSubscription::where('status', 'rejected')->count(),
             'total_revenue' => SubscriptionInvoice::where('status', 'paid')->sum('amount'),
         ];
 
@@ -70,6 +81,7 @@ class SubscriptionController extends Controller
         $validated = $request->validate([
             'user_id' => 'required|exists:users,id',
             'saas_product_id' => 'required|exists:saas_products,id',
+            'package_tier' => 'nullable|string|in:basic,standard,premium',
             'billing_cycle' => 'required|in:monthly,half_yearly,yearly',
             'amount' => 'required|numeric|min:0',
             'status' => 'required|in:pending,active,expired,rejected,cancelled',
@@ -86,6 +98,7 @@ class SubscriptionController extends Controller
         $admin = Auth::guard('admin')->user();
         $appSettings = AppSetting::getAllGrouped();
         $validated['currency'] = $appSettings['currency_code'] ?? 'BDT';
+        $validated['package_tier'] = $validated['package_tier'] ?? 'standard';
 
         if ($validated['status'] === 'active') {
             $startsAt = !empty($validated['starts_at']) ? Carbon::parse($validated['starts_at']) : Carbon::now();
@@ -116,7 +129,7 @@ class SubscriptionController extends Controller
                 'period_start' => $subscription->starts_at?->toDateString(),
                 'period_end' => $subscription->expires_at?->toDateString(),
                 'paid_at' => Carbon::now(),
-                'notes' => 'Created manually by administrator',
+                'notes' => 'Created manually by administrator for ' . ucfirst($subscription->package_tier) . ' tier',
             ]);
         }
 
@@ -125,16 +138,30 @@ class SubscriptionController extends Controller
     }
 
     /**
-     * Display the specified subscription with verification details.
+     * Find a subscription by numeric ID or order_number.
      */
-    public function show(int $id): Response
+    protected function findSubscription(string|int $id): SaasSubscription
+    {
+        return SaasSubscription::where(function ($query) use ($id) {
+            $query->where('id', $id)->orWhere('order_number', $id);
+        })->firstOrFail();
+    }
+
+    /**
+     * Display the specified subscription with verification details (support ID or order_number).
+     */
+    public function show(string $id): Response
     {
         $subscription = SaasSubscription::with([
             'user',
             'product',
             'approver',
             'invoices' => fn($q) => $q->orderBy('created_at', 'desc'),
-        ])->findOrFail($id);
+        ])
+        ->where(function ($query) use ($id) {
+            $query->where('id', $id)->orWhere('order_number', $id);
+        })
+        ->firstOrFail();
 
         $appSettings = AppSetting::getAllGrouped();
 
@@ -147,9 +174,14 @@ class SubscriptionController extends Controller
     /**
      * Edit existing subscription dates, domain, subdomain, or credentials.
      */
-    public function edit(int $id): Response
+    public function edit(string|int $id): Response
     {
-        $subscription = SaasSubscription::with(['user', 'product'])->findOrFail($id);
+        $subscription = SaasSubscription::with(['user', 'product'])
+            ->where(function ($query) use ($id) {
+                $query->where('id', $id)->orWhere('order_number', $id);
+            })
+            ->firstOrFail();
+
         $users = User::where('status', 'active')->orderBy('name')->get(['id', 'name', 'email', 'phone']);
         $products = SaasProduct::where('is_active', true)->orderBy('name')->get();
         $appSettings = AppSetting::getAllGrouped();
@@ -166,11 +198,12 @@ class SubscriptionController extends Controller
     /**
      * Update existing subscription.
      */
-    public function update(Request $request, int $id): RedirectResponse
+    public function update(Request $request, string|int $id): RedirectResponse
     {
-        $subscription = SaasSubscription::findOrFail($id);
+        $subscription = $this->findSubscription($id);
 
         $validated = $request->validate([
+            'package_tier' => 'nullable|string|in:basic,standard,premium',
             'billing_cycle' => 'required|in:monthly,half_yearly,yearly',
             'amount' => 'required|numeric|min:0',
             'status' => 'required|in:pending,active,expired,rejected,cancelled',
@@ -185,16 +218,16 @@ class SubscriptionController extends Controller
 
         $subscription->update($validated);
 
-        return redirect()->route('admin.subscriptions.show', $subscription->id)
+        return redirect()->route('admin.subscriptions.show', $subscription->order_number)
             ->with('success', 'Subscription details updated successfully!');
     }
 
     /**
      * Cross-check & Approve an order/subscription.
      */
-    public function approve(Request $request, int $id): RedirectResponse
+    public function approve(Request $request, string|int $id): RedirectResponse
     {
-        $subscription = SaasSubscription::findOrFail($id);
+        $subscription = $this->findSubscription($id);
 
         $validated = $request->validate([
             'starts_at' => 'required|date',
@@ -202,6 +235,7 @@ class SubscriptionController extends Controller
             'domain' => 'nullable|string|max:100',
             'subdomain' => 'nullable|string|max:50',
             'admin_notes' => 'nullable|string',
+            'invoice_id' => 'nullable|exists:subscription_invoices,id',
         ]);
 
         $admin = Auth::guard('admin')->user();
@@ -218,13 +252,18 @@ class SubscriptionController extends Controller
             'approved_at' => Carbon::now(),
             'approved_by' => $admin?->id,
             'rejection_reason' => null,
+            'last_renewed_at' => Carbon::now(),
         ]);
 
-        // Mark pending invoice as paid
-        $pendingInvoice = SubscriptionInvoice::where('subscription_id', $subscription->id)
-            ->where('status', 'pending')
-            ->latest()
-            ->first();
+        // Find pending invoice to mark as paid
+        $pendingInvoiceQuery = SubscriptionInvoice::where('subscription_id', $subscription->id)
+            ->where('status', 'pending');
+
+        if (!empty($validated['invoice_id'])) {
+            $pendingInvoice = $pendingInvoiceQuery->where('id', $validated['invoice_id'])->first();
+        } else {
+            $pendingInvoice = $pendingInvoiceQuery->latest()->first();
+        }
 
         if ($pendingInvoice) {
             $pendingInvoice->update([
@@ -235,16 +274,97 @@ class SubscriptionController extends Controller
             ]);
         }
 
-        return redirect()->route('admin.subscriptions.show', $subscription->id)
+        return redirect()->route('admin.subscriptions.show', $subscription->order_number)
             ->with('success', 'Subscription Order #' . $subscription->order_number . ' verified and activated successfully!');
+    }
+
+    /**
+     * Approve a specific renewal or initial invoice for a subscription.
+     */
+    public function approveInvoice(Request $request, string|int $id, int $invoiceId): RedirectResponse
+    {
+        $subscription = $this->findSubscription($id);
+        $invoice = SubscriptionInvoice::where('subscription_id', $subscription->id)
+            ->findOrFail($invoiceId);
+
+        $admin = Auth::guard('admin')->user();
+
+        // Calculate continuous extension period
+        if ($invoice->type === 'renewal') {
+            $baseDate = ($subscription->status === 'active' && $subscription->expires_at && $subscription->expires_at->isFuture())
+                ? $subscription->expires_at->copy()
+                : Carbon::now();
+
+            $newExpiresAt = SaasSubscription::calculateExpiryDate($baseDate, $invoice->billing_cycle ?: $subscription->billing_cycle);
+
+            $subscription->update([
+                'status' => 'active',
+                'expires_at' => $newExpiresAt,
+                'approved_at' => Carbon::now(),
+                'approved_by' => $admin?->id,
+                'rejection_reason' => null,
+                'last_renewed_at' => Carbon::now(),
+            ]);
+
+            $invoice->update([
+                'status' => 'paid',
+                'period_start' => $baseDate->toDateString(),
+                'period_end' => $newExpiresAt->toDateString(),
+                'paid_at' => Carbon::now(),
+            ]);
+        } else {
+            $startsAt = $subscription->starts_at ?: Carbon::now();
+            $expiresAt = $subscription->expires_at ?: SaasSubscription::calculateExpiryDate($startsAt, $invoice->billing_cycle ?: $subscription->billing_cycle);
+
+            $subscription->update([
+                'status' => 'active',
+                'starts_at' => $startsAt,
+                'expires_at' => $expiresAt,
+                'approved_at' => Carbon::now(),
+                'approved_by' => $admin?->id,
+                'rejection_reason' => null,
+            ]);
+
+            $invoice->update([
+                'status' => 'paid',
+                'period_start' => $startsAt->toDateString(),
+                'period_end' => $expiresAt->toDateString(),
+                'paid_at' => Carbon::now(),
+            ]);
+        }
+
+        return redirect()->route('admin.subscriptions.show', $subscription->order_number)
+            ->with('success', 'Invoice #' . $invoice->invoice_number . ' (TrxID: ' . ($invoice->transaction_id ?: 'N/A') . ') approved and subscription extended successfully!');
+    }
+
+    /**
+     * Reject a specific invoice for a subscription.
+     */
+    public function rejectInvoice(Request $request, string|int $id, int $invoiceId): RedirectResponse
+    {
+        $subscription = $this->findSubscription($id);
+        $invoice = SubscriptionInvoice::where('subscription_id', $subscription->id)
+            ->findOrFail($invoiceId);
+
+        $request->validate([
+            'rejection_reason' => 'required|string|max:1000',
+        ]);
+
+        $invoice->update([
+            'status' => 'rejected',
+            'rejection_reason' => $request->rejection_reason,
+        ]);
+
+        return redirect()->route('admin.subscriptions.show', $subscription->order_number)
+            ->with('warning', 'Invoice #' . $invoice->invoice_number . ' has been marked as rejected.');
     }
 
     /**
      * Reject an order/subscription with reason.
      */
-    public function reject(Request $request, int $id): RedirectResponse
+    public function reject(Request $request, string|int $id): RedirectResponse
     {
-        $subscription = SaasSubscription::findOrFail($id);
+        $subscription = $this->findSubscription($id);
 
         $request->validate([
             'rejection_reason' => 'required|string|max:1000',
@@ -262,16 +382,16 @@ class SubscriptionController extends Controller
                 'rejection_reason' => $request->rejection_reason,
             ]);
 
-        return redirect()->route('admin.subscriptions.show', $subscription->id)
+        return redirect()->route('admin.subscriptions.show', $subscription->order_number)
             ->with('warning', 'Order #' . $subscription->order_number . ' has been marked as rejected.');
     }
 
     /**
      * Remove the specified subscription.
      */
-    public function destroy(int $id): RedirectResponse
+    public function destroy(string|int $id): RedirectResponse
     {
-        $subscription = SaasSubscription::findOrFail($id);
+        $subscription = $this->findSubscription($id);
         $subscription->delete();
 
         return redirect()->route('admin.subscriptions.index')

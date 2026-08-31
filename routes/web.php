@@ -46,8 +46,9 @@ Route::post('/custom-orders/request', [\App\Http\Controllers\CustomOrderRequestC
 Route::middleware('auth:web')->prefix('customer')->name('customer.')->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\Customer\DashboardController::class, 'index'])->name('dashboard');
     Route::get('/subscriptions', [\App\Http\Controllers\Customer\SubscriptionController::class, 'index'])->name('subscriptions.index');
-    Route::get('/subscriptions/{id}', [\App\Http\Controllers\Customer\SubscriptionController::class, 'show'])->name('subscriptions.show');
-    Route::post('/subscriptions/{id}/renew', [\App\Http\Controllers\Customer\SubscriptionController::class, 'renew'])->name('subscriptions.renew');
+    Route::get('/subscriptions/{order_number}', [\App\Http\Controllers\Customer\SubscriptionController::class, 'show'])->name('subscriptions.show');
+    Route::post('/subscriptions/{order_number}/renew', [\App\Http\Controllers\Customer\SubscriptionController::class, 'renew'])->name('subscriptions.renew');
+    Route::post('/subscriptions/{order_number}/change-package', [\App\Http\Controllers\Customer\SubscriptionController::class, 'changePackage'])->name('subscriptions.change-package');
     
     // Custom Orders & Milestones
     Route::get('/custom-orders', [\App\Http\Controllers\Customer\CustomOrderController::class, 'index'])->name('custom-orders.index');

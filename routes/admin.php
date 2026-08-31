@@ -69,6 +69,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::put('subscriptions/{id}', [SubscriptionController::class, 'update'])->name('subscriptions.update');
         Route::post('subscriptions/{id}/approve', [SubscriptionController::class, 'approve'])->name('subscriptions.approve');
         Route::post('subscriptions/{id}/reject', [SubscriptionController::class, 'reject'])->name('subscriptions.reject');
+        Route::post('subscriptions/{id}/invoices/{invoiceId}/approve', [SubscriptionController::class, 'approveInvoice'])->name('subscriptions.invoices.approve');
+        Route::post('subscriptions/{id}/invoices/{invoiceId}/reject', [SubscriptionController::class, 'rejectInvoice'])->name('subscriptions.invoices.reject');
         Route::delete('subscriptions/{id}', [SubscriptionController::class, 'destroy'])->name('subscriptions.destroy');
 
         // Registered Customers Management

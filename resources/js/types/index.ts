@@ -223,6 +223,9 @@ export interface SaasSubscription {
         label: string;
         color: string;
     };
+    has_pending_invoice?: boolean;
+    pending_invoices_count?: number;
+    pending_invoice?: SubscriptionInvoice | null;
     invoices?: SubscriptionInvoice[];
     created_at: string;
     updated_at?: string;
@@ -241,7 +244,7 @@ export interface SubscriptionInvoice {
     payment_method: string;
     sender_number?: string | null;
     transaction_id?: string | null;
-    type: 'initial' | 'renewal';
+    type: 'initial' | 'renewal' | 'package_change';
     status: 'pending' | 'paid' | 'rejected';
     period_start?: string | null;
     period_end?: string | null;

@@ -61,7 +61,7 @@ export default function SubscriptionForm({
     const handleSubmit: FormEventHandler = (e) => {
         e.preventDefault();
         if (isEdit && subscription) {
-            put(`/admin/subscriptions/${subscription.id}`);
+            put(`/admin/subscriptions/${subscription.order_number || subscription.id}`);
         } else {
             post('/admin/subscriptions');
         }

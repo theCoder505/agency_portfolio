@@ -23,6 +23,7 @@ import {
     FolderGit2
 } from 'lucide-react';
 import { getCustomOrderUrl } from '@/lib/utils';
+import { formatNumberEnUs } from '@/lib/formatters';
 
 // Chart.js imports
 import {
@@ -208,7 +209,7 @@ export default function Dashboard({
                             <Layers className="h-4 w-4 text-indigo-500" />
                         </div>
                         <div className="text-2xl font-black text-slate-900 dark:text-white">
-                            {kpis.total_projects}
+                            {formatNumberEnUs(kpis.total_projects)}
                         </div>
                     </div>
 
@@ -218,7 +219,7 @@ export default function Dashboard({
                             <Eye className="h-4 w-4 text-cyan-400" />
                         </div>
                         <div className="text-2xl font-black text-cyan-600 dark:text-cyan-400">
-                            {kpis.total_views.toLocaleString()}
+                            {formatNumberEnUs(kpis.total_views)}
                         </div>
                     </div>
 
@@ -228,7 +229,7 @@ export default function Dashboard({
                             <BookOpen className="h-4 w-4 text-purple-500" />
                         </div>
                         <div className="text-2xl font-black text-purple-600 dark:text-purple-400">
-                            {kpis.total_blogs ?? 0}
+                            {formatNumberEnUs(kpis.total_blogs ?? 0)}
                         </div>
                     </div>
 
@@ -238,7 +239,7 @@ export default function Dashboard({
                             <Eye className="h-4 w-4 text-emerald-500" />
                         </div>
                         <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400">
-                            {(kpis.total_blog_reads ?? 0).toLocaleString()}
+                            {formatNumberEnUs(kpis.total_blog_reads ?? 0)}
                         </div>
                     </div>
 
@@ -248,7 +249,7 @@ export default function Dashboard({
                             <MessageSquare className="h-4 w-4 text-blue-500" />
                         </div>
                         <div className="text-2xl font-black text-slate-900 dark:text-white">
-                            {kpis.total_contacts}
+                            {formatNumberEnUs(kpis.total_contacts)}
                         </div>
                     </div>
 
@@ -258,7 +259,7 @@ export default function Dashboard({
                             <span className="h-2 w-2 rounded-full bg-red-500 animate-pulse"></span>
                         </div>
                         <div className="text-2xl font-black text-red-500">
-                            {kpis.unread_contacts}
+                            {formatNumberEnUs(kpis.unread_contacts)}
                         </div>
                     </div>
 
@@ -268,7 +269,7 @@ export default function Dashboard({
                             <Activity className="h-4 w-4 text-teal-500" />
                         </div>
                         <div className="text-2xl font-black text-teal-600 dark:text-teal-400">
-                            {kpis.total_visitor_hits.toLocaleString()}
+                            {formatNumberEnUs(kpis.total_visitor_hits)}
                         </div>
                     </div>
 
@@ -278,7 +279,7 @@ export default function Dashboard({
                             <Users className="h-4 w-4 text-amber-500" />
                         </div>
                         <div className="text-2xl font-black text-amber-600 dark:text-amber-400">
-                            {kpis.unique_visitors.toLocaleString()}
+                            {formatNumberEnUs(kpis.unique_visitors)}
                         </div>
                     </div>
                 </div>
@@ -294,7 +295,7 @@ export default function Dashboard({
                                 Pending Custom Orders
                             </div>
                             <div className="text-2xl font-black text-slate-900 dark:text-white mt-1">
-                                {kpis.pending_custom_orders ?? 0} Review
+                                {formatNumberEnUs(kpis.pending_custom_orders ?? 0)} Review
                             </div>
                         </div>
                         <div className="h-10 w-10 rounded-xl bg-cyan-500/20 text-cyan-600 dark:text-cyan-400 flex items-center justify-center font-bold group-hover:scale-105 transition-transform">
@@ -311,7 +312,7 @@ export default function Dashboard({
                                 Pending Subscriptions
                             </div>
                             <div className="text-2xl font-black text-slate-900 dark:text-white mt-1">
-                                {kpis.pending_subscriptions ?? 0} Orders
+                                {formatNumberEnUs(kpis.pending_subscriptions ?? 0)} Orders
                             </div>
                         </div>
                         <div className="h-10 w-10 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold group-hover:scale-105 transition-transform">
@@ -328,7 +329,7 @@ export default function Dashboard({
                                 Active SaaS Deployments
                             </div>
                             <div className="text-2xl font-black text-slate-900 dark:text-white mt-1">
-                                {kpis.active_subscriptions ?? 0} Live
+                                {formatNumberEnUs(kpis.active_subscriptions ?? 0)} Live
                             </div>
                         </div>
                         <div className="h-10 w-10 rounded-xl bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold group-hover:scale-105 transition-transform">
@@ -345,7 +346,7 @@ export default function Dashboard({
                                 Registered Customers
                             </div>
                             <div className="text-2xl font-black text-slate-900 dark:text-white mt-1">
-                                {kpis.total_customers ?? 0} Accounts
+                                {formatNumberEnUs(kpis.total_customers ?? 0)} Accounts
                             </div>
                         </div>
                         <div className="h-10 w-10 rounded-xl bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold group-hover:scale-105 transition-transform">
@@ -514,7 +515,7 @@ export default function Dashboard({
                                                     </span>
                                                 </div>
                                                 <p className="font-bold text-slate-900 dark:text-white truncate max-w-xs">{order.title}</p>
-                                                <p className="text-[11px] text-slate-400">{order.user?.name} &bull; {order.currency} {(order.agreed_price || order.estimated_budget || 0).toLocaleString()}</p>
+                                                <p className="text-[11px] text-slate-400">{order.user?.name} &bull; {order.currency} {formatNumberEnUs(order.agreed_price || order.estimated_budget || 0)}</p>
                                             </div>
 
                                             <Link

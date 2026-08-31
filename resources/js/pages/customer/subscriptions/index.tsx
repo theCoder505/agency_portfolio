@@ -16,11 +16,14 @@ import {
     RefreshCw,
     Search,
     Filter,
-    X,
     ExternalLink,
     LayoutDashboard,
-    ShieldCheck
+    ShieldCheck,
+    AlertTriangle
 } from 'lucide-react';
+import { formatDateEnUs } from '@/lib/formatters';
+import { RejectionDetailsModal, RejectionModalInfo } from '@/components/ui/rejection-details-modal';
+import { router } from '@inertiajs/react';
 
 interface SubscriptionsIndexProps {
     subscriptions: SaasSubscription[] | PaginatedData<SaasSubscription>;
@@ -36,6 +39,7 @@ export default function SubscriptionsIndex({
 }: SubscriptionsIndexProps) {
     const currency = paymentSettings?.currency_symbol || '৳';
     const [activeStatus, setActiveStatus] = useState('all');
+    const [rejectionModalData, setRejectionModalData] = useState<RejectionModalInfo | null>(null);
 
     const allSubscriptionsList = useMemo(() => {
         return Array.isArray(subscriptions) ? subscriptions : subscriptions?.data || [];
@@ -118,12 +122,12 @@ export default function SubscriptionsIndex({
                             )}
                         </form>
 
-                        <div className="flex items-center space-x-1.5 p-1 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs self-start sm:self-auto">
-                            {['all', 'active', 'pending', 'expired'].map((st) => (
+                        <div className="flex items-center space-x-1.5 p-1 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs self-start sm:self-auto overflow-x-auto">
+                            {['all', 'active', 'pending', 'expired', 'rejected'].map((st) => (
                                 <button
                                     key={st}
                                     onClick={() => handleStatusFilter(st)}
-                                    className={`px-3 py-1.5 rounded-xl text-xs font-bold capitalize transition-all ${
+                                    className={`px-3 py-1.5 rounded-xl text-xs font-bold capitalize transition-all shrink-0 ${
                                         activeStatus === st
                                             ? 'bg-indigo-600 text-white shadow-sm'
                                             : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
@@ -168,15 +172,37 @@ export default function SubscriptionsIndex({
                                             <div className="h-10 w-10 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-cyan-400 flex items-center justify-center font-bold">
                                                 <Layers className="h-5 w-5" />
                                             </div>
-                                            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                                                sub.status === 'active'
-                                                    ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
-                                                    : sub.status === 'pending'
-                                                    ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
-                                                    : 'bg-rose-500/10 text-rose-500 border border-rose-500/20'
-                                            }`}>
-                                                {badge?.label || sub.status}
-                                            </span>
+                                            {sub.status === 'rejected' ? (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setRejectionModalData({
+                                                        title: `Order #${sub.order_number} Rejected`,
+                                                        reason: sub.rejection_reason || 'Payment verification failed or invalid details provided.',
+                                                        orderNumber: sub.order_number,
+                                                        transactionId: sub.transaction_id,
+                                                        paymentMethod: sub.payment_method,
+                                                        senderNumber: sub.sender_number,
+                                                        amount: formatCurrency(sub.amount, sub.currency || currency, 0),
+                                                        date: formatDateEnUs(sub.created_at),
+                                                    })}
+                                                    className="px-2.5 py-1 rounded-full text-[10px] font-black bg-rose-500/10 hover:bg-rose-500 text-rose-600 dark:text-rose-400 hover:text-white border border-rose-500/30 transition-all flex items-center space-x-1 cursor-pointer shadow-2xs group"
+                                                    title="Click to view why payment was rejected"
+                                                >
+                                                    <AlertTriangle className="h-3 w-3 shrink-0 text-rose-500 group-hover:text-white" />
+                                                    <span>REJECTED</span>
+                                                    <span className="text-[9px] underline opacity-90 group-hover:text-white">(Why?)</span>
+                                                </button>
+                                            ) : (
+                                                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                                                    sub.status === 'active'
+                                                        ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
+                                                        : sub.status === 'pending'
+                                                        ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
+                                                        : 'bg-rose-500/10 text-rose-500 border border-rose-500/20'
+                                                }`}>
+                                                    {badge?.label || sub.status}
+                                                </span>
+                                            )}
                                         </div>
 
                                         <div className="flex items-center space-x-2">
@@ -205,6 +231,27 @@ export default function SubscriptionsIndex({
                                                     <Clock className="h-3.5 w-3.5" />
                                                     <span>Awaiting Admin Verification</span>
                                                 </div>
+                                            ) : sub.status === 'rejected' ? (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setRejectionModalData({
+                                                        title: `Order #${sub.order_number} Rejected`,
+                                                        reason: sub.rejection_reason || 'Payment verification failed or invalid details provided.',
+                                                        orderNumber: sub.order_number,
+                                                        transactionId: sub.transaction_id,
+                                                        paymentMethod: sub.payment_method,
+                                                        senderNumber: sub.sender_number,
+                                                        amount: formatCurrency(sub.amount, sub.currency || currency, 0),
+                                                        date: formatDateEnUs(sub.created_at),
+                                                    })}
+                                                    className="w-full text-left text-rose-600 dark:text-rose-400 hover:text-rose-700 font-semibold flex items-center justify-between group cursor-pointer"
+                                                >
+                                                    <div className="flex items-center space-x-1.5 truncate">
+                                                        <AlertCircle className="h-3.5 w-3.5 shrink-0 text-rose-500" />
+                                                        <span className="truncate">Rejected: {sub.rejection_reason || 'Payment verification failed'}</span>
+                                                    </div>
+                                                    <span className="text-[10px] font-bold underline shrink-0 ml-1">View</span>
+                                                </button>
                                             ) : (
                                                 <div className="text-rose-500 font-semibold flex items-center space-x-1.5">
                                                     <AlertCircle className="h-3.5 w-3.5" />
@@ -261,7 +308,7 @@ export default function SubscriptionsIndex({
 
                                     <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
                                         <Link
-                                            href={`/customer/subscriptions/${sub.id}`}
+                                            href={`/customer/subscriptions/${sub.order_number}`}
                                             className="text-xs font-bold text-indigo-600 dark:text-cyan-400 hover:underline flex items-center space-x-1"
                                         >
                                             <span>Manage & Credentials</span>
@@ -270,7 +317,7 @@ export default function SubscriptionsIndex({
 
                                         {(sub.status === 'expired' || sub.days_remaining <= 7) && (
                                             <Link
-                                                href={`/customer/subscriptions/${sub.id}`}
+                                                href={`/customer/subscriptions/${sub.order_number}`}
                                                 className="px-3 py-1 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-sm flex items-center space-x-1"
                                             >
                                                 <RefreshCw className="h-3 w-3" />
@@ -294,6 +341,17 @@ export default function SubscriptionsIndex({
                     itemLabel="subscriptions"
                 />
             </div>
+
+            {/* Rejection Details Popup Modal */}
+            <RejectionDetailsModal
+                isOpen={Boolean(rejectionModalData)}
+                data={rejectionModalData}
+                onClose={() => setRejectionModalData(null)}
+                onRetry={rejectionModalData?.orderNumber ? () => {
+                    router.visit(`/customer/subscriptions/${rejectionModalData.orderNumber}`);
+                } : undefined}
+                retryLabel="Resubmit Payment Info"
+            />
         </CustomerLayout>
     );
 }

@@ -17,10 +17,13 @@ import {
     Edit2,
     Plus,
     Search,
-    X
+    X,
+    AlertTriangle
 } from 'lucide-react';
 import { useClientDataTable } from '@/hooks/use-client-data-table';
 import { Pagination } from '@/components/ui/pagination';
+import { formatDateEnUs, formatNumberEnUs } from '@/lib/formatters';
+import { RejectionDetailsModal, RejectionModalInfo } from '@/components/ui/rejection-details-modal';
 
 interface CustomerShowProps {
     customer: User;
@@ -37,6 +40,7 @@ export default function CustomerShow({
 }: CustomerShowProps) {
     const customerSubs = (subscriptions && subscriptions.length > 0) ? subscriptions : (customer?.subscriptions || []);
     const customerInvs = (invoices && invoices.length > 0) ? invoices : (customer?.invoices || []);
+    const [rejectionModalData, setRejectionModalData] = React.useState<RejectionModalInfo | null>(null);
 
     const totalSpent = customerInvs
         .filter(inv => inv.status === 'paid')
@@ -238,18 +242,40 @@ export default function CustomerShow({
                                                     </div>
                                                 </td>
                                                 <td className="py-3">
-                                                    <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
-                                                        sub.status === 'active' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-amber-500/10 text-amber-500'
-                                                    }`}>
-                                                        {sub.status.toUpperCase()}
-                                                    </span>
+                                                    {sub.status === 'rejected' ? (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setRejectionModalData({
+                                                                title: `Order #${sub.order_number} Rejection Record`,
+                                                                reason: sub.rejection_reason || 'Order verification rejected by administrator.',
+                                                                orderNumber: sub.order_number,
+                                                                transactionId: sub.transaction_id,
+                                                                paymentMethod: sub.payment_method,
+                                                                senderNumber: sub.sender_number,
+                                                                amount: `${currencySymbol}${formatNumberEnUs(sub.amount)}`,
+                                                                date: formatDateEnUs(sub.created_at),
+                                                            })}
+                                                            className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/30 hover:bg-rose-500 hover:text-white transition-all flex items-center space-x-1 cursor-pointer shadow-2xs group"
+                                                            title="Click to view rejection reason"
+                                                        >
+                                                            <AlertTriangle className="h-3 w-3 shrink-0 text-rose-500 group-hover:text-white" />
+                                                            <span>REJECTED</span>
+                                                            <span className="text-[9px] underline opacity-90 group-hover:text-white">(Why?)</span>
+                                                        </button>
+                                                    ) : (
+                                                        <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
+                                                            sub.status === 'active' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-amber-500/10 text-amber-500'
+                                                        }`}>
+                                                            {sub.status.toUpperCase()}
+                                                        </span>
+                                                    )}
                                                 </td>
                                                 <td className="py-3 text-slate-400">
-                                                    {sub.expires_at ? new Date(sub.expires_at).toLocaleDateString() : 'N/A'}
+                                                    {sub.expires_at ? formatDateEnUs(sub.expires_at) : 'N/A'}
                                                 </td>
                                                 <td className="py-3 text-right">
                                                     <Link
-                                                        href={`/admin/subscriptions/${sub.id}`}
+                                                        href={`/admin/subscriptions/${sub.order_number || sub.id}`}
                                                         className="text-indigo-600 dark:text-cyan-400 font-bold hover:underline"
                                                     >
                                                         Manage
@@ -331,17 +357,39 @@ export default function CustomerShow({
                                             <tr key={inv.id}>
                                                 <td className="py-3 font-mono font-bold text-indigo-600 dark:text-cyan-400">{inv.invoice_number}</td>
                                                 <td className="py-3 capitalize">{inv.type}</td>
-                                                <td className="py-3 font-bold">{currencySymbol}{inv.amount.toLocaleString()}</td>
+                                                <td className="py-3 font-bold">{currencySymbol}{formatNumberEnUs(inv.amount)}</td>
                                                 <td className="py-3 uppercase font-mono">{inv.payment_method}</td>
                                                 <td className="py-3 font-mono">{inv.transaction_id || 'N/A'}</td>
                                                 <td className="py-3">
-                                                    <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
-                                                        inv.status === 'paid' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-amber-500/10 text-amber-500'
-                                                    }`}>
-                                                        {inv.status.toUpperCase()}
-                                                    </span>
+                                                    {inv.status === 'rejected' ? (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setRejectionModalData({
+                                                                title: `Rejected Invoice #${inv.invoice_number}`,
+                                                                reason: inv.rejection_reason || 'Invoice payment was rejected by administrator.',
+                                                                invoiceNumber: inv.invoice_number,
+                                                                transactionId: inv.transaction_id,
+                                                                paymentMethod: inv.payment_method,
+                                                                senderNumber: inv.sender_number,
+                                                                amount: `${currencySymbol}${formatNumberEnUs(inv.amount)}`,
+                                                                date: formatDateEnUs(inv.created_at),
+                                                            })}
+                                                            className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/30 hover:bg-rose-500 hover:text-white transition-all flex items-center space-x-1 cursor-pointer shadow-2xs group"
+                                                            title="Click to view rejection reason"
+                                                        >
+                                                            <AlertTriangle className="h-3 w-3 shrink-0 text-rose-500 group-hover:text-white" />
+                                                            <span>REJECTED</span>
+                                                            <span className="text-[9px] underline opacity-90 group-hover:text-white">(Why?)</span>
+                                                        </button>
+                                                    ) : (
+                                                        <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
+                                                            inv.status === 'paid' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-amber-500/10 text-amber-500'
+                                                        }`}>
+                                                            {inv.status.toUpperCase()}
+                                                        </span>
+                                                    )}
                                                 </td>
-                                                <td className="py-3 text-right text-slate-400">{new Date(inv.created_at).toLocaleDateString()}</td>
+                                                <td className="py-3 text-right text-slate-400">{formatDateEnUs(inv.created_at)}</td>
                                             </tr>
                                         ))}
                                     </tbody>
@@ -361,6 +409,13 @@ export default function CustomerShow({
                     )}
                 </div>
             </div>
+
+            {/* Rejection Details Popup Modal */}
+            <RejectionDetailsModal
+                isOpen={Boolean(rejectionModalData)}
+                data={rejectionModalData}
+                onClose={() => setRejectionModalData(null)}
+            />
         </AdminLayout>
     );
 }

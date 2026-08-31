@@ -45,7 +45,9 @@ class HandleInertiaRequests extends Middleware
 
         try {
             if ($request->user('admin')) {
-                $pendingSubscriptionsCount = \App\Models\SaasSubscription::where('status', 'pending')->count();
+                $pendingSubscriptionsCount = \App\Models\SaasSubscription::where('status', 'pending')
+                    ->orWhereHas('invoices', fn($q) => $q->where('status', 'pending'))
+                    ->count();
                 $pendingCustomOrdersCount = \App\Models\CustomOrder::where('status', 'pending')->count();
             }
             if ($request->user()) {

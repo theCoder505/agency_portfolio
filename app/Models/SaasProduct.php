@@ -139,7 +139,7 @@ class SaasProduct extends Model
     public function getPriceForCycle(string $cycle, string $tier = 'standard'): float
     {
         $packages = $this->packages;
-        $tierKey = strtolower($tier);
+        $tierKey = strtolower($tier ?: 'standard');
 
         if (isset($packages[$tierKey])) {
             $selectedTier = $packages[$tierKey];
@@ -147,16 +147,17 @@ class SaasProduct extends Model
             $yearly = (float) ($selectedTier['yearly_price'] ?? ($monthly * 10));
 
             return match ($cycle) {
-                'half_yearly' => round($monthly * 5.5),
+                'half_yearly' => round($monthly * 6),
                 'yearly' => $yearly,
                 default => $monthly,
             };
         }
 
+        $monthly = (float) $this->monthly_price;
         return match ($cycle) {
-            'half_yearly' => (float) ($this->half_yearly_price > 0 ? $this->half_yearly_price : ($this->monthly_price * 5.5)),
-            'yearly' => (float) ($this->yearly_price > 0 ? $this->yearly_price : ($this->monthly_price * 10)),
-            default => (float) $this->monthly_price,
+            'half_yearly' => round($monthly * 6),
+            'yearly' => (float) ($this->yearly_price > 0 ? $this->yearly_price : ($monthly * 10)),
+            default => $monthly,
         };
     }
 }

@@ -26,13 +26,15 @@ import {
     Github,
     HardDrive,
     Search,
-    X
+    X,
+    AlertTriangle
 } from 'lucide-react';
 import { showToast } from '@/lib/swal';
-import { formatCurrency } from '@/lib/formatters';
+import { formatCurrency, formatDateEnUs, formatDateTimeEnUs, formatNumberEnUs } from '@/lib/formatters';
 import { getCustomOrderUrl } from '@/lib/utils';
 import { useClientDataTable } from '@/hooks/use-client-data-table';
 import { Pagination } from '@/components/ui/pagination';
+import { RejectionDetailsModal, RejectionModalInfo } from '@/components/ui/rejection-details-modal';
 
 interface DashboardProps {
     kpis: {
@@ -74,6 +76,7 @@ export default function CustomerDashboard({
     const currency = paymentSettings.currency_symbol || '৳';
 
     const [visibleCredentials, setVisibleCredentials] = useState<Record<number, boolean>>({});
+    const [rejectionModalData, setRejectionModalData] = useState<RejectionModalInfo | null>(null);
 
     const invsTable = useClientDataTable<SubscriptionInvoice>({
         data: recentInvoices,
@@ -132,7 +135,7 @@ export default function CustomerDashboard({
                         </div>
                         <div>
                             <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Active Packages</span>
-                            <div className="text-2xl font-black text-slate-900 dark:text-white mt-0.5">{kpis.total_active}</div>
+                            <div className="text-2xl font-black text-slate-900 dark:text-white mt-0.5">{formatNumberEnUs(kpis.total_active)}</div>
                         </div>
                     </div>
 
@@ -142,7 +145,7 @@ export default function CustomerDashboard({
                         </div>
                         <div>
                             <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Under Review</span>
-                            <div className="text-2xl font-black text-slate-900 dark:text-white mt-0.5">{kpis.total_pending}</div>
+                            <div className="text-2xl font-black text-slate-900 dark:text-white mt-0.5">{formatNumberEnUs(kpis.total_pending)}</div>
                         </div>
                     </div>
 
@@ -152,7 +155,7 @@ export default function CustomerDashboard({
                         </div>
                         <div>
                             <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Expired / Due</span>
-                            <div className="text-2xl font-black text-slate-900 dark:text-white mt-0.5">{kpis.total_expired}</div>
+                            <div className="text-2xl font-black text-slate-900 dark:text-white mt-0.5">{formatNumberEnUs(kpis.total_expired)}</div>
                         </div>
                     </div>
 
@@ -162,7 +165,7 @@ export default function CustomerDashboard({
                         </div>
                         <div>
                             <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Total Invoices</span>
-                            <div className="text-2xl font-black text-slate-900 dark:text-white mt-0.5">{kpis.total_invoices}</div>
+                            <div className="text-2xl font-black text-slate-900 dark:text-white mt-0.5">{formatNumberEnUs(kpis.total_invoices)}</div>
                         </div>
                     </div>
                 </div>
@@ -205,7 +208,7 @@ export default function CustomerDashboard({
                                 href="/customer/custom-orders"
                                 className="text-xs font-bold text-indigo-600 dark:text-cyan-400 hover:underline flex items-center space-x-1"
                             >
-                                <span>View All ({kpis.total_custom_orders || 0})</span>
+                                <span>View All ({formatNumberEnUs(kpis.total_custom_orders || 0)})</span>
                                 <ChevronRight className="h-4 w-4" />
                             </Link>
                         </div>
@@ -268,7 +271,7 @@ export default function CustomerDashboard({
                                             <div>
                                                 <span className="text-[10px] uppercase font-bold text-slate-400 block">Settled Amount</span>
                                                 <span className="text-sm font-black text-slate-900 dark:text-white">
-                                                    {order.currency} {agreedPrice.toLocaleString()}
+                                                    {order.currency} {formatNumberEnUs(agreedPrice)}
                                                 </span>
                                             </div>
 
@@ -378,8 +381,8 @@ export default function CustomerDashboard({
                                             </div>
 
                                             <div className="flex items-center justify-between text-[10px] text-slate-400 pt-0.5">
-                                                <span>Started: {sub.starts_at ? new Date(sub.starts_at).toLocaleDateString() : 'N/A'}</span>
-                                                <span>Expires: {sub.expires_at ? new Date(sub.expires_at).toLocaleDateString() : 'N/A'}</span>
+                                                <span>Started: {formatDateEnUs(sub.starts_at) || 'N/A'}</span>
+                                                <span>Expires: {formatDateEnUs(sub.expires_at) || 'N/A'}</span>
                                             </div>
                                         </div>
 
@@ -472,7 +475,7 @@ export default function CustomerDashboard({
                                         {/* Bottom Actions */}
                                         <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
                                             <Link
-                                                href={`/customer/subscriptions/${sub.id}`}
+                                                href={`/customer/subscriptions/${sub.order_number}`}
                                                 className="text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-cyan-400 flex items-center space-x-1"
                                             >
                                                 <span>View Full Details</span>
@@ -481,7 +484,7 @@ export default function CustomerDashboard({
 
                                             {isExpiringSoon && (
                                                 <Link
-                                                    href={`/customer/subscriptions/${sub.id}`}
+                                                    href={`/customer/subscriptions/${sub.order_number}`}
                                                     className="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-sm flex items-center space-x-1.5"
                                                 >
                                                     <RefreshCw className="h-3 w-3" />
@@ -515,12 +518,12 @@ export default function CustomerDashboard({
                                             {expSub.product?.name}
                                         </h3>
                                         <p className="text-xs text-rose-500 font-semibold mt-0.5">
-                                            Service expired on {expSub.expires_at ? new Date(expSub.expires_at).toLocaleDateString() : 'recent deadline'}.
+                                            Service expired on {formatDateEnUs(expSub.expires_at) || 'recent deadline'}.
                                         </p>
                                     </div>
 
                                     <Link
-                                        href={`/customer/subscriptions/${expSub.id}`}
+                                        href={`/customer/subscriptions/${expSub.order_number}`}
                                         className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-md shrink-0 flex items-center space-x-1"
                                     >
                                         <RefreshCw className="h-3.5 w-3.5" />
@@ -606,17 +609,38 @@ export default function CustomerDashboard({
                                                 <td className="py-3 uppercase font-mono">{inv.payment_method}</td>
                                                 <td className="py-3 font-mono">{inv.transaction_id || 'N/A'}</td>
                                                 <td className="py-3">
-                                                    <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
-                                                        inv.status === 'paid'
-                                                            ? 'bg-emerald-500/10 text-emerald-500'
-                                                            : inv.status === 'pending'
-                                                            ? 'bg-amber-500/10 text-amber-500'
-                                                            : 'bg-rose-500/10 text-rose-500'
-                                                    }`}>
-                                                        {inv.status.toUpperCase()}
-                                                    </span>
+                                                    {inv.status === 'rejected' ? (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setRejectionModalData({
+                                                                title: `Rejected Invoice #${inv.invoice_number}`,
+                                                                reason: inv.rejection_reason || 'Payment verification failed or invalid transaction details provided.',
+                                                                invoiceNumber: inv.invoice_number,
+                                                                orderNumber: inv.subscription?.order_number,
+                                                                transactionId: inv.transaction_id,
+                                                                paymentMethod: inv.payment_method,
+                                                                senderNumber: inv.sender_number,
+                                                                amount: formatCurrency(inv.amount, inv.currency || currency),
+                                                                date: formatDateEnUs(inv.created_at),
+                                                            })}
+                                                            className="px-2.5 py-1 rounded-lg text-[10px] font-black tracking-wide bg-rose-500/10 hover:bg-rose-500 text-rose-600 dark:text-rose-400 hover:text-white border border-rose-500/30 transition-all flex items-center space-x-1 cursor-pointer shadow-2xs group"
+                                                            title="Click to view why this payment was rejected"
+                                                        >
+                                                            <AlertTriangle className="h-3 w-3 shrink-0 text-rose-500 group-hover:text-white" />
+                                                            <span>REJECTED</span>
+                                                            <span className="text-[9px] underline opacity-90 group-hover:text-white">(Why?)</span>
+                                                        </button>
+                                                    ) : (
+                                                        <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
+                                                            inv.status === 'paid'
+                                                                ? 'bg-emerald-500/10 text-emerald-500'
+                                                                : 'bg-amber-500/10 text-amber-500'
+                                                        }`}>
+                                                            {inv.status.toUpperCase()}
+                                                        </span>
+                                                    )}
                                                 </td>
-                                                <td className="py-3 text-right text-slate-400">{new Date(inv.created_at).toLocaleDateString()}</td>
+                                                <td className="py-3 text-right text-slate-400">{formatDateEnUs(inv.created_at)}</td>
                                             </tr>
                                         ))}
                                     </tbody>
@@ -636,6 +660,13 @@ export default function CustomerDashboard({
                     )}
                 </div>
             </div>
+
+            {/* Rejection Details Popup Modal */}
+            <RejectionDetailsModal
+                isOpen={Boolean(rejectionModalData)}
+                data={rejectionModalData}
+                onClose={() => setRejectionModalData(null)}
+            />
         </CustomerLayout>
     );
 }

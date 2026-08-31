@@ -56,7 +56,34 @@ class SaasSubscription extends Model
         'status_badge',
         'requested_domain_display',
         'requested_subdomain_display',
+        'has_pending_invoice',
+        'pending_invoices_count',
+        'pending_invoice',
     ];
+
+    public function getHasPendingInvoiceAttribute(): bool
+    {
+        if ($this->relationLoaded('invoices')) {
+            return $this->invoices->contains('status', 'pending');
+        }
+        return $this->invoices()->where('status', 'pending')->exists();
+    }
+
+    public function getPendingInvoicesCountAttribute(): int
+    {
+        if ($this->relationLoaded('invoices')) {
+            return $this->invoices->where('status', 'pending')->count();
+        }
+        return $this->invoices()->where('status', 'pending')->count();
+    }
+
+    public function getPendingInvoiceAttribute(): ?SubscriptionInvoice
+    {
+        if ($this->relationLoaded('invoices')) {
+            return $this->invoices->firstWhere('status', 'pending');
+        }
+        return $this->invoices()->where('status', 'pending')->latest()->first();
+    }
 
     public function getRequestedDomainDisplayAttribute(): ?string
     {
@@ -169,5 +196,17 @@ class SaasSubscription extends Model
             'yearly' => $startDate->copy()->addYears(1),
             default => $startDate->copy()->addMonth(),
         };
+    }
+
+    /**
+     * Compute new extended expiry date taking current expiry into account.
+     */
+    public function calculateExtendedExpiryDate(string $cycle): Carbon
+    {
+        $baseDate = ($this->status === 'active' && $this->expires_at && $this->expires_at->isFuture())
+            ? $this->expires_at->copy()
+            : Carbon::now();
+
+        return static::calculateExpiryDate($baseDate, $cycle);
     }
 }

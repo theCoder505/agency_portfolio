@@ -18,8 +18,11 @@ import {
     ChevronRight,
     Search,
     X,
-    ExternalLink
+    ExternalLink,
+    AlertTriangle
 } from 'lucide-react';
+import { formatDateEnUs } from '@/lib/formatters';
+import { RejectionDetailsModal, RejectionModalInfo } from '@/components/ui/rejection-details-modal';
 
 interface InvoicesIndexProps {
     invoices: SubscriptionInvoice[] | PaginatedData<SubscriptionInvoice>;
@@ -47,6 +50,7 @@ export default function InvoicesIndex({
 }: InvoicesIndexProps) {
     const currency = brandSettings?.currency_symbol || '৳';
     const [selectedInvoice, setSelectedInvoice] = useState<SubscriptionInvoice | null>(null);
+    const [rejectionModalData, setRejectionModalData] = useState<RejectionModalInfo | null>(null);
     const [activeStatus, setActiveStatus] = useState('all');
 
     const allInvoicesList = useMemo(() => {
@@ -202,18 +206,39 @@ export default function InvoicesIndex({
                                                 {inv.transaction_id || 'N/A'}
                                             </td>
                                             <td className="py-4 px-4">
-                                                <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
-                                                    inv.status === 'paid'
-                                                        ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
-                                                        : inv.status === 'pending'
-                                                        ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
-                                                        : 'bg-rose-500/10 text-rose-500 border border-rose-500/20'
-                                                }`}>
-                                                    {inv.status.toUpperCase()}
-                                                </span>
+                                                {inv.status === 'rejected' ? (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setRejectionModalData({
+                                                            title: `Rejected Invoice #${inv.invoice_number}`,
+                                                            reason: inv.rejection_reason || 'Payment verification failed or invalid details provided.',
+                                                            invoiceNumber: inv.invoice_number,
+                                                            orderNumber: inv.subscription?.order_number,
+                                                            transactionId: inv.transaction_id,
+                                                            paymentMethod: inv.payment_method,
+                                                            senderNumber: inv.sender_number,
+                                                            amount: formatCurrency(inv.amount, inv.currency || currency),
+                                                            date: formatDateEnUs(inv.created_at),
+                                                        })}
+                                                        className="px-2.5 py-1 rounded-lg text-[10px] font-black tracking-wide bg-rose-500/10 hover:bg-rose-500 text-rose-600 dark:text-rose-400 hover:text-white border border-rose-500/30 transition-all flex items-center space-x-1 cursor-pointer shadow-2xs group"
+                                                        title="Click to view why this payment was rejected"
+                                                    >
+                                                        <AlertTriangle className="h-3 w-3 shrink-0 text-rose-500 group-hover:text-white" />
+                                                        <span>REJECTED</span>
+                                                        <span className="text-[9px] underline opacity-90 group-hover:text-white">(Why?)</span>
+                                                    </button>
+                                                ) : (
+                                                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
+                                                        inv.status === 'paid'
+                                                            ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
+                                                            : 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
+                                                    }`}>
+                                                        {inv.status.toUpperCase()}
+                                                    </span>
+                                                )}
                                             </td>
                                             <td className="py-4 px-4 text-slate-400">
-                                                {new Date(inv.created_at).toLocaleDateString()}
+                                                {formatDateEnUs(inv.created_at)}
                                             </td>
                                             <td className="py-4 px-5 text-right">
                                                 <button
@@ -252,6 +277,13 @@ export default function InvoicesIndex({
                     brandSettings={brandSettings}
                 />
             )}
+
+            {/* Rejection Details Popup Modal */}
+            <RejectionDetailsModal
+                isOpen={Boolean(rejectionModalData)}
+                data={rejectionModalData}
+                onClose={() => setRejectionModalData(null)}
+            />
         </CustomerLayout>
     );
 }

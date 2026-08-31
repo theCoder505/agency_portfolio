@@ -1,5 +1,5 @@
 import React, { useState, FormEventHandler } from 'react';
-import { Link, useForm } from '@inertiajs/react';
+import { Link, useForm, router } from '@inertiajs/react';
 import { AdminLayout } from '@/layouts/admin-layout';
 import { SaasSubscription, SubscriptionInvoice } from '@/types';
 import {
@@ -9,11 +9,13 @@ import {
     Copy,
     Check,
     User,
-    Mail,
     Shield,
     Receipt,
     Search,
-    X
+    X,
+    XCircle,
+    AlertTriangle,
+    Info
 } from 'lucide-react';
 import { showConfirmDialog, showToast } from '@/lib/swal';
 import { WhatsAppIcon } from '@/components/icons/whatsapp-icon';
@@ -27,10 +29,45 @@ interface SubscriptionShowProps {
 
 export default function SubscriptionShow({
     subscription,
-    currencySymbol,
+    currencySymbol = '৳',
 }: SubscriptionShowProps) {
     const [copiedLabel, setCopiedLabel] = useState<string | null>(null);
     const [isRejecting, setIsRejecting] = useState(false);
+    const [rejectingInvoiceId, setRejectingInvoiceId] = useState<number | null>(null);
+    const [invoiceRejectionReason, setInvoiceRejectionReason] = useState('');
+
+    // Rejection reason modal state
+    const [rejectionModalData, setRejectionModalData] = useState<{
+        isOpen: boolean;
+        title: string;
+        reason: string;
+        invoiceNumber?: string;
+        orderNumber?: string;
+        transactionId?: string | null;
+        paymentMethod?: string;
+        senderNumber?: string | null;
+        amount?: string;
+        date?: string;
+    } | null>(null);
+
+    const handleOpenRejectionModal = (data: {
+        title: string;
+        reason: string;
+        invoiceNumber?: string;
+        orderNumber?: string;
+        transactionId?: string | null;
+        paymentMethod?: string;
+        senderNumber?: string | null;
+        amount?: string;
+        date?: string;
+    }) => {
+        setRejectionModalData({
+            isOpen: true,
+            ...data,
+        });
+    };
+
+    const targetSubKey = subscription.order_number || subscription.id;
 
     // Format ISO dates into clean human-readable date format (e.g. 30 Aug 2026)
     const formatDateHuman = (dateStr?: string | null) => {
@@ -51,20 +88,26 @@ export default function SubscriptionShow({
     const invoicesList = subscription?.invoices || [];
     const invsTable = useClientDataTable<SubscriptionInvoice>({
         data: invoicesList,
-        searchFields: (inv) => [inv.invoice_number, inv.type, inv.payment_method, inv.transaction_id, inv.status],
+        searchFields: (inv) => [inv.invoice_number, inv.type, inv.payment_method, inv.transaction_id, inv.sender_number || '', inv.status],
         initialPageSize: 10,
     });
+
+    // Check for pending renewal invoice
+    const pendingRenewalInvoice = invoicesList.find((i) => i.status === 'pending');
 
     // Calculate default dates
     const todayStr = new Date().toISOString().split('T')[0];
     const getDefaultExpiryDate = () => {
-        if (subscription.expires_at) {
-            return subscription.expires_at.split('T')[0];
-        }
-        const d = new Date();
-        if (subscription.billing_cycle === 'half_yearly') {
+        const base = (subscription.status === 'active' && subscription.expires_at && new Date(subscription.expires_at) > new Date())
+            ? new Date(subscription.expires_at)
+            : new Date();
+
+        const cycle = pendingRenewalInvoice?.billing_cycle || subscription.billing_cycle || 'monthly';
+        const d = new Date(base.getTime());
+
+        if (cycle === 'half_yearly') {
             d.setMonth(d.getMonth() + 6);
-        } else if (subscription.billing_cycle === 'yearly') {
+        } else if (cycle === 'yearly') {
             d.setFullYear(d.getFullYear() + 1);
         } else {
             d.setMonth(d.getMonth() + 1);
@@ -78,6 +121,7 @@ export default function SubscriptionShow({
         domain: subscription.domain || '',
         subdomain: subscription.subdomain || '',
         admin_notes: subscription.admin_notes || '',
+        invoice_id: pendingRenewalInvoice?.id || '',
     });
 
     const rejectionForm = useForm({
@@ -98,14 +142,44 @@ export default function SubscriptionShow({
             `This will mark Order #${subscription.order_number} as Active and provide credentials/domain access to customer ${subscription.user?.name}.`
         );
         if (confirmed) {
-            approvalForm.post(`/admin/subscriptions/${subscription.id}/approve`);
+            approvalForm.post(`/admin/subscriptions/${targetSubKey}/approve`);
         }
     };
 
     const handleReject: FormEventHandler = (e) => {
         e.preventDefault();
-        rejectionForm.post(`/admin/subscriptions/${subscription.id}/reject`, {
+        rejectionForm.post(`/admin/subscriptions/${targetSubKey}/reject`, {
             onSuccess: () => setIsRejecting(false),
+        });
+    };
+
+    const handleApproveSpecificInvoice = async (inv: SubscriptionInvoice) => {
+        const confirmed = await showConfirmDialog(
+            `Approve Invoice #${inv.invoice_number}?`,
+            `This will mark transaction (${inv.transaction_id || 'N/A'}) as PAID and automatically extend the subscription deadline.`
+        );
+        if (confirmed) {
+            router.post(`/admin/subscriptions/${targetSubKey}/invoices/${inv.id}/approve`, {}, {
+                preserveScroll: true,
+            });
+        }
+    };
+
+    const handleRejectSpecificInvoice = async (e: React.FormEvent, invoiceId: number) => {
+        e.preventDefault();
+        if (!invoiceRejectionReason.trim()) {
+            showToast('Please provide a reason for rejecting this transaction.', 'warning');
+            return;
+        }
+
+        router.post(`/admin/subscriptions/${targetSubKey}/invoices/${invoiceId}/reject`, {
+            rejection_reason: invoiceRejectionReason,
+        }, {
+            preserveScroll: true,
+            onSuccess: () => {
+                setRejectingInvoiceId(null);
+                setInvoiceRejectionReason('');
+            },
         });
     };
 
@@ -128,174 +202,167 @@ export default function SubscriptionShow({
                             <ArrowLeft className="h-4 w-4" />
                         </Link>
                         <div>
-                            <div className="flex items-center space-x-2">
+                            <div className="flex flex-wrap items-center gap-2">
                                 <h1 className="text-xl font-black tracking-tight text-slate-900 dark:text-white">
                                     Order #{subscription.order_number}
                                 </h1>
-                                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                                    subscription.status === 'active'
+                                <span className="px-2.5 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-cyan-300 text-xs font-black uppercase border border-indigo-200/60 dark:border-indigo-800">
+                                    {subscription.package_tier || 'Standard'} Tier
+                                </span>
+                                {subscription.status === 'rejected' ? (
+                                    <button
+                                        type="button"
+                                        onClick={() => handleOpenRejectionModal({
+                                            title: `Order #${subscription.order_number} Rejection Record`,
+                                            reason: subscription.rejection_reason || 'Order verification rejected by administrator.',
+                                            orderNumber: subscription.order_number,
+                                            transactionId: subscription.transaction_id,
+                                            paymentMethod: subscription.payment_method,
+                                            senderNumber: subscription.sender_number,
+                                            amount: `${currencySymbol}${subscription.amount.toLocaleString('en-US')}`,
+                                            date: new Date(subscription.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+                                        })}
+                                        className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/30 hover:bg-rose-500 hover:text-white transition-all flex items-center space-x-1 cursor-pointer shadow-2xs"
+                                        title="Click to view recorded rejection reason"
+                                    >
+                                        <AlertTriangle className="h-3 w-3 shrink-0" />
+                                        <span>{subscription.status_badge.label}</span>
+                                        <span className="text-[9.5px] underline ml-0.5">(View Reason)</span>
+                                    </button>
+                                ) : (
+                                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${subscription.status === 'active'
                                         ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
                                         : subscription.status === 'pending'
-                                        ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20 animate-pulse'
-                                        : 'bg-rose-500/10 text-rose-500 border border-rose-500/20'
-                                }`}>
-                                    {subscription.status_badge.label}
-                                </span>
+                                            ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20 animate-pulse'
+                                            : 'bg-rose-500/10 text-rose-500 border border-rose-500/20'
+                                        }`}>
+                                        {subscription.status_badge.label}
+                                    </span>
+                                )}
                             </div>
-                            <p className="text-xs text-slate-500 dark:text-slate-400">
-                                Submitted on {new Date(subscription.created_at).toLocaleString()}
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                                Submitted on {new Date(subscription.created_at).toLocaleString('en-US')}
                             </p>
                         </div>
                     </div>
                 </div>
 
-                {/* Top Two Summary Cards (Customer Info & Payment Details) */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Customer Card */}
-                    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-6 shadow-xs space-y-4">
-                        <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center space-x-1.5 border-b border-slate-100 dark:border-slate-800 pb-3">
-                            <User className="h-4 w-4 text-indigo-600 dark:text-cyan-400" />
-                            <span>Customer Information & Communication</span>
-                        </h2>
-
-                        {(() => {
-                            const clientWhatsapp = subscription.client_whatsapp || subscription.user?.whatsapp_number || subscription.user?.phone || '';
-                            const clientEmail = subscription.client_email || subscription.user?.email || '';
-                            const cleanWhatsapp = clientWhatsapp.replace(/[^0-9]/g, '');
-                            const whatsappPrompt = `Hello ${subscription.user?.name || 'Customer'}, this is CodeVenture Tech regarding your SaaS subscription #${subscription.order_number} for ${subscription.product?.name || 'Software'}.`;
-                            const whatsappUrl = cleanWhatsapp ? `https://wa.me/${cleanWhatsapp}?text=${encodeURIComponent(whatsappPrompt)}` : '';
-
-                            return (
-                                <div className="space-y-3 text-xs">
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-slate-400">Full Name:</span>
-                                        <span className="font-bold text-slate-900 dark:text-white">{subscription.user?.name}</span>
-                                    </div>
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-slate-400">Email:</span>
-                                        <a href={`mailto:${clientEmail}`} className="font-mono text-indigo-600 dark:text-cyan-400 hover:underline">
-                                            {clientEmail}
-                                        </a>
-                                    </div>
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-slate-400 flex items-center space-x-1">
-                                            <WhatsAppIcon className="h-3 w-3 text-emerald-500" />
-                                            <span>WhatsApp:</span>
-                                        </span>
-                                        <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">
-                                            {clientWhatsapp || 'N/A'}
-                                        </span>
-                                    </div>
-                                    {subscription.user?.phone && subscription.user?.phone !== clientWhatsapp && (
-                                        <div className="flex justify-between items-center">
-                                            <span className="text-slate-400">Alternative Phone:</span>
-                                            <span className="font-mono text-slate-700 dark:text-slate-300">{subscription.user?.phone}</span>
-                                        </div>
-                                    )}
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-slate-400">Company:</span>
-                                        <span className="text-slate-800 dark:text-slate-200">{subscription.user?.company_name || 'Individual'}</span>
-                                    </div>
-
-                                    {/* Action Buttons */}
-                                    <div className="pt-2 flex flex-wrap items-center gap-2 border-t border-slate-100 dark:border-slate-800">
-                                        {whatsappUrl && (
-                                            <a
-                                                href={whatsappUrl}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-2xs transition-all"
-                                            >
-                                                <WhatsAppIcon className="h-3.5 w-3.5" />
-                                                <span>Chat on WhatsApp</span>
-                                            </a>
-                                        )}
-                                        {clientEmail && (
-                                            <a
-                                                href={`mailto:${clientEmail}?subject=${encodeURIComponent(`[CodeVenture Tech] Subscription #${subscription.order_number} Update`)}`}
-                                                className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 text-xs font-semibold"
-                                            >
-                                                <Mail className="h-3.5 w-3.5 text-indigo-500" />
-                                                <span>Email Client</span>
-                                            </a>
-                                        )}
-                                    </div>
-                                </div>
-                            );
-                        })()}
-
-                        {subscription.payment_notes && (
-                            <div className="mt-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200/60 dark:border-slate-800 text-[11px] text-slate-600 dark:text-slate-400">
-                                <strong>Customer Notes:</strong> {subscription.payment_notes}
+                {/* REJECTION REASON NOTIFICATION BANNER */}
+                {subscription.status === 'rejected' && (
+                    <div className="p-4 sm:p-5 rounded-2xl bg-rose-500/10 border border-rose-500/30 dark:border-rose-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">
+                        <div className="flex items-start sm:items-center space-x-3.5">
+                            <div className="h-10 w-10 rounded-2xl bg-rose-500 text-white flex items-center justify-center font-black shrink-0 shadow-sm">
+                                <AlertTriangle className="h-5 w-5" />
                             </div>
-                        )}
+                            <div>
+                                <div className="font-black text-sm text-rose-900 dark:text-rose-200">
+                                    Order Verification Rejected
+                                </div>
+                                <p className="text-xs text-rose-700 dark:text-rose-400 mt-0.5 line-clamp-1">
+                                    Recorded Reason: <span className="font-semibold">&ldquo;{subscription.rejection_reason || 'No specific reason recorded.'}&rdquo;</span>
+                                </p>
+                            </div>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => handleOpenRejectionModal({
+                                title: `Order #${subscription.order_number} Rejection Record`,
+                                reason: subscription.rejection_reason || 'Order verification rejected by administrator.',
+                                orderNumber: subscription.order_number,
+                                transactionId: subscription.transaction_id,
+                                paymentMethod: subscription.payment_method,
+                                senderNumber: subscription.sender_number,
+                                amount: `${currencySymbol}${subscription.amount.toLocaleString('en-US')}`,
+                                date: new Date(subscription.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+                            })}
+                            className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shrink-0 shadow-xs transition-all self-start sm:self-auto flex items-center space-x-1.5"
+                        >
+                            <AlertTriangle className="h-3.5 w-3.5" />
+                            <span>View Full Reason & Details</span>
+                        </button>
                     </div>
+                )}
 
-                    {/* Payment Verification Data Card */}
-                    <div className="bg-white dark:bg-slate-900 rounded-2xl border-2 border-indigo-500/40 p-6 shadow-xs space-y-4">
-                        <h2 className="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-cyan-400 flex items-center space-x-1.5 border-b border-slate-100 dark:border-slate-800 pb-3">
-                            <CreditCard className="h-4 w-4 text-indigo-600 dark:text-cyan-400" />
-                            <span>bKash / Nagad Transaction Verification</span>
-                        </h2>
+                {/* INFO GRID: CUSTOMER + ORDER SUMMARY */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    {/* Customer Account Details */}
+                    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-6 shadow-xs space-y-4">
+                        <div className="flex items-center space-x-2 border-b border-slate-100 dark:border-slate-800 pb-3">
+                            <User className="h-4 w-4 text-indigo-600 dark:text-cyan-400" />
+                            <h2 className="text-sm font-bold text-slate-900 dark:text-white">
+                                Customer Contact & Account
+                            </h2>
+                        </div>
 
                         <div className="space-y-3 text-xs">
                             <div className="flex justify-between items-center">
-                                <span className="text-slate-400">SaaS Product:</span>
-                                <span className="font-bold text-slate-900 dark:text-white">{subscription.product?.name}</span>
+                                <span className="text-slate-400">Name:</span>
+                                <span className="font-bold text-slate-800 dark:text-slate-200">{subscription.user?.name || 'N/A'}</span>
                             </div>
-
                             <div className="flex justify-between items-center">
-                                <span className="text-slate-400">Package Tier:</span>
-                                <span className="capitalize font-bold px-2 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-cyan-400 border border-indigo-200/50 dark:border-indigo-800/50">
-                                    {subscription.package_tier || 'Standard'} Tier
-                                </span>
+                                <span className="text-slate-400">Email:</span>
+                                <span className="font-mono text-slate-700 dark:text-slate-300">{subscription.client_email || subscription.user?.email || 'N/A'}</span>
                             </div>
-
                             <div className="flex justify-between items-center">
-                                <span className="text-slate-400">Package Type / Billing Cycle:</span>
-                                <span className="capitalize font-bold text-indigo-600 dark:text-cyan-400">
-                                    {subscription.billing_cycle.replace('_', ' ')}
-                                </span>
-                            </div>
-
-                            {subscription.starts_at && subscription.expires_at && (
-                                <div className="flex justify-between items-center">
-                                    <span className="text-slate-400">Active Service Period:</span>
-                                    <span className="font-medium text-slate-800 dark:text-slate-200">
-                                        {formatDateHuman(subscription.starts_at)} to {formatDateHuman(subscription.expires_at)}
-                                    </span>
-                                </div>
-                            )}
-
-                            <div className="flex justify-between items-center">
-                                <span className="text-slate-400">Expected Payable:</span>
-                                <span className="text-base font-black text-slate-900 dark:text-white">
-                                    {currencySymbol}{subscription.amount.toLocaleString()}
-                                </span>
-                            </div>
-
-                            <div className="flex justify-between items-center pt-2 border-t border-slate-100 dark:border-slate-800">
-                                <span className="text-slate-400">Payment Gateway:</span>
-                                <span className="uppercase font-bold px-2 py-0.5 rounded-md bg-pink-500/10 text-pink-600 font-mono">
-                                    {subscription.payment_method}
-                                </span>
-                            </div>
-
-                            <div className="flex justify-between items-center">
-                                <span className="text-slate-400">Customer Sender Number:</span>
-                                <div className="flex items-center space-x-1 font-mono font-bold text-slate-900 dark:text-white">
-                                    <span>{subscription.sender_number || 'N/A'}</span>
-                                    {subscription.sender_number && (
-                                        <button
-                                            onClick={() => handleCopy(subscription.sender_number || '', 'Sender Phone')}
-                                            className="p-1 text-slate-400 hover:text-indigo-600"
+                                <span className="text-slate-400">Phone / WhatsApp:</span>
+                                <div className="flex items-center space-x-1.5 font-mono">
+                                    <span className="font-bold text-slate-800 dark:text-slate-200">{subscription.client_whatsapp || subscription.user?.phone || 'N/A'}</span>
+                                    {subscription.client_whatsapp && (
+                                        <a
+                                            href={`https://wa.me/${subscription.client_whatsapp.replace(/[^0-9]/g, '')}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-emerald-500 hover:text-emerald-600"
+                                            title="Open WhatsApp"
                                         >
-                                            <Copy className="h-3 w-3" />
-                                        </button>
+                                            <WhatsAppIcon className="h-3.5 w-3.5" />
+                                        </a>
                                     )}
                                 </div>
                             </div>
+                            {subscription.user?.company_name && (
+                                <div className="flex justify-between items-center">
+                                    <span className="text-slate-400">Company:</span>
+                                    <span className="font-semibold text-slate-700 dark:text-slate-300">{subscription.user?.company_name}</span>
+                                </div>
+                            )}
+                        </div>
+                    </div>
 
+                    {/* Order & Transaction Summary */}
+                    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-6 shadow-xs space-y-4">
+                        <div className="flex items-center space-x-2 border-b border-slate-100 dark:border-slate-800 pb-3">
+                            <CreditCard className="h-4 w-4 text-emerald-500" />
+                            <h2 className="text-sm font-bold text-slate-900 dark:text-white">
+                                SaaS Package &amp; Transaction Details
+                            </h2>
+                        </div>
+
+                        <div className="space-y-3 text-xs">
+                            <div className="flex justify-between items-center">
+                                <span className="text-slate-400">Software Product:</span>
+                                <span className="font-bold text-slate-900 dark:text-white">{subscription.product?.name}</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <span className="text-slate-400">Package Tier & Cycle:</span>
+                                <span className="font-bold text-indigo-600 dark:text-cyan-400 capitalize">
+                                    {subscription.package_tier || 'Standard'} Tier • {subscription.billing_cycle.replace('_', ' ')}
+                                </span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <span className="text-slate-400">Amount Charged:</span>
+                                <span className="font-black text-slate-900 dark:text-white">
+                                    {currencySymbol}{subscription.amount.toLocaleString()} {subscription.currency}
+                                </span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <span className="text-slate-400">Payment Gateway:</span>
+                                <span className="font-bold uppercase font-mono">{subscription.payment_method}</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <span className="text-slate-400">Sender Mobile:</span>
+                                <span className="font-mono font-semibold text-slate-800 dark:text-slate-200">{subscription.sender_number || 'N/A'}</span>
+                            </div>
                             <div className="flex justify-between items-center">
                                 <span className="text-slate-400">Transaction ID (TrxID):</span>
                                 <div className="flex items-center space-x-1.5 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg">
@@ -311,21 +378,6 @@ export default function SubscriptionShow({
                                             {copiedLabel === 'TrxID' ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
                                         </button>
                                     )}
-                                </div>
-                            </div>
-
-                            <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-2">
-                                <div className="flex justify-between items-center">
-                                    <span className="text-slate-400">Requested Custom Domain:</span>
-                                    <span className="font-mono font-semibold text-slate-800 dark:text-slate-200">
-                                        {subscription.requested_domain || subscription.domain || <span className="text-slate-400 italic">None requested</span>}
-                                    </span>
-                                </div>
-                                <div className="flex justify-between items-center">
-                                    <span className="text-slate-400">Requested Subdomain Prefix:</span>
-                                    <span className="font-mono font-semibold text-slate-800 dark:text-slate-200">
-                                        {subscription.requested_subdomain ? `${subscription.requested_subdomain}.${subscription.product?.primary_domain || 'codeventure.app'}` : subscription.subdomain ? `${subscription.subdomain}.${subscription.product?.primary_domain || 'codeventure.app'}` : <span className="text-slate-400 italic">None requested</span>}
-                                    </span>
                                 </div>
                             </div>
                         </div>
@@ -411,7 +463,7 @@ export default function SubscriptionShow({
                                         className="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-xs focus:ring-2 focus:ring-indigo-500"
                                     />
                                     <span className="text-[10px] text-slate-400 mt-1 block">
-                                        Auto-calculated for {subscription.billing_cycle.replace('_', ' ')} duration.
+                                        Calculated for {subscription.billing_cycle.replace('_', ' ')} duration.
                                     </span>
                                 </div>
                             </div>
@@ -440,15 +492,12 @@ export default function SubscriptionShow({
                                             placeholder={subscription.requested_domain || subscription.domain || "e.g. clientbrand.com"}
                                             className="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-xs font-mono focus:ring-2 focus:ring-indigo-500"
                                         />
-                                        <span className="text-[10px] text-slate-400 mt-1 block">
-                                            User requested custom domain: <strong className="text-slate-700 dark:text-slate-300">{subscription.requested_domain || subscription.domain || 'None requested'}</strong>
-                                        </span>
                                     </div>
 
                                     <div>
                                         <div className="flex justify-between items-center mb-1">
                                             <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
-                                                Provided Subdomain Prefix (to User)
+                                                Provided Subdomain Prefix
                                             </label>
                                             {(subscription.requested_subdomain || subscription.subdomain) && (
                                                 <span className="text-[10px] text-slate-400">
@@ -456,61 +505,58 @@ export default function SubscriptionShow({
                                                 </span>
                                             )}
                                         </div>
-                                        <div className="flex items-center">
-                                            <input
-                                                type="text"
-                                                value={approvalForm.data.subdomain}
-                                                onChange={(e) => approvalForm.setData('subdomain', e.target.value)}
-                                                placeholder={subscription.requested_subdomain || subscription.subdomain || "clientbrand"}
-                                                className="w-full px-3.5 py-2 rounded-l-xl border border-r-0 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-xs font-mono focus:ring-2 focus:ring-indigo-500"
-                                            />
-                                            <span className="px-3 py-2 rounded-r-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-800 text-[11px] font-mono text-slate-500">
-                                                .{subscription.product?.primary_domain || 'codeventure.app'}
-                                            </span>
-                                        </div>
-                                        <span className="text-[10px] text-slate-400 mt-1 block">
-                                            User requested subdomain prefix: <strong className="text-slate-700 dark:text-slate-300">{(subscription.requested_subdomain || subscription.subdomain) ? `${subscription.requested_subdomain || subscription.subdomain}.${subscription.product?.primary_domain || 'codeventure.app'}` : 'None requested'}</strong>
-                                        </span>
+                                        <input
+                                            type="text"
+                                            value={approvalForm.data.subdomain}
+                                            onChange={(e) => approvalForm.setData('subdomain', e.target.value)}
+                                            placeholder={subscription.requested_subdomain || subscription.subdomain || "e.g. clientapp"}
+                                            className="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-xs font-mono focus:ring-2 focus:ring-indigo-500"
+                                        />
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Credentials & Access Instructions */}
+                            {/* Credentials & System Notes */}
                             <div>
                                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                                    Access Credentials & Setup Notes for Customer (Securely shown in customer portal)
+                                    System Access Credentials &amp; Onboarding Notes (Visible to Customer)
                                 </label>
                                 <textarea
-                                    rows={4}
+                                    rows={10}
                                     value={approvalForm.data.admin_notes}
                                     onChange={(e) => approvalForm.setData('admin_notes', e.target.value)}
-                                    placeholder={`Login URL: https://app.codeventure.app\nAdmin Username: admin@clientbrand.com\nTemp Password: Pass#2026Secure!\n\nSetup Guide: Please configure your company logo in the general settings tab upon initial login.`}
-                                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-xs font-mono focus:ring-2 focus:ring-indigo-500"
+                                    placeholder="e.g. Admin URL: https://app.client.com/admin&#10;Username: admin@client.com&#10;Password: TemporarySecretPass123"
+                                    className="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 font-mono text-xs focus:ring-2 focus:ring-indigo-500"
                                 />
                             </div>
 
-                            <div className="flex items-center justify-end space-x-3 pt-2">
+                            <div className="flex justify-end pt-2">
                                 <button
                                     type="submit"
                                     disabled={approvalForm.processing}
-                                    className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md flex items-center space-x-2 transition-all"
+                                    className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md shadow-emerald-500/20 transition-all flex items-center space-x-1.5"
                                 >
                                     <CheckCircle2 className="h-4 w-4" />
-                                    <span>{subscription.status === 'active' ? 'Update Active Details' : 'Validate & Activate Subscription'}</span>
+                                    <span>{subscription.status === 'active' ? 'Save Updated Configurations' : 'Approve & Activate Subscription'}</span>
                                 </button>
                             </div>
                         </form>
                     )}
                 </div>
 
-                {/* INVOICES LIST FOR THIS ORDER */}
+                {/* DETAILED TRANSACTIONS & INVOICES LIST */}
                 <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-6 shadow-xs space-y-4">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-4">
                         <div className="flex items-center space-x-2">
-                            <Receipt className="h-4 w-4 text-indigo-600 dark:text-cyan-400" />
-                            <h2 className="text-sm font-bold text-slate-900 dark:text-white">
-                                Generated Invoices & Payments for this Order ({invoicesList.length})
-                            </h2>
+                            <Receipt className="h-5 w-5 text-indigo-600 dark:text-cyan-400" />
+                            <div>
+                                <h2 className="text-base font-bold text-slate-900 dark:text-white">
+                                    All Transaction Records & Invoices ({invoicesList.length})
+                                </h2>
+                                <p className="text-xs text-slate-500 dark:text-slate-400">
+                                    Complete audit trail of initial setup, renewal payments, and package upgrades.
+                                </p>
+                            </div>
                         </div>
 
                         {invoicesList.length > 0 && (
@@ -520,7 +566,7 @@ export default function SubscriptionShow({
                                     type="text"
                                     value={invsTable.search}
                                     onChange={(e) => invsTable.setSearch(e.target.value)}
-                                    placeholder="Search invoices..."
+                                    placeholder="Search invoice, TrxID, mobile..."
                                     className="w-full pl-8 pr-8 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-xs focus:ring-1 focus:ring-indigo-500"
                                 />
                                 {invsTable.search && (
@@ -537,9 +583,9 @@ export default function SubscriptionShow({
                     </div>
 
                     {invoicesList.length === 0 ? (
-                        <div className="text-xs text-slate-400">No invoices recorded yet.</div>
+                        <div className="text-xs text-slate-400 py-6 text-center">No transaction records found for this order.</div>
                     ) : invsTable.paginatedData.length === 0 ? (
-                        <div className="text-xs text-slate-400 py-4 text-center">No invoices matching &ldquo;{invsTable.search}&rdquo;</div>
+                        <div className="text-xs text-slate-400 py-4 text-center">No transactions matching &ldquo;{invsTable.search}&rdquo;</div>
                     ) : (
                         <>
                             <div className="overflow-x-auto">
@@ -548,44 +594,134 @@ export default function SubscriptionShow({
                                         <tr className="border-b border-slate-100 dark:border-slate-800 text-slate-400 font-bold uppercase text-[10px]">
                                             <th className="pb-3">Invoice #</th>
                                             <th className="pb-3">Type</th>
+                                            <th className="pb-3">Cycle & Tier</th>
                                             <th className="pb-3">Amount</th>
                                             <th className="pb-3">Gateway</th>
-                                            <th className="pb-3">TrxID</th>
+                                            <th className="pb-3">Sender & TrxID</th>
+                                            <th className="pb-3">Coverage Period</th>
                                             <th className="pb-3">Status</th>
-                                            <th className="pb-3">Period</th>
-                                            <th className="pb-3 text-right">Created</th>
+                                            <th className="pb-3 text-right">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                                         {invsTable.paginatedData.map((inv) => (
-                                            <tr key={inv.id}>
-                                                <td className="py-3 font-mono font-bold text-indigo-600 dark:text-cyan-400">{inv.invoice_number}</td>
-                                                <td className="py-3 capitalize">{inv.type}</td>
-                                                <td className="py-3 font-bold">{currencySymbol}{inv.amount.toLocaleString()}</td>
-                                                <td className="py-3 uppercase font-mono">{inv.payment_method}</td>
-                                                <td className="py-3 font-mono">{inv.transaction_id || 'N/A'}</td>
-                                                <td className="py-3">
-                                                    <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
-                                                        inv.status === 'paid' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-amber-500/10 text-amber-500'
-                                                    }`}>
-                                                        {inv.status.toUpperCase()}
-                                                    </span>
-                                                </td>
-                                                <td className="py-3 text-slate-700 dark:text-slate-300">
-                                                    <div>
-                                                        <div className="font-semibold text-slate-800 dark:text-slate-200">
-                                                            {inv.period_start && inv.period_end
-                                                                ? `${formatDateHuman(inv.period_start)} to ${formatDateHuman(inv.period_end)}`
-                                                                : subscription.starts_at && subscription.expires_at
-                                                                ? `${formatDateHuman(subscription.starts_at)} to ${formatDateHuman(subscription.expires_at)}`
-                                                                : 'Awaiting Activation'}
-                                                        </div>
-                                                        <div className="text-[10px] text-indigo-600 dark:text-cyan-400 font-bold capitalize mt-0.5">
-                                                            {(inv.billing_cycle || subscription.billing_cycle || 'monthly').replace('_', ' ')} Plan • {subscription.package_tier || 'Standard'} Tier
-                                                        </div>
+                                            <tr key={inv.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                                                <td className="py-3 font-mono font-bold text-indigo-600 dark:text-cyan-400">
+                                                    {inv.invoice_number}
+                                                    <div className="text-[10px] text-slate-400 font-normal">
+                                                        {new Date(inv.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} {new Date(inv.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
                                                     </div>
                                                 </td>
-                                                <td className="py-3 text-right text-slate-400">{new Date(inv.created_at).toLocaleDateString()}</td>
+                                                <td className="py-3 capitalize font-semibold text-slate-700 dark:text-slate-300">
+                                                    <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${inv.type === 'renewal'
+                                                        ? 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400'
+                                                        : inv.type === 'package_change'
+                                                            ? 'bg-purple-500/10 text-purple-600 dark:text-purple-400'
+                                                            : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
+                                                        }`}>
+                                                        {inv.type.replace('_', ' ')}
+                                                    </span>
+                                                </td>
+                                                <td className="py-3 text-slate-800 dark:text-slate-200">
+                                                    <div className="font-bold capitalize">
+                                                        {(inv.billing_cycle || subscription.billing_cycle || 'monthly').replace('_', ' ')}
+                                                    </div>
+                                                    <div className="text-[10px] text-indigo-600 dark:text-cyan-400 uppercase font-bold">
+                                                        {subscription.package_tier || 'Standard'} Tier
+                                                    </div>
+                                                </td>
+                                                <td className="py-3 font-black text-slate-900 dark:text-white">
+                                                    {currencySymbol}{inv.amount.toLocaleString()}
+                                                </td>
+                                                <td className="py-3 uppercase font-mono font-bold text-slate-700 dark:text-slate-300">
+                                                    {inv.payment_method}
+                                                </td>
+                                                <td className="py-3">
+                                                    <div className="font-mono text-slate-600 dark:text-slate-400 text-[11px]">
+                                                        {inv.sender_number || 'N/A'}
+                                                    </div>
+                                                    <div className="flex items-center space-x-1 font-mono font-bold text-indigo-600 dark:text-cyan-400">
+                                                        <span>{inv.transaction_id || 'N/A'}</span>
+                                                        {inv.transaction_id && (
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleCopy(inv.transaction_id || '', `TrxID for ${inv.invoice_number}`)}
+                                                                className="text-slate-400 hover:text-indigo-600 p-0.5"
+                                                                title="Copy TrxID"
+                                                            >
+                                                                <Copy className="h-3 w-3" />
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                </td>
+                                                <td className="py-3 text-slate-700 dark:text-slate-300">
+                                                    <div className="font-medium text-[11px]">
+                                                        {inv.period_start && inv.period_end
+                                                            ? `${formatDateHuman(inv.period_start)} to ${formatDateHuman(inv.period_end)}`
+                                                            : subscription.starts_at && subscription.expires_at
+                                                                ? `${formatDateHuman(subscription.starts_at)} to ${formatDateHuman(subscription.expires_at)}`
+                                                                : 'Awaiting Activation'}
+                                                    </div>
+                                                </td>
+                                                <td className="py-3">
+                                                    {inv.status === 'rejected' ? (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handleOpenRejectionModal({
+                                                                title: `Rejected Invoice #${inv.invoice_number}`,
+                                                                reason: inv.rejection_reason || subscription.rejection_reason || 'Invoice was rejected by administrator.',
+                                                                invoiceNumber: inv.invoice_number,
+                                                                orderNumber: subscription.order_number,
+                                                                transactionId: inv.transaction_id,
+                                                                paymentMethod: inv.payment_method,
+                                                                senderNumber: inv.sender_number,
+                                                                amount: `${currencySymbol}${inv.amount.toLocaleString('en-US')}`,
+                                                                date: new Date(inv.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+                                                            })}
+                                                            className="px-2.5 py-1 rounded-lg text-[10px] font-black tracking-wide bg-rose-500/10 hover:bg-rose-500 text-rose-600 dark:text-rose-400 hover:text-white border border-rose-500/30 transition-all flex items-center space-x-1 cursor-pointer shadow-2xs group"
+                                                            title="Click to view why this payment was rejected"
+                                                        >
+                                                            <AlertTriangle className="h-3 w-3 shrink-0 text-rose-500 group-hover:text-white" />
+                                                            <span className='group-hover:text-white'>REJECTED</span>
+                                                        </button>
+                                                    ) : (
+                                                        <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${inv.status === 'paid'
+                                                            ? 'bg-emerald-500/10 text-emerald-500'
+                                                            : 'bg-amber-500/10 text-amber-500 animate-pulse'
+                                                            }`}>
+                                                            {inv.status.toUpperCase()}
+                                                        </span>
+                                                    )}
+                                                </td>
+                                                <td className="py-3 text-right">
+                                                    {inv.status === 'pending' ? (
+                                                        <div className="flex items-center justify-end space-x-1.5">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleApproveSpecificInvoice(inv)}
+                                                                className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[10px] shadow-xs flex items-center space-x-1 transition-all"
+                                                                title="Approve & Extend Service"
+                                                            >
+                                                                <Check className="h-3 w-3" />
+                                                                <span>Approve</span>
+                                                            </button>
+
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setRejectingInvoiceId(inv.id)}
+                                                                className="px-2.5 py-1 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-bold text-[10px] shadow-xs flex items-center space-x-1 transition-all"
+                                                                title="Reject Transaction"
+                                                            >
+                                                                <X className="h-3 w-3" />
+                                                                <span>Reject</span>
+                                                            </button>
+                                                        </div>
+                                                    ) : (
+                                                        <span className="text-[11px] text-slate-400">
+                                                            {inv.paid_at ? `Paid on ${new Date(inv.paid_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}` : 'Settled'}
+                                                        </span>
+                                                    )}
+                                                </td>
                                             </tr>
                                         ))}
                                     </tbody>
@@ -605,6 +741,142 @@ export default function SubscriptionShow({
                     )}
                 </div>
             </div>
+
+            {/* REJECT INVOICE MODAL */}
+            {rejectingInvoiceId && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in">
+                    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 max-w-md w-full shadow-2xl space-y-4">
+                        <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+                            <h3 className="text-sm font-bold text-rose-600 flex items-center space-x-1.5">
+                                <XCircle className="h-4 w-4" />
+                                <span>Reject Transaction Invoice</span>
+                            </h3>
+                            <button
+                                type="button"
+                                onClick={() => setRejectingInvoiceId(null)}
+                                className="text-slate-400 hover:text-slate-600"
+                            >
+                                <X className="h-4 w-4" />
+                            </button>
+                        </div>
+
+                        <form onSubmit={(e) => handleRejectSpecificInvoice(e, rejectingInvoiceId)} className="space-y-4">
+                            <div>
+                                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                                    Reason for Rejection *
+                                </label>
+                                <textarea
+                                    required
+                                    rows={3}
+                                    value={invoiceRejectionReason}
+                                    onChange={(e) => setInvoiceRejectionReason(e.target.value)}
+                                    placeholder="e.g. Transaction ID invalid or amount does not match statement..."
+                                    className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-xs"
+                                />
+                            </div>
+
+                            <div className="flex justify-end space-x-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setRejectingInvoiceId(null)}
+                                    className="px-3.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-600 dark:text-slate-400"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="px-4 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-sm"
+                                >
+                                    Confirm Rejection
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* REJECTION REASON POPUP MODAL */}
+            {rejectionModalData?.isOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-sm animate-in fade-in">
+                    <div className="bg-white dark:bg-slate-900 rounded-3xl border border-rose-200 dark:border-rose-900/60 p-6 sm:p-8 max-w-lg w-full shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto animate-in zoom-in-95">
+                        {/* Modal Header */}
+                        <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
+                            <div className="flex items-center space-x-3">
+                                <div className="h-11 w-11 rounded-2xl bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center font-bold border border-rose-500/20 shrink-0">
+                                    <AlertTriangle className="h-5 w-5" />
+                                </div>
+                                <div>
+                                    <h3 className="text-base font-black text-slate-900 dark:text-white">
+                                        {rejectionModalData.title}
+                                    </h3>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                                        Recorded rejection reason & transaction audit details
+                                    </p>
+                                </div>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setRejectionModalData(null)}
+                                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                            >
+                                <X className="h-5 w-5" />
+                            </button>
+                        </div>
+
+                        {/* Payment Context Details */}
+                        <div className="grid grid-cols-2 gap-3 p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-800 text-xs">
+                            {rejectionModalData.amount && (
+                                <div>
+                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Amount</span>
+                                    <span className="font-black text-slate-800 dark:text-slate-200">{rejectionModalData.amount}</span>
+                                </div>
+                            )}
+                            {rejectionModalData.date && (
+                                <div>
+                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Submitted On</span>
+                                    <span className="font-semibold text-slate-700 dark:text-slate-300">{rejectionModalData.date}</span>
+                                </div>
+                            )}
+                            {rejectionModalData.transactionId && (
+                                <div>
+                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">TrxID</span>
+                                    <span className="font-mono font-bold text-indigo-600 dark:text-cyan-400">{rejectionModalData.transactionId}</span>
+                                </div>
+                            )}
+                            {rejectionModalData.paymentMethod && (
+                                <div>
+                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Method / Sender</span>
+                                    <span className="font-semibold text-slate-700 dark:text-slate-300 capitalize">
+                                        {rejectionModalData.paymentMethod} {rejectionModalData.senderNumber ? `• ${rejectionModalData.senderNumber}` : ''}
+                                    </span>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Recorded Rejection Reason Box */}
+                        <div className="p-4 sm:p-5 rounded-2xl bg-rose-500/[0.08] dark:bg-rose-950/40 border-2 border-rose-500/30 dark:border-rose-900/60 space-y-2">
+                            <div className="flex items-center space-x-2 text-rose-600 dark:text-rose-400">
+                                <Info className="h-4 w-4 shrink-0" />
+                                <span className="text-xs font-black uppercase tracking-wider">Recorded Rejection Reason:</span>
+                            </div>
+                            <div className="text-sm font-semibold text-slate-900 dark:text-slate-100 bg-white/80 dark:bg-slate-900/80 p-3.5 rounded-xl border border-rose-200/80 dark:border-rose-900/40 whitespace-pre-wrap leading-relaxed shadow-2xs">
+                                {rejectionModalData.reason}
+                            </div>
+                        </div>
+
+                        {/* Modal Actions */}
+                        <div className="flex items-center justify-end space-x-3 pt-2 border-t border-slate-100 dark:border-slate-800">
+                            <button
+                                type="button"
+                                onClick={() => setRejectionModalData(null)}
+                                className="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-slate-700 dark:hover:bg-slate-600 text-white text-xs font-bold transition-all"
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </AdminLayout>
     );
 }
