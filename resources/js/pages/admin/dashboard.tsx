@@ -193,12 +193,22 @@ export default function Dashboard({
                         </p>
                     </div>
 
-                    <DateRangeFilter
-                        fromDate={filters?.from_date ?? ''}
-                        toDate={filters?.to_date ?? ''}
-                        onApply={handleDateFilterApply}
-                        onClear={() => handleDateFilterApply('', '')}
-                    />
+                    <div className="flex items-center space-x-3">
+                        <Link
+                            href="/admin/profite-and-loss"
+                            className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-700 hover:to-cyan-700 text-white font-bold text-xs shadow-md flex items-center space-x-1.5 transition-all shrink-0"
+                        >
+                            <TrendingUp className="h-4 w-4" />
+                            <span>Profit &amp; Loss</span>
+                        </Link>
+
+                        <DateRangeFilter
+                            fromDate={filters?.from_date ?? ''}
+                            toDate={filters?.to_date ?? ''}
+                            onApply={handleDateFilterApply}
+                            onClear={() => handleDateFilterApply('', '')}
+                        />
+                    </div>
                 </div>
 
                 {/* KPI Summary Cards */}

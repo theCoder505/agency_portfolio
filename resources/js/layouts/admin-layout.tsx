@@ -22,7 +22,8 @@ import {
     FolderGit2,
     PanelLeftClose,
     PanelLeftOpen,
-    ChevronLeft
+    ChevronLeft,
+    TrendingUp
 } from 'lucide-react';
 import { ThemeToggle } from '@/components/surface/theme-toggle';
 import { showToast, showSuccessAlert, showErrorAlert } from '@/lib/swal';
@@ -88,6 +89,11 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
             icon: CreditCard,
             badge: pending_subscriptions_count,
             badgeColor: 'bg-amber-500 text-slate-950 font-bold'
+        },
+        { 
+            label: 'Profit & Loss (P&L)', 
+            href: '/admin/profite-and-loss', 
+            icon: TrendingUp,
         },
         { label: 'SaaS Products', href: '/admin/saas-products', icon: Package },
         { label: 'Customers', href: '/admin/customers', icon: UserCheck },

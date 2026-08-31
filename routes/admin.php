@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\CustomerController;
 use App\Http\Controllers\Admin\CustomOrderController;
 use App\Http\Controllers\Admin\CustomOrderMilestoneController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\PnLController;
 use App\Http\Controllers\Admin\PortfolioController;
 use App\Http\Controllers\Admin\ProfileController;
 use App\Http\Controllers\Admin\ReviewController;
@@ -29,6 +30,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::middleware('auth:admin')->group(function () {
         Route::get('/', [DashboardController::class, 'index'])->name('index');
         Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+        Route::get('profite-and-loss', [PnLController::class, 'index'])->name('profit-and-loss');
+        Route::get('profit-and-loss', [PnLController::class, 'index'])->name('profit-and-loss.correct');
+        Route::get('pnl', [PnLController::class, 'index'])->name('pnl');
+        Route::get('reports/pnl', [PnLController::class, 'index'])->name('reports.pnl');
         Route::post('logout', [AuthController::class, 'logout'])->name('logout');
 
         // Custom Orders & Milestone Deliverables Management
