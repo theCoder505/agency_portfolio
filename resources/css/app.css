@@ -657,5 +657,37 @@ button{
     animation: cv-pulse-glow 8s ease-in-out infinite;
 }
 
+/* Connecting Circuit Wire Flow Animation */
+@keyframes cv-wire-flow-anim {
+    from {
+        stroke-dashoffset: 48;
+    }
+    to {
+        stroke-dashoffset: 0;
+    }
+}
+
+@keyframes cv-pipe-dash {
+    from {
+        stroke-dashoffset: 100;
+    }
+    to {
+        stroke-dashoffset: 0;
+    }
+}
+
+.cv-wire-flow {
+    animation: cv-wire-flow-anim 1.8s linear infinite;
+}
+
+.cv-pipe-flow-fast {
+    animation: cv-wire-flow-anim 1.2s linear infinite;
+}
+
+.cv-pipe-dash-anim {
+    animation: cv-pipe-dash 3s linear infinite;
+}
+
+
 
 

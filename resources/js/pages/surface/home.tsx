@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { Link, usePage } from '@inertiajs/react';
-import { Blog, Category, Portfolio, Review, SaasProduct, TeamMember, SharedData } from '@/types';
+import { Blog, Category, Portfolio, Review, SaasProduct, TeamMember, SharedData, ServiceCapabilityItem } from '@/types';
 import { SurfaceLayout } from '@/layouts/surface-layout';
 import { SurfaceHero } from '@/components/surface/hero_section';
 import { WorksGrid } from '@/components/surface/works-grid';
 import { TrustpilotCarousel } from '@/components/surface/trustpilot-carousel';
 import { YouTubeModal } from '@/components/surface/youtube-modal';
+import { PipelineFlowSection } from '@/components/surface/pipeline-flow-section';
 import {
     Sparkles,
     ArrowRight,
@@ -356,6 +357,9 @@ export default function Home({
                     </div>
                 </div>
             </section>
+
+            {/* ON-DEMAND ARCHITECTURE & CONNECTED CIRCUIT PIPELINE SECTION */}
+            <PipelineFlowSection />
 
             {/* FEATURED SAAS PRODUCTS SHOWCASE SECTION */}
             {saasProducts && saasProducts.length > 0 && (

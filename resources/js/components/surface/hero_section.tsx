@@ -376,26 +376,14 @@ export default function SurfaceHero({
                             : 'opacity-0 scale-95 pointer-events-none'
                         }`}
                 >
-                    {/* Badge */}
-                    <div className="inline-flex items-center gap-2 rounded-full border border-cyan-500/40 bg-cyan-500/15 px-4 py-1.5 backdrop-blur-md shadow-lg shadow-cyan-500/10 mb-4">
-                        <Sparkles className="h-3.5 w-3.5 text-cyan-300" />
-                        <span className="text-xs font-bold uppercase tracking-widest text-cyan-200">
-                            Next-Gen Architecture • Built For Global Scale
-                        </span>
-                    </div>
-
                     {/* Headline */}
-                    <h2 className="text-3xl sm:text-5xl md:text-6xl font-black uppercase tracking-tight text-white leading-tight mb-4 drop-shadow-2xl">
-                        Architecting The Next Era of <br className="hidden sm:inline" />
+                    <h2 className="text-3xl sm:text-5xl md:text-6xl font-black uppercase tracking-tight text-white leading-tight mb-12 drop-shadow-2xl">
+                        Architecting <br /> The Next Era of <br className="hidden sm:inline" />
                         <span className="bg-gradient-to-r from-cyan-300 via-indigo-400 to-purple-400 bg-clip-text text-transparent">
                             Digital Dominance
                         </span>
                     </h2>
 
-                    {/* Subtitle */}
-                    <p className="text-sm sm:text-base md:text-lg text-slate-200/95 font-normal leading-relaxed max-w-2xl mx-auto mb-8 drop-shadow-md">
-                        Every platform is engineered with modern full-stack frameworks, real-time cloud microservices, and conversion-focused UX designed for rapid adoption.
-                    </p>
 
                     {/* Feature Highlight Cards */}
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto mb-8">
