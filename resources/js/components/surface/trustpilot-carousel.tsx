@@ -28,19 +28,19 @@ export const TrustpilotCarousel: React.FC<TrustpilotCarouselProps> = ({ reviews,
     const currentReview = reviews[currentIndex];
 
     return (
-        <section className="relative py-24 bg-slate-900/40 dark:bg-slate-950/60 overflow-hidden">
+        <section className="relative py-24 overflow-hidden border-t border-slate-200/60 dark:border-cyan-500/10">
             {/* Background ambient lighting */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-emerald-500/10 dark:bg-emerald-500/5 blur-[120px] rounded-full pointer-events-none"></div>
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-emerald-500/5 dark:bg-emerald-500/10 blur-[130px] rounded-full pointer-events-none" />
 
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                 {/* Header & Trustpilot Rating Pill */}
-                <div className="flex flex-col md:flex-row md:items-end justify-between mb-12">
+                <div className="flex flex-col md:flex-row md:items-end justify-between mb-12" data-aos="fade-up">
                     <div>
-                        <div className="inline-flex items-center space-x-2 px-3 py-1.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-xs font-bold mb-3">
-                            <ShieldCheck className="h-4 w-4" />
+                        <div className="cv-badge mb-3.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/25">
+                            <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
                             <span>Verified Client Feedback</span>
                         </div>
-                        <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-slate-900 dark:text-white">
+                        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-slate-900 dark:text-white">
                             Trusted by High-Growth Teams Worldwide
                         </h2>
                     </div>
@@ -50,7 +50,7 @@ export const TrustpilotCarousel: React.FC<TrustpilotCarouselProps> = ({ reviews,
                         href={trustpilotUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="mt-4 md:mt-0 inline-flex items-center space-x-3 p-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:border-emerald-500 transition-all group"
+                        className="mt-4 md:mt-0 inline-flex items-center space-x-3 p-3 rounded-2xl cv-card shadow-sm hover:border-emerald-500 transition-all group"
                     >
                         <div className="flex items-center space-x-1 text-emerald-500">
                             <Star className="h-5 w-5 fill-current" />
@@ -73,11 +73,12 @@ export const TrustpilotCarousel: React.FC<TrustpilotCarouselProps> = ({ reviews,
 
                 {/* Main Carousel Card */}
                 <div
-                    className="relative rounded-3xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-slate-200 dark:border-slate-800 p-8 sm:p-12 shadow-xl"
+                    data-aos="fade-up"
+                    className="cv-card relative rounded-3xl p-8 sm:p-12 shadow-xl border-cyan-500/20"
                     onMouseEnter={() => setIsAutoplay(false)}
                     onMouseLeave={() => setIsAutoplay(true)}
                 >
-                    <Quote className="absolute top-8 right-8 h-20 w-20 text-slate-100 dark:text-slate-800/60 pointer-events-none" />
+                    <Quote className="absolute top-8 right-8 h-20 w-20 text-slate-200/50 dark:text-cyan-500/10 pointer-events-none" />
 
                     <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
                         {/* Review Content */}
@@ -103,7 +104,7 @@ export const TrustpilotCarousel: React.FC<TrustpilotCarouselProps> = ({ reviews,
                             </p>
 
                             {/* Author details */}
-                            <div className="flex items-center space-x-4 pt-4 border-t border-slate-100 dark:border-slate-800">
+                            <div className="flex items-center space-x-4 pt-4 border-t border-slate-200/60 dark:border-cyan-500/10">
                                 {currentReview.author_avatar ? (
                                     <img
                                         src={currentReview.author_avatar}
@@ -111,7 +112,7 @@ export const TrustpilotCarousel: React.FC<TrustpilotCarouselProps> = ({ reviews,
                                         className="h-12 w-12 rounded-full object-cover ring-2 ring-emerald-500/30"
                                     />
                                 ) : (
-                                    <div className="h-12 w-12 rounded-full bg-gradient-to-tr from-indigo-500 to-cyan-400 flex items-center justify-center text-white font-bold text-base">
+                                    <div className="h-12 w-12 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center text-slate-950 font-black text-base">
                                         {currentReview.author_name.charAt(0)}
                                     </div>
                                 )}
@@ -131,15 +132,17 @@ export const TrustpilotCarousel: React.FC<TrustpilotCarouselProps> = ({ reviews,
                             {/* Controls */}
                             <div className="flex items-center space-x-3">
                                 <button
+                                    type="button"
                                     onClick={() => setCurrentIndex((prev) => (prev === 0 ? reviews.length - 1 : prev - 1))}
-                                    className="p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-emerald-500 hover:text-white dark:hover:bg-emerald-500 transition-all hover:scale-105 active:scale-95"
+                                    className="p-3 rounded-2xl bg-slate-100 dark:bg-slate-900/90 border border-slate-200/60 dark:border-cyan-500/20 text-slate-700 dark:text-slate-200 hover:bg-emerald-500 hover:text-white dark:hover:bg-emerald-500 transition-all hover:scale-105 active:scale-95"
                                     aria-label="Previous review"
                                 >
                                     <ChevronLeft className="h-5 w-5" />
                                 </button>
                                 <button
+                                    type="button"
                                     onClick={() => setCurrentIndex((prev) => (prev + 1) % reviews.length)}
-                                    className="p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-emerald-500 hover:text-white dark:hover:bg-emerald-500 transition-all hover:scale-105 active:scale-95"
+                                    className="p-3 rounded-2xl bg-slate-100 dark:bg-slate-900/90 border border-slate-200/60 dark:border-cyan-500/20 text-slate-700 dark:text-slate-200 hover:bg-emerald-500 hover:text-white dark:hover:bg-emerald-500 transition-all hover:scale-105 active:scale-95"
                                     aria-label="Next review"
                                 >
                                     <ChevronRight className="h-5 w-5" />
@@ -151,11 +154,12 @@ export const TrustpilotCarousel: React.FC<TrustpilotCarouselProps> = ({ reviews,
                                 {reviews.map((_, idx) => (
                                     <button
                                         key={idx}
+                                        type="button"
                                         onClick={() => setCurrentIndex(idx)}
                                         className={`h-2.5 rounded-full transition-all duration-300 ${
                                             idx === currentIndex
                                                 ? 'w-8 bg-emerald-500'
-                                                : 'w-2.5 bg-slate-300 dark:bg-slate-700 hover:bg-slate-400'
+                                                : 'w-2.5 bg-slate-300 dark:bg-slate-800 hover:bg-slate-400'
                                         }`}
                                         aria-label={`Go to slide ${idx + 1}`}
                                     />

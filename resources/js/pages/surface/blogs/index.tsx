@@ -101,20 +101,16 @@ export default function BlogIndexPage({
             title="Tech Insights, Engineering & Architecture Blogs"
             description="Explore in-depth articles on software architecture, React 19, high-performance cloud SaaS, AI orchestration, and modern web development."
         >
-            <div className="min-h-screen bg-slate-50 dark:bg-slate-950 transition-colors duration-300">
+            <div className="min-h-screen transition-colors duration-300">
                 {/* Hero Header Section */}
-                <section className="relative pt-12 pb-16 overflow-hidden">
-                    {/* Background Gradients & Glows */}
-                    <div className="absolute top-0 left-1/3 w-[500px] h-[500px] bg-indigo-500/10 dark:bg-indigo-500/15 rounded-full blur-3xl pointer-events-none" />
-                    <div className="absolute bottom-0 right-1/4 w-[450px] h-[450px] bg-cyan-500/10 dark:bg-cyan-500/15 rounded-full blur-3xl pointer-events-none" />
-
+                <section className="relative pt-12 pb-16 overflow-hidden border-b border-slate-200/60 dark:border-cyan-500/10">
                     <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         {/* Eyebrow badge */}
                         <div
                             data-aos="fade-down"
-                            className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-indigo-500/10 dark:bg-indigo-400/10 border border-indigo-500/20 dark:border-indigo-400/20 text-indigo-600 dark:text-cyan-400 text-xs font-bold tracking-wide uppercase mb-6"
+                            className="cv-badge mb-6"
                         >
-                            <Sparkles className="h-3.5 w-3.5" />
+                            <Sparkles className="h-3.5 w-3.5 text-cyan-400" />
                             <span>CodeVenture Engineering Chronicles</span>
                         </div>
 
@@ -122,7 +118,7 @@ export default function BlogIndexPage({
                             <div className="lg:col-span-7 space-y-4" data-aos="fade-up">
                                 <h1 className="text-3xl sm:text-5xl font-black text-slate-900 dark:text-white tracking-tight leading-[1.15]">
                                     Architectural Insights &{' '}
-                                    <span className="bg-gradient-to-r from-indigo-600 via-purple-600 to-cyan-400 bg-clip-text text-transparent">
+                                    <span className="cv-gradient-text">
                                         Modern Web Innovation
                                     </span>
                                 </h1>
@@ -135,13 +131,13 @@ export default function BlogIndexPage({
                             <div className="lg:col-span-5" data-aos="fade-up" data-aos-delay="100">
                                 <form onSubmit={handleImmediateSearch} className="relative">
                                     <div className="relative flex items-center">
-                                        <Search className="absolute left-4 h-5 w-5 text-slate-400 pointer-events-none" />
+                                        <Search className="absolute left-4 h-5 w-5 text-cyan-500 pointer-events-none" />
                                         <input
                                             type="text"
                                             placeholder="Search topics, frameworks, tutorials..."
                                             value={search}
                                             onChange={(e) => setSearch(e.target.value)}
-                                            className="w-full pl-12 pr-12 py-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm text-slate-900 dark:text-white placeholder-slate-400 shadow-lg shadow-indigo-500/5 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                                            className="w-full pl-12 pr-12 py-3.5 rounded-2xl bg-white/80 dark:bg-[#01121e]/80 border border-slate-200 dark:border-cyan-500/20 text-sm text-slate-900 dark:text-white placeholder-slate-400 shadow-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all"
                                         />
                                         {search && (
                                             <button
@@ -168,13 +164,13 @@ export default function BlogIndexPage({
                                 onClick={() => handleCategoryClick('all')}
                                 className={`flex-shrink-0 inline-flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
                                     activeCategory === 'all'
-                                        ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-md scale-105'
-                                        : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-800 hover:border-indigo-500'
+                                        ? 'bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/20 scale-105'
+                                        : 'bg-white dark:bg-[#01121e] text-slate-600 dark:text-slate-400 border border-slate-200/60 dark:border-cyan-500/20 hover:border-cyan-500/50'
                                 }`}
                             >
                                 <Compass className="h-3.5 w-3.5" />
                                 <span>All Articles</span>
-                                <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                                <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-slate-200 dark:bg-[#010a10] text-slate-700 dark:text-cyan-400 font-mono">
                                     {totalBlogsCount || allBlogsList.length}
                                 </span>
                             </button>
@@ -186,16 +182,16 @@ export default function BlogIndexPage({
                                     onClick={() => handleCategoryClick(category.slug)}
                                     className={`flex-shrink-0 inline-flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
                                         activeCategory === category.slug
-                                            ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/25 scale-105'
-                                            : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-800 hover:border-indigo-500'
+                                            ? 'bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/20 scale-105'
+                                            : 'bg-white dark:bg-[#01121e] text-slate-600 dark:text-slate-400 border border-slate-200/60 dark:border-cyan-500/20 hover:border-cyan-500/50'
                                     }`}
                                 >
                                     <span>{category.name}</span>
                                     {category.blogs_count !== undefined && (
-                                        <span className={`px-1.5 py-0.5 rounded-full text-[10px] ${
+                                        <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono ${
                                             activeCategory === category.slug
-                                                ? 'bg-indigo-700 text-indigo-100'
-                                                : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
+                                                ? 'bg-[#010a10] text-cyan-400'
+                                                : 'bg-slate-100 dark:bg-[#010a10] text-slate-500 dark:text-slate-400'
                                         }`}>
                                             {category.blogs_count}
                                         </span>
@@ -211,7 +207,7 @@ export default function BlogIndexPage({
                     {featuredBlog && activeCategory === 'all' && !search && !activeTag && (
                         <div
                             data-aos="fade-up"
-                            className="relative group rounded-3xl overflow-hidden bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 shadow-xl shadow-indigo-500/5 hover:border-indigo-500/50 transition-all duration-300"
+                            className="cv-card relative group rounded-3xl overflow-hidden shadow-xl transition-all duration-300"
                         >
                             <div className="grid grid-cols-1 lg:grid-cols-12 items-stretch">
                                 {/* Featured Image */}
@@ -224,14 +220,14 @@ export default function BlogIndexPage({
                                         />
                                     ) : (
                                         <div className="w-full h-full bg-gradient-to-tr from-indigo-900 to-slate-950 flex items-center justify-center">
-                                            <BookOpen className="h-16 w-16 text-indigo-400/40" />
+                                            <BookOpen className="h-16 w-16 text-cyan-400/40" />
                                         </div>
                                     )}
                                     <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent lg:hidden" />
 
                                     {/* Spotlight Badge */}
-                                    <div className="absolute top-4 left-4 inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-indigo-600/90 backdrop-blur-md text-white text-xs font-extrabold tracking-wide uppercase shadow-lg">
-                                        <Flame className="h-3.5 w-3.5 text-amber-300" />
+                                    <div className="absolute top-4 left-4 inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-cyan-500 text-slate-950 text-xs font-black tracking-wide uppercase shadow-lg">
+                                        <Flame className="h-3.5 w-3.5 text-slate-950" />
                                         <span>Featured Spotlight</span>
                                     </div>
                                 </div>
@@ -242,7 +238,7 @@ export default function BlogIndexPage({
                                         {/* Metadata Row */}
                                         <div className="flex flex-wrap items-center gap-3 text-xs">
                                             {featuredBlog.category && (
-                                                <span className="px-2.5 py-1 rounded-lg font-bold bg-indigo-50 dark:bg-indigo-950/80 text-indigo-600 dark:text-cyan-400 border border-indigo-200/60 dark:border-indigo-800/60">
+                                                <span className="cv-badge">
                                                     {featuredBlog.category.name}
                                                 </span>
                                             )}
@@ -252,14 +248,14 @@ export default function BlogIndexPage({
                                             </span>
 
                                             {/* Reads Count Chip */}
-                                            <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full font-mono text-[11px] font-bold bg-cyan-50 dark:bg-cyan-950/50 text-cyan-700 dark:text-cyan-300 border border-cyan-200 dark:border-cyan-800">
-                                                <Eye className="h-3 w-3 text-cyan-600 dark:text-cyan-400" />
+                                            <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full font-mono text-[11px] font-bold bg-cyan-50 dark:bg-cyan-950/50 text-cyan-700 dark:text-cyan-300 border border-cyan-200 dark:border-cyan-800/60">
+                                                <Eye className="h-3 w-3 text-cyan-500" />
                                                 <span>{(featuredBlog.reads_count || 0).toLocaleString()} reads</span>
                                             </span>
                                         </div>
 
                                         <Link href={`/blogs/${featuredBlog.slug}`}>
-                                            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight leading-snug group-hover:text-indigo-600 dark:group-hover:text-cyan-400 transition-colors">
+                                            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight leading-snug group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">
                                                 {featuredBlog.title}
                                             </h2>
                                         </Link>
@@ -270,16 +266,16 @@ export default function BlogIndexPage({
                                     </div>
 
                                     {/* Author & CTA */}
-                                    <div className="pt-6 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                                    <div className="pt-6 border-t border-slate-100 dark:border-cyan-500/10 flex items-center justify-between">
                                         <div className="flex items-center space-x-3">
                                             {featuredBlog.author_avatar ? (
                                                 <img
                                                     src={featuredBlog.author_avatar}
                                                     alt={featuredBlog.author_name || 'Author'}
-                                                    className="h-10 w-10 rounded-full object-cover border border-slate-200 dark:border-slate-700"
+                                                    className="h-10 w-10 rounded-full object-cover border border-cyan-500/30"
                                                 />
                                             ) : (
-                                                <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-indigo-500 to-cyan-400 text-white font-bold flex items-center justify-center text-sm shadow">
+                                                <div className="h-10 w-10 rounded-full bg-cyan-500 text-slate-950 font-bold flex items-center justify-center text-sm shadow">
                                                     {featuredBlog.author_name ? featuredBlog.author_name.charAt(0) : 'A'}
                                                 </div>
                                             )}
@@ -295,10 +291,10 @@ export default function BlogIndexPage({
 
                                         <Link
                                             href={`/blogs/${featuredBlog.slug}`}
-                                            className="inline-flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-slate-900 hover:bg-indigo-600 dark:bg-white dark:text-slate-900 dark:hover:bg-cyan-400 text-white text-xs font-bold shadow transition-all group/btn"
+                                            className="cv-btn-primary text-xs py-2 px-4"
                                         >
                                             <span>Read Article</span>
-                                            <ArrowRight className="h-3.5 w-3.5 group-hover/btn:translate-x-1 transition-transform" />
+                                            <ArrowRight className="h-3.5 w-3.5" />
                                         </Link>
                                     </div>
                                 </div>
@@ -311,7 +307,7 @@ export default function BlogIndexPage({
                         <div className="flex items-center justify-between">
                             <div>
                                 <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight flex items-center space-x-2">
-                                    <BookOpen className="h-6 w-6 text-indigo-600 dark:text-cyan-400" />
+                                    <BookOpen className="h-6 w-6 text-cyan-600 dark:text-cyan-400" />
                                     <span>
                                         {activeCategory !== 'all'
                                             ? `${categories.find((c) => c.slug === activeCategory)?.name || 'Filtered'} Articles`
@@ -327,7 +323,7 @@ export default function BlogIndexPage({
                         {paginatedItems.length === 0 ? (
                             <div
                                 data-aos="fade-up"
-                                className="text-center py-20 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-8"
+                                className="text-center py-20 cv-card rounded-3xl p-8 border-dashed"
                             >
                                 <BookOpen className="h-12 w-12 mx-auto text-slate-400 mb-3 opacity-60" />
                                 <h3 className="text-lg font-bold text-slate-900 dark:text-white">No articles found</h3>
@@ -335,8 +331,9 @@ export default function BlogIndexPage({
                                     We couldn't find any articles matching your search query. Try clearing the search or exploring another category.
                                 </p>
                                 <button
+                                    type="button"
                                     onClick={handleResetAll}
-                                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl shadow transition-all"
+                                    className="cv-btn-primary text-xs"
                                 >
                                     Reset Filters
                                 </button>
@@ -348,7 +345,7 @@ export default function BlogIndexPage({
                                         key={blog.id}
                                         data-aos="fade-up"
                                         data-aos-delay={`${(idx % 3) * 100}`}
-                                        className="group flex flex-col bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800/80 hover:border-indigo-500/50 shadow-sm hover:shadow-xl hover:shadow-indigo-500/10 transition-all duration-300 overflow-hidden"
+                                        className="cv-card group flex flex-col rounded-3xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden"
                                     >
                                         {/* Card Thumbnail */}
                                         <Link
@@ -363,7 +360,7 @@ export default function BlogIndexPage({
                                                 />
                                             ) : (
                                                 <div className="w-full h-full bg-gradient-to-tr from-slate-900 to-indigo-950 flex items-center justify-center">
-                                                    <BookOpen className="h-10 w-10 text-indigo-400/40" />
+                                                    <BookOpen className="h-10 w-10 text-cyan-400/40" />
                                                 </div>
                                             )}
 
@@ -400,7 +397,7 @@ export default function BlogIndexPage({
                                                 </div>
 
                                                 <Link href={`/blogs/${blog.slug}`}>
-                                                    <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-tight leading-snug group-hover:text-indigo-600 dark:group-hover:text-cyan-400 transition-colors line-clamp-2">
+                                                    <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-tight leading-snug group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors line-clamp-2">
                                                         {blog.title}
                                                     </h3>
                                                 </Link>
@@ -422,8 +419,8 @@ export default function BlogIndexPage({
                                                             }}
                                                             className={`px-2 py-0.5 rounded-md text-[10px] font-semibold cursor-pointer transition-colors ${
                                                                 activeTag === tag
-                                                                    ? 'bg-indigo-600 text-white'
-                                                                    : 'bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-400 hover:bg-indigo-50 dark:hover:bg-indigo-950'
+                                                                    ? 'bg-cyan-500 text-slate-950 font-bold'
+                                                                    : 'bg-slate-100 dark:bg-[#01121e] text-slate-600 dark:text-slate-400 border border-slate-200/60 dark:border-cyan-500/15 hover:border-cyan-500/40'
                                                             }`}
                                                         >
                                                             #{tag}
@@ -433,7 +430,7 @@ export default function BlogIndexPage({
                                             )}
 
                                             {/* Footer Info */}
-                                            <div className="pt-4 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
+                                            <div className="pt-4 border-t border-slate-100 dark:border-cyan-500/10 flex items-center justify-between">
                                                 <div className="flex items-center space-x-2">
                                                     {blog.author_avatar ? (
                                                         <img
@@ -442,7 +439,7 @@ export default function BlogIndexPage({
                                                             className="h-7 w-7 rounded-full object-cover"
                                                         />
                                                     ) : (
-                                                        <div className="h-7 w-7 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-[10px] font-bold text-slate-700 dark:text-slate-300">
+                                                        <div className="h-7 w-7 rounded-full bg-slate-200 dark:bg-[#01121e] border border-slate-300 dark:border-cyan-500/20 flex items-center justify-center text-[10px] font-bold text-slate-700 dark:text-slate-300">
                                                             {blog.author_name ? blog.author_name.charAt(0) : 'A'}
                                                         </div>
                                                     )}
@@ -453,7 +450,7 @@ export default function BlogIndexPage({
 
                                                 <Link
                                                     href={`/blogs/${blog.slug}`}
-                                                    className="inline-flex items-center space-x-1 text-xs font-bold text-indigo-600 dark:text-cyan-400 group-hover:translate-x-1 transition-transform"
+                                                    className="inline-flex items-center space-x-1 text-xs font-bold text-cyan-600 dark:text-cyan-400 group-hover:translate-x-1 transition-transform"
                                                 >
                                                     <span>Read</span>
                                                     <ArrowRight className="h-3.5 w-3.5" />
@@ -482,29 +479,29 @@ export default function BlogIndexPage({
                     {/* Bottom CTA Banner */}
                     <div
                         data-aos="zoom-in"
-                        className="relative rounded-3xl p-8 sm:p-12 overflow-hidden bg-gradient-to-r from-indigo-900 via-indigo-800 to-slate-900 text-white shadow-2xl"
+                        className="cv-card relative rounded-3xl p-8 sm:p-12 overflow-hidden text-white shadow-2xl border-cyan-500/30"
                     >
                         <div className="absolute top-0 right-0 w-80 h-80 bg-cyan-400/10 rounded-full blur-3xl pointer-events-none" />
                         <div className="relative max-w-2xl space-y-4">
-                            <span className="inline-block px-3 py-1 rounded-full bg-white/10 backdrop-blur text-cyan-300 text-xs font-bold uppercase tracking-wider">
-                                Build With Us
-                            </span>
-                            <h2 className="text-2xl sm:text-4xl font-black tracking-tight">
+                            <div className="cv-badge">
+                                <span>Build With Us</span>
+                            </div>
+                            <h2 className="text-2xl sm:text-4xl font-black tracking-tight text-slate-900 dark:text-white">
                                 Have an Ambitious Digital Product in Mind?
                             </h2>
-                            <p className="text-sm sm:text-base text-indigo-100/90 leading-relaxed">
+                            <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed">
                                 Let's collaborate to build high-performance SaaS applications, AI workflows, and digital platforms engineered for scale.
                             </p>
                             <div className="pt-2 flex flex-wrap items-center gap-3">
                                 <Link
                                     href="/contact"
-                                    className="px-6 py-3 rounded-xl bg-white hover:bg-slate-100 text-slate-900 text-xs sm:text-sm font-bold shadow-lg transition-all active:scale-95"
+                                    className="cv-btn-primary text-xs sm:text-sm"
                                 >
                                     Schedule Technical Consultation
                                 </Link>
                                 <Link
                                     href="/works"
-                                    className="px-6 py-3 rounded-xl bg-indigo-700/80 hover:bg-indigo-700 text-white text-xs sm:text-sm font-bold border border-indigo-500/40 transition-all"
+                                    className="cv-btn-secondary text-xs sm:text-sm"
                                 >
                                     Explore Our Works
                                 </Link>

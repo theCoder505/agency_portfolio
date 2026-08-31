@@ -138,18 +138,16 @@ export default function CustomOrderRequest({
             description="Submit your custom software requirements. Get structured milestone quotes with direct source code delivery."
         >
             {/* HERO BANNER */}
-            <section className="relative pt-12 pb-16 overflow-hidden">
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-gradient-to-tr from-indigo-600/20 via-purple-600/10 to-cyan-500/20 blur-[120px] rounded-full pointer-events-none -z-10" />
-
-                <div className="max-w-5xl mx-auto px-4 sm:px-6 text-center space-y-5">
-                    <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-bold tracking-wide uppercase">
+            <section className="relative pt-12 pb-16 overflow-hidden border-b border-slate-200/60 dark:border-cyan-500/10">
+                <div className="max-w-5xl mx-auto px-4 sm:px-6 text-center space-y-5 relative z-10">
+                    <div className="cv-badge">
                         <Sparkles className="h-3.5 w-3.5 text-cyan-400" />
                         <span>One-Time Purchase & Bespoke Engineering</span>
                     </div>
 
                     <h1 className="text-3xl sm:text-5xl font-black text-slate-900 dark:text-white tracking-tight leading-tight">
                         Transform Your Idea into a <br className="hidden sm:block" />
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 via-purple-500 to-cyan-400">
+                        <span className="cv-gradient-text">
                             High-Performance Custom Product
                         </span>
                     </h1>
@@ -160,15 +158,15 @@ export default function CustomOrderRequest({
 
                     {/* Value Pill Badges */}
                     <div className="flex flex-wrap items-center justify-center gap-3 pt-2 text-xs font-semibold text-slate-700 dark:text-slate-300">
-                        <div className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
+                        <div className="cv-card flex items-center space-x-1.5 px-3 py-1.5 rounded-xl shadow-xs">
                             <CreditCard className="h-4 w-4 text-cyan-400" />
                             <span>Milestone-Based Payments</span>
                         </div>
-                        <div className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
-                            <Github className="h-4 w-4 text-purple-400" />
+                        <div className="cv-card flex items-center space-x-1.5 px-3 py-1.5 rounded-xl shadow-xs">
+                            <Github className="h-4 w-4 text-cyan-400" />
                             <span>GitHub & Drive Codebase Delivery</span>
                         </div>
-                        <div className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
+                        <div className="cv-card flex items-center space-x-1.5 px-3 py-1.5 rounded-xl shadow-xs">
                             <Shield className="h-4 w-4 text-emerald-400" />
                             <span>100% Intellectual Property Ownership</span>
                         </div>
@@ -177,12 +175,12 @@ export default function CustomOrderRequest({
             </section>
 
             {/* FORM CONTAINER */}
-            <section className="max-w-4xl mx-auto px-4 sm:px-6 pb-24">
+            <section className="max-w-4xl mx-auto px-4 sm:px-6 pt-12 pb-24 relative">
                 <form onSubmit={handleSubmit} className="space-y-8">
                     {/* STEP 1: PROJECT SPECS */}
-                    <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-6 sm:p-8 shadow-sm space-y-6">
-                        <div className="flex items-center space-x-3 pb-4 border-b border-slate-100 dark:border-slate-800">
-                            <div className="h-10 w-10 rounded-xl bg-indigo-500/10 text-indigo-500 flex items-center justify-center font-black text-sm">
+                    <div className="cv-card rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
+                        <div className="flex items-center space-x-3 pb-4 border-b border-slate-100 dark:border-cyan-500/10">
+                            <div className="h-10 w-10 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center font-black text-sm border border-cyan-500/20">
                                 01
                             </div>
                             <div>
@@ -211,7 +209,7 @@ export default function CustomOrderRequest({
                                 onChange={(e) => setData('title', e.target.value)}
                                 placeholder="e.g. AI-Powered Healthcare CRM or React Native Multi-Vendor App"
                                 required
-                                className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-medium"
+                                className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-[#01121e] border border-slate-200 dark:border-cyan-500/20 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 text-sm font-medium"
                             />
                             {errors.title && <p className="text-rose-500 text-xs mt-1">{errors.title}</p>}
                         </div>
@@ -224,7 +222,7 @@ export default function CustomOrderRequest({
                             <select
                                 value={data.category}
                                 onChange={(e) => setData('category', e.target.value)}
-                                className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-medium"
+                                className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-[#01121e] border border-slate-200 dark:border-cyan-500/20 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 text-sm font-medium"
                             >
                                 {categories.map((cat) => (
                                     <option key={cat} value={cat}>
@@ -240,7 +238,7 @@ export default function CustomOrderRequest({
                             <div>
                                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5 flex items-center justify-between">
                                     <span>Preferred Currency</span>
-                                    <span className="text-[10px] text-indigo-500 font-bold">Normally by default: BDT (৳)</span>
+                                    <span className="text-[10px] text-cyan-500 font-bold">Normally by default: BDT (৳)</span>
                                 </label>
                                 <div className="grid grid-cols-3 gap-2">
                                     {CURRENCY_OPTIONS.map((cur) => (
@@ -250,8 +248,8 @@ export default function CustomOrderRequest({
                                             onClick={() => setData('currency', cur.code)}
                                             className={`py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-1.5 border ${
                                                 data.currency === cur.code
-                                                    ? 'bg-indigo-600 border-indigo-600 text-white shadow-xs'
-                                                    : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-slate-300'
+                                                    ? 'bg-cyan-500 border-cyan-500 text-slate-950 font-black shadow-xs'
+                                                    : 'bg-slate-50 dark:bg-[#01121e] border-slate-200 dark:border-cyan-500/20 text-slate-700 dark:text-slate-300 hover:border-cyan-500/40'
                                             }`}
                                         >
                                             <span className="font-mono">{cur.symbol}</span>
@@ -277,7 +275,7 @@ export default function CustomOrderRequest({
                                             value={data.estimated_budget}
                                             onChange={(e) => setData('estimated_budget', e.target.value)}
                                             placeholder="e.g. 50000"
-                                            className="w-full pl-9 pr-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-medium"
+                                            className="w-full pl-9 pr-4 py-3 rounded-xl bg-slate-50 dark:bg-[#01121e] border border-slate-200 dark:border-cyan-500/20 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 text-sm font-medium"
                                         />
                                     </div>
                                     <div className="flex flex-wrap gap-1.5 mt-2">
@@ -286,7 +284,7 @@ export default function CustomOrderRequest({
                                                 type="button"
                                                 key={r.label}
                                                 onClick={() => setData('estimated_budget', r.value)}
-                                                className="px-2 py-1 rounded-lg text-[11px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-indigo-500 hover:text-white transition-colors"
+                                                className="px-2 py-1 rounded-lg text-[11px] font-semibold bg-slate-100 dark:bg-[#01121e] text-slate-600 dark:text-slate-300 border border-slate-200/60 dark:border-cyan-500/15 hover:border-cyan-500/40 transition-colors"
                                             >
                                                 {r.label}
                                             </button>
@@ -303,7 +301,7 @@ export default function CustomOrderRequest({
                                         type="date"
                                         value={data.target_deadline}
                                         onChange={(e) => setData('target_deadline', e.target.value)}
-                                        className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-medium"
+                                        className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-[#01121e] border border-slate-200 dark:border-cyan-500/20 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 text-sm font-medium"
                                     />
                                     {errors.target_deadline && <p className="text-rose-500 text-xs mt-1">{errors.target_deadline}</p>}
                                 </div>
@@ -317,7 +315,7 @@ export default function CustomOrderRequest({
                                     Detailed Requirements & Scope of Work <span className="text-rose-500">*</span>
                                 </label>
                                 <div className="flex items-center space-x-2 text-[11px] text-slate-400">
-                                    <span className="font-mono font-medium text-indigo-600 dark:text-cyan-400">
+                                    <span className="font-mono font-medium text-cyan-600 dark:text-cyan-400">
                                         {data.requirements.length.toLocaleString()} characters
                                     </span>
                                     <span>&bull;</span>
@@ -332,7 +330,7 @@ export default function CustomOrderRequest({
                                 onChange={(e) => setData('requirements', e.target.value)}
                                 placeholder="Describe what you want to build:&#10;1. Key features & user roles (Admin, Client, Vendor)&#10;2. Preferred tech stack (Laravel, React, Node, React Native, etc.)&#10;3. Third-party integrations (Payment gateways, APIs, Maps)&#10;4. Design preferences or existing designs."
                                 required
-                                className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-medium leading-relaxed resize-y"
+                                className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-[#01121e] border border-slate-200 dark:border-cyan-500/20 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 text-sm font-medium leading-relaxed resize-y"
                             />
                             <div className="flex items-center justify-between mt-1.5 text-[11px] text-slate-400">
                                 <span>Be as detailed as possible to help us provide an accurate timeline and quote.</span>
@@ -360,7 +358,7 @@ export default function CustomOrderRequest({
                                 value={data.reference_links}
                                 onChange={(e) => setData('reference_links', e.target.value)}
                                 placeholder="https://figma.com/file/... , https://github.com/... or similar websites"
-                                className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-medium"
+                                className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-[#01121e] border border-slate-200 dark:border-cyan-500/20 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 text-sm font-medium"
                             />
                             {errors.reference_links && <p className="text-rose-500 text-xs mt-1">{errors.reference_links}</p>}
                         </div>
@@ -370,8 +368,8 @@ export default function CustomOrderRequest({
                             <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">
                                 Attach Files / SRS / Wireframes (Max 5 files, up to 20MB each)
                             </label>
-                            <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-2xl hover:border-indigo-500 dark:hover:border-indigo-500 transition-colors cursor-pointer bg-slate-50/50 dark:bg-slate-950/50">
-                                <UploadCloud className="h-8 w-8 text-indigo-500 mb-2" />
+                            <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-slate-300 dark:border-cyan-500/20 rounded-2xl hover:border-cyan-500 dark:hover:border-cyan-400 transition-colors cursor-pointer bg-slate-50/50 dark:bg-[#01121e]/50">
+                                <UploadCloud className="h-8 w-8 text-cyan-400 mb-2" />
                                 <span className="text-xs font-bold text-slate-700 dark:text-slate-200">
                                     Click or drag files here to upload
                                 </span>
@@ -392,10 +390,10 @@ export default function CustomOrderRequest({
                                     {selectedFiles.map((file, idx) => (
                                         <div
                                             key={idx}
-                                            className="flex items-center justify-between p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-xs"
+                                            className="flex items-center justify-between p-2.5 rounded-xl bg-slate-100 dark:bg-[#01121e] text-xs border border-slate-200/60 dark:border-cyan-500/15"
                                         >
                                             <div className="flex items-center space-x-2 truncate">
-                                                <FileText className="h-4 w-4 text-indigo-500 shrink-0" />
+                                                <FileText className="h-4 w-4 text-cyan-400 shrink-0" />
                                                 <span className="font-semibold text-slate-800 dark:text-slate-200 truncate">
                                                     {file.name}
                                                 </span>
@@ -417,10 +415,10 @@ export default function CustomOrderRequest({
                         </div>
                     </div>
 
-                    {/* STEP 2: CLIENT INFO (If Guest) */}
-                    <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-6 sm:p-8 shadow-sm space-y-6">
-                        <div className="flex items-center space-x-3 pb-4 border-b border-slate-100 dark:border-slate-800">
-                            <div className="h-10 w-10 rounded-xl bg-cyan-500/10 text-cyan-500 flex items-center justify-center font-black text-sm">
+                    {/* STEP 2: CLIENT INFO */}
+                    <div className="cv-card rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
+                        <div className="flex items-center space-x-3 pb-4 border-b border-slate-100 dark:border-cyan-500/10">
+                            <div className="h-10 w-10 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center font-black text-sm border border-cyan-500/20">
                                 02
                             </div>
                             <div>
@@ -437,9 +435,9 @@ export default function CustomOrderRequest({
 
                         {user ? (
                             <div className="space-y-4">
-                                <div className="p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200/60 dark:border-indigo-800 flex items-center justify-between">
+                                <div className="p-4 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-between">
                                     <div className="flex items-center space-x-3">
-                                        <div className="h-10 w-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold text-sm">
+                                        <div className="h-10 w-10 rounded-xl bg-cyan-500 text-slate-950 flex items-center justify-center font-black text-sm">
                                             {user.name.substring(0, 2).toUpperCase()}
                                         </div>
                                         <div>
@@ -451,7 +449,7 @@ export default function CustomOrderRequest({
                                             </p>
                                         </div>
                                     </div>
-                                    <span className="text-xs font-bold text-emerald-500 bg-emerald-500/10 px-3 py-1 rounded-full">
+                                    <span className="text-xs font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full">
                                         Authenticated
                                     </span>
                                 </div>
@@ -469,7 +467,7 @@ export default function CustomOrderRequest({
                                                 value={data.client_whatsapp}
                                                 onChange={(e) => setData('client_whatsapp', e.target.value)}
                                                 placeholder="e.g. +880 1700-000000 or +1 555-0192"
-                                                className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs font-medium focus:ring-2 focus:ring-emerald-500"
+                                                className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-[#01121e] border border-slate-200 dark:border-cyan-500/20 text-slate-900 dark:text-white text-xs font-medium focus:ring-2 focus:ring-cyan-500"
                                             />
                                         </div>
                                         <p className="text-[11px] text-slate-400 mt-1">Our engineers will communicate with you directly on WhatsApp.</p>
@@ -486,7 +484,7 @@ export default function CustomOrderRequest({
                                                 value={data.client_email}
                                                 onChange={(e) => setData('client_email', e.target.value)}
                                                 placeholder={user.email}
-                                                className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs font-medium focus:ring-2 focus:ring-indigo-500"
+                                                className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-[#01121e] border border-slate-200 dark:border-cyan-500/20 text-slate-900 dark:text-white text-xs font-medium focus:ring-2 focus:ring-cyan-500"
                                             />
                                         </div>
                                     </div>
@@ -507,7 +505,7 @@ export default function CustomOrderRequest({
                                                 onChange={(e) => setData('name', e.target.value)}
                                                 placeholder="John Doe"
                                                 required
-                                                className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-sm font-medium focus:ring-2 focus:ring-indigo-500"
+                                                className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-50 dark:bg-[#01121e] border border-slate-200 dark:border-cyan-500/20 text-slate-900 dark:text-white text-sm font-medium focus:ring-2 focus:ring-cyan-500"
                                             />
                                         </div>
                                         {errors.name && <p className="text-rose-500 text-xs mt-1">{errors.name}</p>}
@@ -525,7 +523,7 @@ export default function CustomOrderRequest({
                                                 onChange={(e) => setData('email', e.target.value)}
                                                 placeholder="john@company.com"
                                                 required
-                                                className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-sm font-medium focus:ring-2 focus:ring-indigo-500"
+                                                className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-50 dark:bg-[#01121e] border border-slate-200 dark:border-cyan-500/20 text-slate-900 dark:text-white text-sm font-medium focus:ring-2 focus:ring-cyan-500"
                                             />
                                         </div>
                                         {errors.email && <p className="text-rose-500 text-xs mt-1">{errors.email}</p>}
@@ -549,7 +547,7 @@ export default function CustomOrderRequest({
                                                 }}
                                                 placeholder="e.g. +880 1700-000000 or +1 (555) 000-0000"
                                                 required
-                                                className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-sm font-medium focus:ring-2 focus:ring-emerald-500"
+                                                className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-50 dark:bg-[#01121e] border border-slate-200 dark:border-cyan-500/20 text-slate-900 dark:text-white text-sm font-medium focus:ring-2 focus:ring-cyan-500"
                                             />
                                         </div>
                                         {errors.phone && <p className="text-rose-500 text-xs mt-1">{errors.phone}</p>}
@@ -566,7 +564,7 @@ export default function CustomOrderRequest({
                                                 value={data.company_name}
                                                 onChange={(e) => setData('company_name', e.target.value)}
                                                 placeholder="Acme Inc."
-                                                className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-sm font-medium focus:ring-2 focus:ring-indigo-500"
+                                                className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-50 dark:bg-[#01121e] border border-slate-200 dark:border-cyan-500/20 text-slate-900 dark:text-white text-sm font-medium focus:ring-2 focus:ring-cyan-500"
                                             />
                                         </div>
                                     </div>
@@ -584,7 +582,7 @@ export default function CustomOrderRequest({
                                             onChange={(e) => setData('password', e.target.value)}
                                             placeholder="Choose a secure password (min 8 chars)"
                                             required
-                                            className="w-full pl-10 pr-12 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-sm font-medium focus:ring-2 focus:ring-indigo-500"
+                                            className="w-full pl-10 pr-12 py-3 rounded-xl bg-slate-50 dark:bg-[#01121e] border border-slate-200 dark:border-cyan-500/20 text-slate-900 dark:text-white text-sm font-medium focus:ring-2 focus:ring-cyan-500"
                                         />
                                         <button
                                             type="button"
@@ -606,13 +604,13 @@ export default function CustomOrderRequest({
                     </div>
 
                     {/* SUBMIT BUTTON & WORKFLOW BANNER */}
-                    <div className="bg-gradient-to-r from-indigo-900 via-purple-900 to-cyan-900 dark:from-indigo-900/40 dark:via-purple-900/30 dark:to-cyan-900/40 rounded-3xl border border-indigo-500/20 p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-6">
+                    <div className="cv-card rounded-3xl p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-6 border-cyan-500/30">
                         <div className="space-y-1 text-center sm:text-left">
-                            <h3 className="text-base font-bold text-white flex items-center justify-center sm:justify-start space-x-2">
+                            <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center justify-center sm:justify-start space-x-2">
                                 <CheckCircle className="h-5 w-5 text-emerald-400" />
                                 <span>No Upfront Obligation</span>
                             </h3>
-                            <p className="text-xs text-slate-300 max-w-md">
+                            <p className="text-xs text-slate-600 dark:text-slate-300 max-w-md">
                                 Submitting a request is completely free. We will assess your requirements and propose milestone terms before any payment is due.
                             </p>
                         </div>
@@ -620,7 +618,7 @@ export default function CustomOrderRequest({
                         <button
                             type="submit"
                             disabled={processing}
-                            className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-cyan-500 text-white font-bold text-sm tracking-wide shadow-xl shadow-indigo-600/30 hover:opacity-95 hover:shadow-indigo-600/50 transition-all flex items-center justify-center space-x-2 shrink-0 disabled:opacity-50"
+                            className="cv-btn-primary w-full sm:w-auto text-sm py-4 px-8"
                         >
                             <span>{processing ? 'Submitting Request...' : 'Submit Project Request'}</span>
                             <ArrowRight className="h-4 w-4" />

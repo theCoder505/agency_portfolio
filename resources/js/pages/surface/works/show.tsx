@@ -51,19 +51,20 @@ export default function WorkDetail({ portfolio, relatedPortfolios }: WorkDetailP
             description={portfolio.short_description || `Case study for ${portfolio.title}`}
         >
             {/* Top Back Navigation Bar */}
-            <div className="bg-slate-900/30 dark:bg-slate-950/60 py-4">
+            <div className="border-b border-slate-200/60 dark:border-cyan-500/10 py-4 bg-white/95 dark:bg-[#010a10]/95 backdrop-blur-md relative z-20">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
                     <Link
                         href="/works"
-                        className="inline-flex items-center space-x-2 text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-cyan-400 transition-colors"
+                        className="inline-flex items-center space-x-2 text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors"
                     >
                         <ArrowLeft className="h-4 w-4" />
                         <span>Back to All Works</span>
                     </Link>
 
                     <button
+                        type="button"
                         onClick={handleShare}
-                        className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 text-xs font-semibold transition-colors"
+                        className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg cv-card text-slate-700 dark:text-slate-300 text-xs font-semibold transition-colors"
                     >
                         <Share2 className="h-3.5 w-3.5" />
                         <span>Share Case Study</span>
@@ -71,19 +72,19 @@ export default function WorkDetail({ portfolio, relatedPortfolios }: WorkDetailP
                 </div>
             </div>
 
-            {/* Project Header Hero */}
-            <section className="py-16 relative overflow-hidden">
+            {/* Project Header Hero - Sticky Top-0 until scrolled to next section */}
+            <section className="sticky top-0 z-0 py-12 lg:py-16 bg-white dark:bg-[#010a10]">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
                         {/* Meta & Title */}
                         <div className="lg:col-span-7 space-y-6">
                             <div className="flex flex-wrap items-center gap-2">
                                 {portfolio.category && (
-                                    <span className="px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-cyan-400 border border-indigo-500/20 text-xs font-bold">
-                                        {portfolio.category.name}
-                                    </span>
+                                    <div className="cv-badge">
+                                        <span>{portfolio.category.name}</span>
+                                    </div>
                                 )}
-                                <span className="px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 text-xs font-semibold flex items-center space-x-1">
+                                <span className="px-3 py-1 rounded-full bg-slate-100 dark:bg-[#01121e] text-slate-600 dark:text-slate-300 text-xs font-semibold flex items-center space-x-1 border border-slate-200/60 dark:border-cyan-500/15">
                                     <Eye className="h-3.5 w-3.5 text-cyan-400" />
                                     <span>{portfolio.views_count.toLocaleString()} visits tracked</span>
                                 </span>
@@ -98,26 +99,22 @@ export default function WorkDetail({ portfolio, relatedPortfolios }: WorkDetailP
                             </p>
 
                             {/* Project Attributes Table */}
-                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-4 border-t border-slate-200 dark:border-slate-800">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-4 border-t border-slate-200/60 dark:border-cyan-500/10">
                                 {portfolio.client_name && (
                                     <div>
-                                        <div className="text-[11px] uppercase tracking-wider text-slate-600 dark:text-slate-300 font-bold">Client</div>
+                                        <div className="text-[11px] uppercase tracking-wider text-slate-400 font-bold">Client</div>
                                         <div className="text-sm font-semibold text-slate-900 dark:text-white mt-0.5">{portfolio.client_name}</div>
                                     </div>
                                 )}
                                 {portfolio.completion_date && (
                                     <div>
-                                        <div className="text-[11px] uppercase tracking-wider text-slate-600 dark:text-slate-300 font-bold">Delivered</div>
+                                        <div className="text-[11px] uppercase tracking-wider text-slate-400 font-bold">Delivered</div>
                                         <div className="text-sm font-semibold text-slate-900 dark:text-white mt-0.5">{portfolio.completion_date}</div>
                                     </div>
                                 )}
                                 <div>
-                                    <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Client</span>
-                                    <span className="text-sm font-semibold text-slate-900 dark:text-white">{portfolio.client_name || 'Confidential Client'}</span>
-                                </div>
-                                <div>
                                     <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Release Year</span>
-                                    <span className="text-sm font-semibold text-slate-900 dark:text-white">{portfolio.completed_year || '2026'}</span>
+                                    <span className="text-sm font-semibold text-slate-900 dark:text-white">{portfolio.completion_date || '2026'}</span>
                                 </div>
                                 <div>
                                     <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Platform SLA</span>
@@ -127,43 +124,42 @@ export default function WorkDetail({ portfolio, relatedPortfolios }: WorkDetailP
 
                             {/* Action CTAs */}
                             <div className="pt-2 flex flex-wrap items-center gap-4">
-                                {portfolio.project_url && (
+                                {portfolio.direct_url && (
                                     <a
-                                        href={portfolio.project_url}
+                                        href={portfolio.direct_url}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="inline-flex items-center space-x-2 px-6 py-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs transition-all shadow-lg shadow-indigo-500/25"
+                                        className="cv-btn-primary text-xs"
                                     >
                                         <span>Visit Live Website / App</span>
                                         <ExternalLink className="h-4 w-4" />
                                     </a>
                                 )}
-                                {portfolio.demo_url && (
-                                    <a
-                                        href={portfolio.demo_url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="inline-flex items-center space-x-2 px-6 py-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-800 font-bold text-xs transition-all shadow-sm"
+                                {portfolio.youtube_video_url && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsVideoOpen(true)}
+                                        className="cv-btn-secondary text-xs"
                                     >
                                         <span>Interactive Demo</span>
                                         <Play className="h-3.5 w-3.5" />
-                                    </a>
+                                    </button>
                                 )}
                             </div>
                         </div>
 
                         {/* Large Featured Mockup */}
                         <div className="lg:col-span-6" data-aos="fade-left">
-                            <div className="relative rounded-3xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-2xl bg-slate-950">
-                                {portfolio.featured_image ? (
+                            <div className="relative rounded-3xl overflow-hidden border border-slate-200/60 dark:border-cyan-500/20 shadow-2xl bg-[#01121e]">
+                                {portfolio.thumbnail ? (
                                     <img
-                                        src={portfolio.featured_image}
+                                        src={portfolio.thumbnail}
                                         alt={portfolio.title}
                                         className="w-full h-full object-cover"
                                     />
                                 ) : (
                                     <div className="aspect-[4/3] flex flex-col items-center justify-center text-slate-500 p-8 text-center">
-                                        <Layers className="h-16 w-16 mb-2 text-indigo-400" />
+                                        <Layers className="h-16 w-16 mb-2 text-cyan-400" />
                                         <span className="text-sm font-bold">High Precision Engineering View</span>
                                     </div>
                                 )}
@@ -175,13 +171,13 @@ export default function WorkDetail({ portfolio, relatedPortfolios }: WorkDetailP
 
             {/* Embedded YouTube Video (if attached) */}
             {youtubeId && (
-                <section className="py-12 bg-slate-900/30 dark:bg-slate-950/40">
+                <section className="relative z-10 py-12 border-y border-slate-200/60 dark:border-cyan-500/10 bg-slate-50 dark:bg-[#010e16] shadow-xl">
                     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4 text-center">
                         <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center justify-center space-x-2">
                             <Play className="h-5 w-5 text-red-500 fill-current" />
                             <span>Interactive Video Walkthrough</span>
                         </h3>
-                        <div className="relative aspect-[16/9] w-full rounded-3xl overflow-hidden shadow-2xl border border-slate-800">
+                        <div className="relative aspect-[16/9] w-full rounded-3xl overflow-hidden shadow-2xl border border-cyan-500/20">
                             <iframe
                                 src={`https://www.youtube.com/embed/${youtubeId}`}
                                 title={portfolio.title}
@@ -195,7 +191,7 @@ export default function WorkDetail({ portfolio, relatedPortfolios }: WorkDetailP
             )}
 
             {/* Deep Description & Tech Stack Overview */}
-            <section className="py-16">
+            <section className="relative z-10 py-16 bg-white dark:bg-[#010a10] shadow-2xl">
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
                     {/* Full HTML Description */}
                     {portfolio.description && (
@@ -212,7 +208,7 @@ export default function WorkDetail({ portfolio, relatedPortfolios }: WorkDetailP
 
                     {/* Tech Stacks Grid */}
                     {portfolio.tech_stacks && portfolio.tech_stacks.length > 0 && (
-                        <div className="p-8 rounded-3xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-4">
+                        <div className="cv-card p-8 rounded-3xl space-y-4">
                             <div className="flex items-center space-x-2">
                                 <Code className="h-5 w-5 text-cyan-400" />
                                 <h3 className="text-lg font-bold text-slate-900 dark:text-white">
@@ -223,7 +219,7 @@ export default function WorkDetail({ portfolio, relatedPortfolios }: WorkDetailP
                                 {portfolio.tech_stacks.map((tech, idx) => (
                                     <div
                                         key={idx}
-                                        className="px-4 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-800 dark:text-slate-200 shadow-sm"
+                                        className="px-4 py-2 rounded-xl bg-white dark:bg-[#01121e] border border-slate-200 dark:border-cyan-500/20 text-xs font-bold text-slate-800 dark:text-slate-200 shadow-sm"
                                     >
                                         {tech}
                                     </div>
@@ -244,13 +240,13 @@ export default function WorkDetail({ portfolio, relatedPortfolios }: WorkDetailP
 
             {/* Related Projects Carousel */}
             {relatedPortfolios && relatedPortfolios.length > 0 && (
-                <section className="py-16 bg-slate-50/70 dark:bg-slate-950/40">
+                <section className="relative z-10 py-16 border-t border-slate-200/60 dark:border-cyan-500/10 bg-slate-50 dark:bg-[#010e16]">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="flex items-center justify-between mb-8">
                             <h3 className="text-2xl font-black text-slate-900 dark:text-white">
                                 Related Projects
                             </h3>
-                            <Link href="/works" className="text-xs font-bold text-indigo-600 dark:text-cyan-400 hover:underline">
+                            <Link href="/works" className="text-xs font-bold text-cyan-600 dark:text-cyan-400 hover:underline">
                                 View All
                             </Link>
                         </div>
@@ -260,7 +256,7 @@ export default function WorkDetail({ portfolio, relatedPortfolios }: WorkDetailP
                                 <Link
                                     key={item.id}
                                     href={`/works/${item.slug}`}
-                                    className="group rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm hover:shadow-xl transition-all"
+                                    className="cv-card group rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all"
                                 >
                                     <div className="aspect-[16/10] overflow-hidden bg-slate-950">
                                         {item.thumbnail && (
@@ -272,7 +268,7 @@ export default function WorkDetail({ portfolio, relatedPortfolios }: WorkDetailP
                                         )}
                                     </div>
                                     <div className="p-4 space-y-1">
-                                        <h4 className="font-bold text-sm text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-cyan-400">
+                                        <h4 className="font-bold text-sm text-slate-900 dark:text-white group-hover:text-cyan-600 dark:group-hover:text-cyan-400">
                                             {item.title}
                                         </h4>
                                         <p className="text-xs text-slate-500 line-clamp-1">

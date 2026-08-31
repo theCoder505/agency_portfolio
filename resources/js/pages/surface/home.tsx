@@ -9,23 +9,18 @@ import { YouTubeModal } from '@/components/surface/youtube-modal';
 import {
     Sparkles,
     ArrowRight,
-    Play,
     CheckCircle2,
     Code2,
     Cpu,
     Zap,
-    Shield,
     Database,
     Layout,
     Globe,
     Layers,
     Rocket,
-    Users,
-    Star,
     Award,
     BookOpen,
     Eye,
-    Clock,
     Calendar,
     ArrowUpRight,
     HelpCircle,
@@ -54,7 +49,6 @@ export default function Home({
     blogs = [],
     saasProducts = [],
     reviews,
-    teamMembers,
     stats,
 }: HomePageProps) {
     const { app_settings } = usePage<SharedData>().props;
@@ -92,7 +86,7 @@ export default function Home({
                 faqs = parsed;
             }
         } catch (e) {
-            // fallback
+            console.log(e);
         }
     }
 
@@ -136,6 +130,19 @@ export default function Home({
             description: 'Automated CI/CD pipelines, Kubernetes containerization, Redis caching layers, and high-availability serverless setups.',
             gradient: 'from-red-500 to-rose-600',
         },
+    ];    const techStackTicker = [
+        'Laravel 12 (PHP 8.4)',
+        'React 19 + Inertia.js',
+        'TypeScript Architecture',
+        'Tailwind CSS v4',
+        'Next.js & Vite Dev',
+        'PostgreSQL & Redis',
+        'Docker & Kubernetes',
+        'AI & LLM Streaming Agents',
+        'Sub-Second Core Web Vitals',
+        'AWS & Cloudflare CDN',
+        'bKash & Nagad OTP Billing',
+        'SOC2 Compliant Architecture',
     ];
 
     return (
@@ -143,26 +150,43 @@ export default function Home({
             title="Modern Web Development Agency"
             description="CodeVenture Tech builds high performance SaaS web applications, AI platforms, and bespoke digital experiences for global leaders."
         >
-            {/* INTERACTIVE CANVAS SCROLL HERO SECTION */}
+            {/* INTERACTIVE CANVAS SCROLL HERO SECTION (Header is preserved untouched in layout) */}
             <SurfaceHero
                 settings={app_settings}
                 stats={stats}
                 onOpenVideo={() => setIsVideoOpen(true)}
             />
 
-            {/* SERVICES SECTION */}
-            <section id="what-we-build" className="py-24 bg-slate-50/70 dark:bg-slate-950/40 relative w-full">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            {/* SIGNATURE TECH STACK MARQUEE TICKER (CodeVenture Design Signature) */}
+            <div className="relative z-20 py-6 border-y border-slate-200/60 dark:border-cyan-500/10 bg-slate-50 dark:bg-[#010e16] overflow-hidden cv-marquee-mask shadow-xl">
+                <div className="cv-marquee-track flex items-center space-x-4">
+                    {[...techStackTicker, ...techStackTicker].map((item, idx) => (
+                        <div
+                            key={idx}
+                            className="flex-shrink-0 inline-flex items-center space-x-2.5 px-4 py-2 rounded-xl bg-white/80 dark:bg-[#01121e]/90 border border-slate-200/80 dark:border-cyan-500/20 shadow-sm"
+                        >
+                            <span className="h-2 w-2 rounded-full bg-cyan-400 animate-pulse" />
+                            <span className="text-xs font-bold text-slate-700 dark:text-slate-200 whitespace-nowrap">
+                                {item}
+                            </span>
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            {/* SERVICES / CORE ENGINEERING CAPABILITIES */}
+            <section id="what-we-build" className="py-24 relative w-full overflow-hidden">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                     <div className="text-center max-w-2xl mx-auto mb-16" data-aos="fade-up">
-                        <div className="inline-flex items-center space-x-2 px-3 py-1.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-cyan-400 border border-indigo-500/20 text-xs font-bold mb-3">
-                            <Layers className="h-3.5 w-3.5" />
+                        <div className="cv-badge mb-3.5">
+                            <Layers className="h-3.5 w-3.5 text-cyan-400" />
                             <span>Core Engineering Capabilities</span>
                         </div>
-                        <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-slate-900 dark:text-white">
+                        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-slate-900 dark:text-white">
                             What We Build
                         </h2>
-                        <p className="mt-3 text-sm sm:text-base text-slate-600 dark:text-slate-400">
-                            Enterprise-grade full stack technologies designed for extreme speed, reliability, and market leadership.
+                        <p className="mt-3.5 text-sm sm:text-base text-slate-600 dark:text-slate-400 leading-relaxed">
+                            Enterprise-grade full stack digital systems engineered for extreme speed, high reliability, and market leadership.
                         </p>
                     </div>
 
@@ -174,17 +198,23 @@ export default function Home({
                                     key={index}
                                     data-aos="fade-up"
                                     data-aos-delay={`${(index % 3) * 100}`}
-                                    className="group relative rounded-3xl bg-white dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-800/80 p-8 shadow-sm hover:shadow-xl hover:border-indigo-500/50 transition-all duration-300 hover:-translate-y-1"
+                                    className="cv-card rounded-3xl p-8 flex flex-col justify-between group"
                                 >
-                                    <div className={`h-12 w-12 rounded-2xl bg-gradient-to-tr ${service.gradient} flex items-center justify-center text-white shadow-lg mb-6 group-hover:scale-110 transition-transform`}>
-                                        <IconComponent className="h-6 w-6" />
+                                    <div>
+                                        <div className={`h-12 w-12 rounded-2xl bg-gradient-to-tr ${service.gradient} flex items-center justify-center text-white shadow-lg mb-6 group-hover:scale-110 transition-transform duration-300`}>
+                                            <IconComponent className="h-6 w-6" />
+                                        </div>
+                                        <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3 group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">
+                                            {service.title}
+                                        </h3>
+                                        <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                                            {service.description}
+                                        </p>
                                     </div>
-                                    <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3">
-                                        {service.title}
-                                    </h3>
-                                    <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-                                        {service.description}
-                                    </p>
+                                    <div className="pt-6 flex items-center text-xs font-bold text-cyan-600 dark:text-cyan-400 group-hover:translate-x-1 transition-transform">
+                                        <span>Production-Ready SLA</span>
+                                        <ArrowRight className="h-3.5 w-3.5 ml-1.5" />
+                                    </div>
                                 </div>
                             );
                         })}
@@ -194,15 +224,15 @@ export default function Home({
 
             {/* FEATURED SAAS PRODUCTS SHOWCASE SECTION */}
             {saasProducts && saasProducts.length > 0 && (
-                <section className="py-24 bg-white dark:bg-slate-900/60 relative">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <section className="py-24 bg-slate-50/60 dark:bg-[#010e16]/60 border-y border-slate-200/60 dark:border-cyan-500/10 relative">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-16" data-aos="fade-up">
                             <div className="space-y-2">
-                                <div className="inline-flex items-center space-x-2 px-3 py-1.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-cyan-400 border border-indigo-500/20 text-xs font-bold">
-                                    <Sparkles className="h-3.5 w-3.5" />
+                                <div className="cv-badge">
+                                    <Sparkles className="h-3.5 w-3.5 text-cyan-400" />
                                     <span>Turnkey SaaS Subscriptions</span>
                                 </div>
-                                <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-slate-900 dark:text-white">
+                                <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-slate-900 dark:text-white">
                                     Enterprise SaaS Products Ready to Deploy
                                 </h2>
                                 <p className="text-sm text-slate-600 dark:text-slate-400 max-w-2xl">
@@ -212,7 +242,7 @@ export default function Home({
 
                             <Link
                                 href="/saas-products"
-                                className="inline-flex items-center space-x-2 px-5 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-lg shadow-indigo-500/20 hover:shadow-xl transition-all self-start sm:self-auto group"
+                                className="cv-btn-secondary self-start sm:self-auto group"
                             >
                                 <span>View All SaaS Plans</span>
                                 <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
@@ -225,10 +255,10 @@ export default function Home({
                                     key={product.id}
                                     data-aos="fade-up"
                                     data-aos-delay={`${(pIdx % 4) * 100}`}
-                                    className={`relative flex flex-col justify-between rounded-3xl border transition-all duration-300 overflow-hidden group ${
+                                    className={`cv-card rounded-3xl flex flex-col justify-between overflow-hidden group ${
                                         product.is_featured
-                                            ? 'bg-slate-950 text-white border-indigo-500/80 shadow-xl shadow-indigo-500/15'
-                                            : 'bg-white dark:bg-slate-900 border-slate-200/80 dark:border-slate-800 text-slate-900 dark:text-white shadow-sm hover:shadow-xl hover:border-indigo-500/40'
+                                            ? 'border-cyan-500/50 shadow-cyan-500/10'
+                                            : ''
                                     }`}
                                 >
                                     {/* Thumbnail Image */}
@@ -237,10 +267,10 @@ export default function Home({
                                             <img
                                                 src={product.thumbnail}
                                                 alt={product.name}
-                                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                                className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
                                             />
                                             {product.badge && (
-                                                <div className="absolute top-3 left-3 px-2.5 py-0.5 rounded-full bg-indigo-600/90 text-white font-black text-[9px] uppercase shadow-sm">
+                                                <div className="absolute top-3 left-3 px-2.5 py-0.5 rounded-full bg-cyan-500 text-slate-950 font-black text-[9px] uppercase shadow-sm">
                                                     {product.badge}
                                                 </div>
                                             )}
@@ -251,24 +281,22 @@ export default function Home({
                                         <div>
                                             <div className="flex items-center justify-between mb-3">
                                                 {!product.thumbnail && product.badge && (
-                                                    <span className="px-2.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-cyan-400 font-bold text-[10px]">
+                                                    <span className="px-2.5 py-0.5 rounded-full bg-cyan-500/10 text-cyan-500 font-bold text-[10px]">
                                                         {product.badge}
                                                     </span>
                                                 )}
-                                                <div className="text-xs font-black text-indigo-600 dark:text-cyan-400 ml-auto">
+                                                <div className="text-sm font-black text-cyan-600 dark:text-cyan-400 ml-auto font-mono">
                                                     {currency}{Number(product.monthly_price).toLocaleString('en-US')}<span className="text-[10px] text-slate-400 font-normal">/mo</span>
                                                 </div>
                                             </div>
 
                                             <Link href={`/saas-products/${product.slug}`}>
-                                                <h3 className="text-base font-bold tracking-tight mb-1 group-hover:text-indigo-600 dark:group-hover:text-cyan-400 transition-colors">
+                                                <h3 className="text-base font-bold tracking-tight mb-1 group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">
                                                     {product.name}
                                                 </h3>
                                             </Link>
 
-                                            <p className={`text-xs line-clamp-2 leading-relaxed mb-4 ${
-                                                product.is_featured ? 'text-slate-300' : 'text-slate-500 dark:text-slate-400'
-                                            }`}>
+                                            <p className="text-xs line-clamp-2 leading-relaxed mb-4 text-slate-600 dark:text-slate-400">
                                                 {product.tagline || product.description}
                                             </p>
 
@@ -276,7 +304,7 @@ export default function Home({
                                                 <div className="space-y-1.5 mb-6">
                                                     {product.features.slice(0, 3).map((feat, fI) => (
                                                         <div key={fI} className="flex items-center space-x-2 text-[11px]">
-                                                            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+                                                            <CheckCircle2 className="h-3.5 w-3.5 text-cyan-500 shrink-0" />
                                                             <span className="truncate">{feat}</span>
                                                         </div>
                                                     ))}
@@ -287,7 +315,7 @@ export default function Home({
                                         <div className="pt-2 flex items-center space-x-2">
                                             <Link
                                                 href={`/saas-products/${product.slug}`}
-                                                className="flex-1 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold text-center transition-all flex items-center justify-center space-x-1.5"
+                                                className="flex-1 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-cyan-500 dark:hover:bg-cyan-400 text-white dark:text-slate-950 text-xs font-bold text-center transition-all flex items-center justify-center space-x-1.5 shadow-sm"
                                             >
                                                 <span>View Packages</span>
                                                 <ArrowRight className="h-3.5 w-3.5" />
@@ -306,16 +334,20 @@ export default function Home({
                 portfolios={portfolios}
                 categories={categories}
                 showViewAll={true}
-                title="Featured Products & Websites (Max 15 Showcase)"
+                title="Featured Products & Digital Portfolios"
                 subtitle="Explore direct-link and deep in-app case studies of scalable web applications crafted by CodeVenture."
             />
 
-            {/* WHY CHOOSE US / AGENCY ADVANTAGE */}
-            <section className="py-24 bg-slate-900 text-white relative overflow-hidden">
+            {/* WHY CHOOSE US / THE CODEVENTURE ADVANTAGE */}
+            <section className="py-24 bg-[#010e16] text-white relative overflow-hidden border-y border-cyan-500/10">
+                {/* Background lighting */}
+                <div className="absolute top-0 right-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
+                <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
+
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                         <div className="space-y-6" data-aos="fade-right">
-                            <div className="inline-flex items-center space-x-2 px-3 py-1.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 text-xs font-bold">
+                            <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 text-xs font-bold">
                                 <Award className="h-4 w-4" />
                                 <span>The CodeVenture Standard</span>
                             </div>
@@ -334,7 +366,7 @@ export default function Home({
                                     'Continuous Delivery, Automated CI/CD & 24/7 Monitoring Retainers',
                                 ].map((item, idx) => (
                                     <div key={idx} className="flex items-center space-x-3">
-                                        <CheckCircle2 className="h-5 w-5 text-emerald-400 shrink-0" />
+                                        <CheckCircle2 className="h-5 w-5 text-cyan-400 shrink-0" />
                                         <span className="text-sm font-medium text-slate-200">{item}</span>
                                     </div>
                                 ))}
@@ -343,7 +375,7 @@ export default function Home({
                             <div className="pt-4">
                                 <Link
                                     href="/contact"
-                                    className="inline-flex items-center space-x-2 px-6 py-3.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs shadow-lg transition-all"
+                                    className="cv-btn-primary"
                                 >
                                     <span>Schedule a Technical Discovery Call</span>
                                     <ArrowRight className="h-4 w-4" />
@@ -352,24 +384,24 @@ export default function Home({
                         </div>
 
                         {/* Interactive Code / Architecture Card */}
-                        <div className="rounded-3xl bg-slate-950/90 border border-slate-800 p-6 shadow-2xl space-y-4" data-aos="fade-left">
-                            <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+                        <div className="rounded-3xl bg-[#01121e] border border-cyan-500/20 p-6 sm:p-8 shadow-2xl space-y-4 shadow-cyan-500/5" data-aos="fade-left">
+                            <div className="flex items-center justify-between pb-4 border-b border-cyan-500/10">
                                 <div className="flex items-center space-x-2">
-                                    <span className="h-3 w-3 rounded-full bg-red-500"></span>
-                                    <span className="h-3 w-3 rounded-full bg-yellow-500"></span>
-                                    <span className="h-3 w-3 rounded-full bg-green-500"></span>
+                                    <span className="h-3 w-3 rounded-full bg-red-500/80" />
+                                    <span className="h-3 w-3 rounded-full bg-yellow-500/80" />
+                                    <span className="h-3 w-3 rounded-full bg-cyan-500/80" />
                                 </div>
-                                <span className="text-xs font-mono text-slate-500">CodeVentureEngine.ts</span>
+                                <span className="text-xs font-mono text-cyan-400/70">CodeVentureEngine.ts</span>
                             </div>
 
-                            <pre className="font-mono text-xs text-cyan-300 leading-relaxed overflow-x-auto p-2">
+                            <pre className="font-mono text-xs sm:text-sm text-cyan-300 leading-relaxed overflow-x-auto p-2">
                                 {`// Enterprise Architecture Blueprint
 export async function bootstrapPlatform(config: AppConfig) {
   const stack = {
-    backend: 'Laravel 12 (PHP 8.3)',
+    backend: 'Laravel 12 (PHP 8.4)',
     client: 'React 19 + Inertia.js',
     styling: 'Tailwind CSS v4 + Shadcn UI',
-    database: 'MySQL + Redis Telemetry',
+    database: 'PostgreSQL + Redis Telemetry',
     security: 'AES-256 OTP Guards + Turnstile'
   };
 
@@ -388,16 +420,16 @@ export async function bootstrapPlatform(config: AppConfig) {
 
             {/* LATEST INSIGHTS & BLOGS SECTION - 12 ARTICLES SHOWCASE */}
             {blogs && blogs.length > 0 && (
-                <section className="py-24 bg-slate-100/60 dark:bg-slate-900/30 relative">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <section className="py-24 relative overflow-hidden">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                         {/* Section Header */}
                         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-12" data-aos="fade-up">
                             <div className="space-y-2">
-                                <div className="inline-flex items-center space-x-2 px-3 py-1.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-cyan-400 border border-indigo-500/20 text-xs font-bold">
-                                    <BookOpen className="h-3.5 w-3.5" />
+                                <div className="cv-badge">
+                                    <BookOpen className="h-3.5 w-3.5 text-cyan-400" />
                                     <span>Knowledge Hub</span>
                                 </div>
-                                <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-slate-900 dark:text-white">
+                                <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-slate-900 dark:text-white">
                                     Latest Engineering Insights & Articles
                                 </h2>
                                 <p className="text-sm text-slate-600 dark:text-slate-400 max-w-2xl">
@@ -407,7 +439,7 @@ export async function bootstrapPlatform(config: AppConfig) {
 
                             <Link
                                 href="/blogs"
-                                className="inline-flex items-center space-x-2 px-5 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-lg shadow-indigo-500/20 hover:shadow-xl hover:shadow-indigo-500/30 transition-all self-start sm:self-auto group"
+                                className="cv-btn-secondary self-start sm:self-auto group"
                             >
                                 <span>Browse All Articles</span>
                                 <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
@@ -421,7 +453,7 @@ export async function bootstrapPlatform(config: AppConfig) {
                                     key={blog.id}
                                     data-aos="fade-up"
                                     data-aos-delay={`${(idx % 4) * 80}`}
-                                    className="group flex flex-col bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800/80 hover:border-indigo-500/50 shadow-sm hover:shadow-xl hover:shadow-indigo-500/10 transition-all duration-300 overflow-hidden"
+                                    className="cv-card group flex flex-col rounded-3xl overflow-hidden"
                                 >
                                     <Link
                                         href={`/blogs/${blog.slug}`}
@@ -431,11 +463,11 @@ export async function bootstrapPlatform(config: AppConfig) {
                                             <img
                                                 src={blog.thumbnail}
                                                 alt={blog.title}
-                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
                                             />
                                         ) : (
-                                            <div className="w-full h-full bg-gradient-to-tr from-slate-900 to-indigo-950 flex items-center justify-center">
-                                                <BookOpen className="h-10 w-10 text-indigo-400/40" />
+                                            <div className="w-full h-full bg-gradient-to-tr from-slate-950 to-[#01121e] flex items-center justify-center">
+                                                <BookOpen className="h-10 w-10 text-cyan-400/40" />
                                             </div>
                                         )}
 
@@ -454,7 +486,7 @@ export async function bootstrapPlatform(config: AppConfig) {
                                     <div className="p-5 flex-grow flex flex-col justify-between space-y-3">
                                         <div className="space-y-2">
                                             <div className="flex items-center space-x-2 text-[11px] text-slate-500 dark:text-slate-400">
-                                                <Calendar className="h-3 w-3" />
+                                                <Calendar className="h-3 w-3 text-cyan-500" />
                                                 <span>
                                                     {blog.published_at
                                                         ? new Date(blog.published_at).toLocaleDateString(undefined, {
@@ -467,7 +499,7 @@ export async function bootstrapPlatform(config: AppConfig) {
                                             </div>
 
                                             <Link href={`/blogs/${blog.slug}`}>
-                                                <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white tracking-tight leading-snug group-hover:text-indigo-600 dark:group-hover:text-cyan-400 transition-colors line-clamp-2">
+                                                <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white tracking-tight leading-snug group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors line-clamp-2">
                                                     {blog.title}
                                                 </h3>
                                             </Link>
@@ -477,13 +509,13 @@ export async function bootstrapPlatform(config: AppConfig) {
                                             </p>
                                         </div>
 
-                                        <div className="pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
+                                        <div className="pt-3 border-t border-slate-100 dark:border-cyan-500/10 flex items-center justify-between">
                                             <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 truncate max-w-[130px]">
                                                 {blog.author_name || 'CodeVenture Lead'}
                                             </span>
                                             <Link
                                                 href={`/blogs/${blog.slug}`}
-                                                className="inline-flex items-center space-x-1 text-xs font-bold text-indigo-600 dark:text-cyan-400 group-hover:translate-x-1 transition-transform"
+                                                className="inline-flex items-center space-x-1 text-xs font-bold text-cyan-600 dark:text-cyan-400 group-hover:translate-x-1 transition-transform"
                                             >
                                                 <span>Read</span>
                                                 <ArrowRight className="h-3.5 w-3.5" />
@@ -495,7 +527,7 @@ export async function bootstrapPlatform(config: AppConfig) {
                         </div>
 
                         {/* Bottom CTA Banner with All Blogs Link */}
-                        <div className="mt-12 p-6 sm:p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left" data-aos="fade-up">
+                        <div className="mt-12 p-6 sm:p-8 rounded-3xl cv-card flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left" data-aos="fade-up">
                             <div className="space-y-1">
                                 <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
                                     Want to explore more architectural guides & tutorials?
@@ -507,7 +539,7 @@ export async function bootstrapPlatform(config: AppConfig) {
 
                             <Link
                                 href="/blogs"
-                                className="inline-flex items-center space-x-2 px-6 py-3 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs font-bold hover:bg-indigo-600 dark:hover:bg-cyan-400 dark:hover:text-slate-950 transition-all shadow-md flex-shrink-0"
+                                className="cv-btn-primary flex-shrink-0 text-xs"
                             >
                                 <span>View All Blog Articles</span>
                                 <ArrowRight className="h-4 w-4" />
@@ -522,17 +554,17 @@ export async function bootstrapPlatform(config: AppConfig) {
 
             {/* DYNAMIC FREQUENTLY ASKED QUESTIONS */}
             {faqs.length > 0 && (
-                <section id="faq" className="py-24 bg-slate-50/70 dark:bg-slate-950/40 relative">
-                    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                <section id="faq" className="py-24 relative overflow-hidden">
+                    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                         <div className="text-center max-w-2xl mx-auto mb-16" data-aos="fade-up">
-                            <div className="inline-flex items-center space-x-2 px-3 py-1.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-cyan-400 border border-indigo-500/20 text-xs font-bold mb-3">
-                                <HelpCircle className="h-3.5 w-3.5" />
+                            <div className="cv-badge mb-3.5">
+                                <HelpCircle className="h-3.5 w-3.5 text-cyan-400" />
                                 <span>Answers & Knowledge</span>
                             </div>
-                            <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-slate-900 dark:text-white">
+                            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-slate-900 dark:text-white">
                                 Frequently Asked Questions
                             </h2>
-                            <p className="mt-3 text-sm sm:text-base text-slate-600 dark:text-slate-400">
+                            <p className="mt-3.5 text-sm sm:text-base text-slate-600 dark:text-slate-400">
                                 Everything you need to know about our engineering process, pricing, delivery milestones, and SLA guarantees.
                             </p>
                         </div>
@@ -545,10 +577,10 @@ export async function bootstrapPlatform(config: AppConfig) {
                                         key={idx}
                                         data-aos="fade-up"
                                         data-aos-delay={`${(idx % 5) * 60}`}
-                                        className={`rounded-2xl transition-all duration-200 overflow-hidden border ${
+                                        className={`cv-card rounded-2xl transition-all duration-300 overflow-hidden ${
                                             isOpen
-                                                ? 'bg-white dark:bg-slate-900 border-indigo-500/50 shadow-lg shadow-indigo-500/5'
-                                                : 'bg-white/70 dark:bg-slate-900/60 border-slate-200/80 dark:border-slate-800/80 hover:border-slate-300 dark:hover:border-slate-700'
+                                                ? 'border-cyan-500/50 dark:border-cyan-400/60 shadow-lg'
+                                                : ''
                                         }`}
                                     >
                                         <button
@@ -559,13 +591,13 @@ export async function bootstrapPlatform(config: AppConfig) {
                                             <span className="font-bold text-sm sm:text-base text-slate-900 dark:text-white">
                                                 {faq.q}
                                             </span>
-                                            <div className={`p-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 transition-transform duration-200 flex-shrink-0 ${isOpen ? 'rotate-180 bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-cyan-400' : ''}`}>
+                                            <div className={`p-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 transition-transform duration-300 flex-shrink-0 ${isOpen ? 'rotate-180 bg-cyan-50 dark:bg-cyan-950/60 text-cyan-600 dark:text-cyan-400' : ''}`}>
                                                 <ChevronDown className="h-4 w-4" />
                                             </div>
                                         </button>
 
                                         {isOpen && (
-                                            <div className="px-6 pb-6 pt-1 text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed border-t border-slate-100 dark:border-slate-800/60 animate-in fade-in">
+                                            <div className="px-6 pb-6 pt-1 text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed border-t border-slate-100 dark:border-cyan-500/10 animate-in fade-in">
                                                 {faq.a}
                                             </div>
                                         )}
@@ -578,10 +610,11 @@ export async function bootstrapPlatform(config: AppConfig) {
             )}
 
             {/* FAST CALL TO ACTION BANNER */}
-            <section className="py-20 relative overflow-hidden bg-gradient-to-r from-indigo-900 via-purple-900 to-slate-950 text-white">
-                <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6">
+            <section className="py-20 relative overflow-hidden bg-gradient-to-r from-[#01121e] via-[#010e16] to-[#010a10] border-t border-cyan-500/20 text-white">
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(19,155,253,0.15),transparent_70%)] pointer-events-none" />
+                <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6 relative z-10">
                     <Rocket className="h-12 w-12 text-cyan-400 mx-auto animate-bounce" />
-                    <h2 className="text-3xl sm:text-5xl font-black tracking-tight">
+                    <h2 className="text-3xl sm:text-5xl font-black tracking-tight leading-tight">
                         Have a Project in Mind? Let's Turn Your Vision Into Code.
                     </h2>
                     <p className="text-base text-slate-300 max-w-2xl mx-auto">
@@ -590,13 +623,13 @@ export async function bootstrapPlatform(config: AppConfig) {
                     <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
                         <Link
                             href="/contact"
-                            className="px-8 py-4 rounded-2xl bg-white text-slate-950 font-black text-sm shadow-xl hover:bg-slate-100 transition-all hover:scale-105"
+                            className="cv-btn-primary"
                         >
                             Start Your Project Today
                         </Link>
                         <Link
                             href="/works"
-                            className="px-8 py-4 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-bold text-sm backdrop-blur-md transition-all"
+                            className="cv-btn-secondary"
                         >
                             Browse All Case Studies
                         </Link>

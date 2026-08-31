@@ -39,13 +39,13 @@ export default function About({ teamMembers }: AboutPageProps) {
             description={`Learn about ${brandName}'s mission, engineering standards, leadership team, and global footprint.`}
         >
             {/* Hero Header */}
-            <section className="pt-16 pb-20 bg-slate-900/40 dark:bg-slate-950/60 relative overflow-hidden">
+            <section className="pt-16 pb-20 relative overflow-hidden border-b border-slate-200/60 dark:border-cyan-500/10">
                 <div className="mx-auto px-4 sm:px-6 lg:px-8 text-center max-w-3xl relative z-10">
                     <div
                         data-aos="fade-down"
-                        className="inline-flex items-center space-x-2 px-3 py-1.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-cyan-400 border border-indigo-500/20 text-xs font-bold mb-4"
+                        className="cv-badge mb-4"
                     >
-                        <Users className="h-3.5 w-3.5" />
+                        <Users className="h-3.5 w-3.5 text-cyan-400" />
                         <span>The People Behind The Code</span>
                     </div>
                     <h1
@@ -66,15 +66,15 @@ export default function About({ teamMembers }: AboutPageProps) {
             </section>
 
             {/* Core Values */}
-            <section className="py-20">
+            <section className="py-20 relative">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                         <div
                             data-aos="fade-up"
                             data-aos-delay="100"
-                            className="p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4"
+                            className="cv-card p-8 rounded-3xl space-y-4"
                         >
-                            <div className="h-12 w-12 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-cyan-400 flex items-center justify-center font-bold">
+                            <div className="h-12 w-12 rounded-2xl bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 flex items-center justify-center font-bold">
                                 <Code className="h-6 w-6" />
                             </div>
                             <h3 className="text-xl font-bold text-slate-900 dark:text-white">Architectural Integrity</h3>
@@ -86,7 +86,7 @@ export default function About({ teamMembers }: AboutPageProps) {
                         <div
                             data-aos="fade-up"
                             data-aos-delay="200"
-                            className="p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4"
+                            className="cv-card p-8 rounded-3xl space-y-4"
                         >
                             <div className="h-12 w-12 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold">
                                 <Zap className="h-6 w-6" />
@@ -100,9 +100,9 @@ export default function About({ teamMembers }: AboutPageProps) {
                         <div
                             data-aos="fade-up"
                             data-aos-delay="300"
-                            className="p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4"
+                            className="cv-card p-8 rounded-3xl space-y-4"
                         >
-                            <div className="h-12 w-12 rounded-2xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center font-bold">
+                            <div className="h-12 w-12 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold">
                                 <Sparkles className="h-6 w-6" />
                             </div>
                             <h3 className="text-xl font-bold text-slate-900 dark:text-white">Aesthetic Mastery</h3>
@@ -115,17 +115,17 @@ export default function About({ teamMembers }: AboutPageProps) {
             </section>
 
             {/* TEAM MEMBERS GRID */}
-            <section className="py-20 bg-slate-50/70 dark:bg-slate-950/40">
+            <section className="py-20 bg-slate-50/60 dark:bg-[#010e16]/60 border-y border-slate-200/60 dark:border-cyan-500/10">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center max-w-2xl mx-auto mb-16" data-aos="fade-up">
-                        <div className="inline-flex items-center space-x-2 px-3 py-1.5 rounded-full bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20 text-xs font-bold mb-3">
-                            <Users className="h-3.5 w-3.5" />
+                        <div className="cv-badge mb-3.5">
+                            <Users className="h-3.5 w-3.5 text-cyan-400" />
                             <span>Leadership & Engineering</span>
                         </div>
-                        <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-slate-900 dark:text-white">
+                        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-slate-900 dark:text-white">
                             Meet the Builders
                         </h2>
-                        <p className="mt-3 text-sm text-slate-600 dark:text-slate-400">
+                        <p className="mt-3.5 text-sm text-slate-600 dark:text-slate-400">
                             Senior engineers and designers dedicated to bringing your product to life.
                         </p>
                     </div>
@@ -139,12 +139,12 @@ export default function About({ teamMembers }: AboutPageProps) {
                                 className="group [perspective:1000px] min-h-[350px] w-full cursor-pointer"
                             >
                                 {/* 3D Flipping Container */}
-                                <div className="relative h-full w-full rounded-3xl transition-transform duration-700 [transform-style:preserve-3d] group-hover:[transform:rotateY(180deg)] shadow-sm hover:shadow-2xl hover:shadow-purple-500/20">
+                                <div className="relative h-full w-full rounded-3xl transition-transform duration-700 [transform-style:preserve-3d] group-hover:[transform:rotateY(180deg)] shadow-sm hover:shadow-2xl">
 
                                     {/* FRONT SIDE OF THE BUSINESS CARD */}
-                                    <div className="absolute inset-0 h-full w-full rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 p-6 flex flex-col justify-between [backface-visibility:hidden]">
+                                    <div className="absolute inset-0 h-full w-full rounded-3xl cv-card p-6 flex flex-col justify-between [backface-visibility:hidden]">
                                         <div className="text-center space-y-4">
-                                            <div className="relative mx-auto h-28 w-28 rounded-full overflow-hidden ring-4 ring-slate-100 dark:ring-slate-800 shadow-inner group-hover:ring-purple-400 transition-all duration-300">
+                                            <div className="relative mx-auto h-28 w-28 rounded-full overflow-hidden ring-4 ring-slate-100 dark:ring-slate-800 shadow-inner group-hover:ring-cyan-400 transition-all duration-300">
                                                 {member.avatar ? (
                                                     <img
                                                         src={member.avatar}
@@ -152,7 +152,7 @@ export default function About({ teamMembers }: AboutPageProps) {
                                                         className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
                                                     />
                                                 ) : (
-                                                    <div className="h-full w-full bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center text-white text-2xl font-bold">
+                                                    <div className="h-full w-full bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center text-slate-950 text-2xl font-black">
                                                         {member.name.charAt(0)}
                                                     </div>
                                                 )}
@@ -162,20 +162,20 @@ export default function About({ teamMembers }: AboutPageProps) {
                                                 <h3 className="text-lg font-bold text-slate-900 dark:text-white">
                                                     {member.name}
                                                 </h3>
-                                                <p className="text-xs font-semibold text-indigo-600 dark:text-cyan-400 mt-0.5">
+                                                <p className="text-xs font-semibold text-cyan-600 dark:text-cyan-400 mt-0.5">
                                                     {member.role}
                                                 </p>
                                             </div>
                                         </div>
 
                                         {/* Social Links on Front Side */}
-                                        <div className="px-4 py-2.5 border-t border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-950/30 rounded-2xl flex items-center justify-center space-x-3">
+                                        <div className="px-4 py-2.5 border-t border-slate-100 dark:border-cyan-500/10 bg-slate-50/50 dark:bg-[#01121e]/80 rounded-2xl flex items-center justify-center space-x-3">
                                             {member.social_linkedin && (
                                                 <a
                                                     href={member.social_linkedin}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="text-slate-400 hover:text-indigo-600 dark:hover:text-cyan-400 transition-colors"
+                                                    className="text-slate-400 hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors"
                                                     onClick={(e) => e.stopPropagation()}
                                                 >
                                                     <Linkedin className="h-4 w-4" />
@@ -186,7 +186,7 @@ export default function About({ teamMembers }: AboutPageProps) {
                                                     href={member.social_github}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="text-slate-400 hover:text-indigo-600 dark:hover:text-cyan-400 transition-colors"
+                                                    className="text-slate-400 hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors"
                                                     onClick={(e) => e.stopPropagation()}
                                                 >
                                                     <Github className="h-4 w-4" />
@@ -197,7 +197,7 @@ export default function About({ teamMembers }: AboutPageProps) {
                                                     href={member.social_twitter}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="text-slate-400 hover:text-indigo-600 dark:hover:text-cyan-400 transition-colors"
+                                                    className="text-slate-400 hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors"
                                                     onClick={(e) => e.stopPropagation()}
                                                 >
                                                     <Twitter className="h-4 w-4" />
@@ -206,18 +206,18 @@ export default function About({ teamMembers }: AboutPageProps) {
                                         </div>
                                     </div>
 
-                                    {/* BACK SIDE OF THE BUSINESS CARD (Purple Background, Teammate Details & Social Links) */}
-                                    <div className="absolute inset-0 h-full w-full rounded-3xl bg-gradient-to-br from-purple-600 via-indigo-700 to-violet-900 dark:from-purple-950 dark:via-indigo-950 dark:to-slate-950 text-white p-6 flex flex-col justify-between [transform:rotateY(180deg)] [backface-visibility:hidden] border border-purple-400/40 dark:border-purple-500/30 shadow-xl overflow-hidden">
+                                    {/* BACK SIDE OF THE BUSINESS CARD */}
+                                    <div className="absolute inset-0 h-full w-full rounded-3xl bg-gradient-to-br from-[#01121e] via-[#010e16] to-[#010a10] text-white p-6 flex flex-col justify-between [transform:rotateY(180deg)] [backface-visibility:hidden] border border-cyan-500/30 shadow-xl overflow-hidden">
                                         {/* Ambient glow backgrounds */}
-                                        <div className="absolute -top-12 -right-12 w-32 h-32 bg-purple-400/20 rounded-full blur-xl pointer-events-none" />
-                                        <div className="absolute -bottom-12 -left-12 w-32 h-32 bg-indigo-400/20 rounded-full blur-xl pointer-events-none" />
+                                        <div className="absolute -top-12 -right-12 w-32 h-32 bg-cyan-400/15 rounded-full blur-xl pointer-events-none" />
+                                        <div className="absolute -bottom-12 -left-12 w-32 h-32 bg-blue-500/15 rounded-full blur-xl pointer-events-none" />
 
                                         <div className="relative z-10 space-y-3">
-                                            <div className="flex items-center justify-between border-b border-white/15 pb-3">
-                                                <span className="text-[10px] font-black uppercase tracking-widest text-purple-200">
+                                            <div className="flex items-center justify-between border-b border-cyan-500/15 pb-3">
+                                                <span className="text-[10px] font-black uppercase tracking-widest text-cyan-300">
                                                     Executive Profile
                                                 </span>
-                                                <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-white/10 text-cyan-300 border border-white/10">
+                                                <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-cyan-500/10 text-cyan-300 border border-cyan-500/20">
                                                     CodeVenture
                                                 </span>
                                             </div>
@@ -226,27 +226,27 @@ export default function About({ teamMembers }: AboutPageProps) {
                                                 <h3 className="text-xl font-black text-white tracking-tight">
                                                     {member.name}
                                                 </h3>
-                                                <p className="text-xs font-bold text-purple-200 mt-0.5">
+                                                <p className="text-xs font-bold text-cyan-400 mt-0.5">
                                                     {member.role}
                                                 </p>
                                             </div>
 
                                             <div className="pt-1">
-                                                <p className="text-xs text-purple-100/90 leading-relaxed line-clamp-5 font-normal">
+                                                <p className="text-xs text-slate-300 leading-relaxed line-clamp-5 font-normal">
                                                     {member.bio || 'Senior software engineer dedicated to building scalable backend systems, robust database architectures, and intuitive web interfaces.'}
                                                 </p>
                                             </div>
                                         </div>
 
                                         {/* Social Links & ID Badge on Back Side */}
-                                        <div className="relative z-10 pt-3 border-t border-white/15 flex items-center justify-between">
+                                        <div className="relative z-10 pt-3 border-t border-cyan-500/15 flex items-center justify-between">
                                             <div className="flex items-center space-x-2">
                                                 {member.social_linkedin && (
                                                     <a
                                                         href={member.social_linkedin}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
-                                                        className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-purple-200 hover:text-white transition-colors"
+                                                        className="p-1.5 rounded-lg bg-white/10 hover:bg-cyan-500/20 text-cyan-300 hover:text-white transition-colors"
                                                         onClick={(e) => e.stopPropagation()}
                                                         aria-label={`${member.name} LinkedIn`}
                                                     >
@@ -258,7 +258,7 @@ export default function About({ teamMembers }: AboutPageProps) {
                                                         href={member.social_github}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
-                                                        className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-purple-200 hover:text-white transition-colors"
+                                                        className="p-1.5 rounded-lg bg-white/10 hover:bg-cyan-500/20 text-cyan-300 hover:text-white transition-colors"
                                                         onClick={(e) => e.stopPropagation()}
                                                         aria-label={`${member.name} GitHub`}
                                                     >
@@ -270,7 +270,7 @@ export default function About({ teamMembers }: AboutPageProps) {
                                                         href={member.social_twitter}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
-                                                        className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-purple-200 hover:text-white transition-colors"
+                                                        className="p-1.5 rounded-lg bg-white/10 hover:bg-cyan-500/20 text-cyan-300 hover:text-white transition-colors"
                                                         onClick={(e) => e.stopPropagation()}
                                                         aria-label={`${member.name} Twitter`}
                                                     >
@@ -292,7 +292,11 @@ export default function About({ teamMembers }: AboutPageProps) {
             <section className="py-20">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center max-w-2xl mx-auto mb-16" data-aos="fade-up">
-                        <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-slate-900 dark:text-white">
+                        <div className="cv-badge mb-3.5">
+                            <Zap className="h-3.5 w-3.5 text-cyan-400" />
+                            <span>Agency Evolution</span>
+                        </div>
+                        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-slate-900 dark:text-white">
                             Our Journey & Milestones
                         </h2>
                     </div>
@@ -303,9 +307,9 @@ export default function About({ teamMembers }: AboutPageProps) {
                                 key={idx}
                                 data-aos="zoom-in-up"
                                 data-aos-delay={`${idx * 100}`}
-                                className="relative p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-2"
+                                className="cv-card relative p-6 rounded-3xl space-y-2"
                             >
-                                <span className="text-2xl font-black text-indigo-600 dark:text-cyan-400">{item.year}</span>
+                                <span className="text-2xl font-black text-cyan-600 dark:text-cyan-400">{item.year}</span>
                                 <h4 className="text-base font-bold text-slate-900 dark:text-white">{item.title}</h4>
                                 <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">{item.desc}</p>
                             </div>
@@ -315,15 +319,15 @@ export default function About({ teamMembers }: AboutPageProps) {
             </section>
 
             {/* AGENCY LOCATION & MAP */}
-            <section className="py-20 bg-slate-900 text-white relative">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <section className="py-20 bg-[#010e16] text-white relative border-t border-cyan-500/10">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
                         <div className="lg:col-span-5 space-y-6">
-                            <div className="inline-flex items-center space-x-2 px-3 py-1.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 text-xs font-bold">
+                            <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 text-xs font-bold">
                                 <MapPin className="h-4 w-4" />
                                 <span>Global Headquarters</span>
                             </div>
-                            <h2 className="text-3xl sm:text-4xl font-black tracking-tight">
+                            <h2 className="text-3xl sm:text-4xl font-black tracking-tight leading-tight">
                                 Where We Are Located
                             </h2>
                             <p className="text-sm text-slate-300 leading-relaxed">
@@ -336,16 +340,16 @@ export default function About({ teamMembers }: AboutPageProps) {
                             <div className="pt-2">
                                 <Link
                                     href="/contact"
-                                    className="inline-flex items-center space-x-2 px-6 py-3 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs"
+                                    className="cv-btn-primary"
                                 >
-                                    <span>Plan a Visit or Video Call</span>
+                                    <span>Plan a Visit or Discovery Call</span>
                                     <ArrowRight className="h-4 w-4" />
                                 </Link>
                             </div>
                         </div>
 
                         <div className="lg:col-span-7">
-                            <div className="rounded-3xl overflow-hidden border border-slate-800 shadow-2xl h-80 bg-slate-950">
+                            <div className="rounded-3xl overflow-hidden border border-cyan-500/20 shadow-2xl h-80 bg-[#01121e]">
                                 {mapEmbedUrl ? (
                                     <iframe
                                         src={mapEmbedUrl}

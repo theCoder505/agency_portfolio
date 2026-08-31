@@ -23,21 +23,27 @@ export const SurfaceFooter: React.FC = () => {
     const whatsappUrl = cleanWhatsapp ? `https://wa.me/${cleanWhatsapp}?text=${encodeURIComponent(whatsappPrompt)}` : '';
 
     return (
-        <footer className="relative bg-slate-950 text-slate-400 pt-16 pb-6 border-t border-slate-800/80 overflow-hidden">
+        <footer className="relative bg-[#010a10] text-slate-400 pt-16 pb-8 border-t border-slate-200/60 dark:border-cyan-500/15 overflow-hidden">
             {/* Background Glows */}
-            <div className="absolute top-0 left-1/4 w-96 h-96 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none"></div>
-            <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-cyan-600/10 rounded-full blur-3xl pointer-events-none"></div>
+            <div className="absolute top-0 left-1/4 w-96 h-96 bg-cyan-600/5 dark:bg-cyan-600/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-blue-600/5 dark:bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
 
             <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 pb-12 border-b border-slate-800/80">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 pb-12 border-b border-slate-200/60 dark:border-cyan-500/10">
                     {/* Col 1 & 2: Brand Info */}
                     <div className="lg:col-span-2 space-y-4">
                         <Link href="/" className="inline-flex items-center space-x-2.5">
-                            <img
-                                src={logoUrl}
-                                alt={brandName}
-                                className="h-9 w-auto object-contain transition-transform group-hover:scale-105"
-                            />
+                            {logoUrl ? (
+                                <img
+                                    src={logoUrl}
+                                    alt={brandName}
+                                    className="h-9 w-auto object-contain transition-transform group-hover:scale-105"
+                                />
+                            ) : (
+                                <span className="text-xl font-black tracking-tight text-slate-900 dark:text-white">
+                                    {brandName}
+                                </span>
+                            )}
                         </Link>
                         <p className="text-sm leading-relaxed text-slate-400 max-w-sm">
                             {footerText}
@@ -48,7 +54,7 @@ export const SurfaceFooter: React.FC = () => {
                             href={trustpilotUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center space-x-3 p-3 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-emerald-500/50 transition-all group"
+                            className="inline-flex items-center space-x-3 p-3 rounded-2xl cv-card hover:border-emerald-500/50 transition-all group"
                         >
                             <div className="flex items-center space-x-1 text-emerald-400">
                                 <Star className="h-4 w-4 fill-current" />

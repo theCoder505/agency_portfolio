@@ -249,47 +249,45 @@ export default function SaasProductsPage({
             description="Explore ready-to-deploy enterprise SaaS products engineered by CodeVenture Tech with sub-second performance, tiered packages, and bKash/Nagad instant verification."
         >
             {/* HERO BANNER */}
-            <section className="relative pt-16 pb-20 overflow-hidden bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-white">
-                {/* Ambient Glows */}
-                <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[750px] h-[360px] bg-indigo-600/15 blur-[120px] rounded-full pointer-events-none" />
-                <div className="absolute top-10 right-10 w-[300px] h-[300px] bg-cyan-500/10 blur-[100px] rounded-full pointer-events-none" />
-
+            <section className="relative pt-16 pb-20 overflow-hidden border-b border-slate-200/60 dark:border-cyan-500/10">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center space-y-6">
-                    <div className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-cyan-400 text-xs font-bold" data-aos="fade-down">
-                        <Sparkles className="h-3.5 w-3.5" />
+                    <div className="cv-badge" data-aos="fade-down">
+                        <Sparkles className="h-3.5 w-3.5 text-cyan-400" />
                         <span>Turnkey SaaS Engineering & Managed Cloud Subscriptions</span>
                     </div>
 
-                    <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white leading-tight max-w-4xl mx-auto" data-aos="fade-up">
+                    <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-slate-900 dark:text-white leading-tight max-w-4xl mx-auto" data-aos="fade-up">
                         High-Performance SaaS Products Built for Growth
                     </h1>
 
-                    <p className="text-base sm:text-lg text-slate-300 max-w-2xl mx-auto leading-relaxed" data-aos="fade-up" data-aos-delay="100">
+                    <p className="text-base sm:text-lg text-slate-600 dark:text-slate-300 max-w-2xl mx-auto leading-relaxed" data-aos="fade-up" data-aos-delay="100">
                         Choose your enterprise software platform. Click any product to explore full architectural details, screenshots, and package information across <strong>Basic</strong>, <strong>Standard</strong>, and <strong>Premium</strong> tiers.
                     </p>
 
-                    {/* BILLING CYCLE SELECTOR TOGGLE (en-US format) */}
+                    {/* BILLING CYCLE SELECTOR TOGGLE */}
                     <div className="pt-6 flex justify-center" data-aos="fade-up" data-aos-delay="150">
-                        <div className="inline-flex p-1.5 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-2xl backdrop-blur-md">
+                        <div className="inline-flex p-1.5 rounded-2xl cv-card shadow-2xl backdrop-blur-md">
                             <button
+                                type="button"
                                 onClick={() => setBillingCycle('monthly')}
                                 className={`px-6 py-2.5 rounded-xl text-xs font-bold transition-all ${billingCycle === 'monthly'
-                                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30'
-                                    : 'text-slate-400 hover:text-white'
+                                    ? 'bg-cyan-500 text-slate-950 shadow-lg shadow-cyan-500/30'
+                                    : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
                                     }`}
                             >
                                 Monthly Billing
                             </button>
 
                             <button
+                                type="button"
                                 onClick={() => setBillingCycle('yearly')}
                                 className={`flex items-center space-x-2 px-6 py-2.5 rounded-xl text-xs font-bold transition-all ${billingCycle === 'yearly'
-                                    ? 'bg-gradient-to-r from-indigo-600 to-cyan-500 text-white shadow-lg shadow-cyan-500/20'
-                                    : 'text-slate-400 hover:text-white'
+                                    ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 font-black shadow-lg shadow-cyan-500/20'
+                                    : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
                                     }`}
                             >
                                 <span>Annual Billing</span>
-                                <span className="px-2 py-0.5 rounded-md bg-cyan-400 text-slate-950 text-[10px] font-black uppercase tracking-wider">
+                                <span className="px-2 py-0.5 rounded-md bg-[#010a10] text-cyan-400 text-[10px] font-black uppercase tracking-wider">
                                     Save ~20%
                                 </span>
                             </button>
@@ -299,10 +297,10 @@ export default function SaasProductsPage({
             </section>
 
             {/* PRODUCT CATALOG SECTION - 3 ITEMS PER ROW ON LG SCREEN */}
-            <section className="py-20 bg-slate-50/70 dark:bg-slate-950/70 relative">
+            <section className="py-20 relative">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     {products.length === 0 ? (
-                        <div className="text-center py-20 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-12">
+                        <div className="text-center py-20 cv-card rounded-3xl p-12">
                             <Layers className="h-12 w-12 text-slate-400 mx-auto mb-4" />
                             <h3 className="text-xl font-bold text-slate-800 dark:text-slate-200">No SaaS products published yet</h3>
                             <p className="text-sm text-slate-500 mt-2">Check back soon or contact our team for custom product inquiries.</p>
@@ -313,26 +311,14 @@ export default function SaasProductsPage({
                             {products.map((product, idx) => {
                                 const IconComp = getProductIcon(product.icon);
                                 const priceInfo = getStartingPrice(product);
-                                const isFeatured = product.is_featured;
 
                                 return (
                                     <div
                                         key={product.id}
                                         data-aos="fade-up"
                                         data-aos-delay={`${(idx % 3) * 100}`}
-                                        className="group relative flex flex-col justify-between rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-sm hover:shadow-[0_20px_50px_-10px_rgba(217,70,239,0.35)] hover:border-pink-500/60 dark:hover:border-pink-500/60 transition-all duration-500 overflow-hidden hover:-translate-y-1.5"
+                                        className="cv-card group relative flex flex-col justify-between rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500"
                                     >
-                                        {/* Prominent Dark Purple-Pink Glassy Gradient Layer on Hover (for both themes) */}
-                                        <div className="absolute inset-0 bg-gradient-to-br from-purple-950/90 via-slate-950/95 to-slate-950 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none backdrop-blur-2xl" />
-
-                                        {/* Ambient Purple & Pink Glowing Glass Orbs */}
-                                        <div className="absolute -top-16 -right-16 w-60 h-60 bg-gradient-to-br from-fuchsia-500/25 to-pink-500/30 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
-                                        <div className="absolute -bottom-16 -left-16 w-60 h-60 bg-gradient-to-tr from-purple-600/30 to-fuchsia-500/25 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
-
-                                        {/* Glossy Top Glass Light Sheen */}
-                                        <div className="absolute top-0 inset-x-0 h-36 bg-gradient-to-b from-white/10 to-transparent pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                                        <div className="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-fuchsia-400 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 shadow-[0_0_12px_rgba(232,121,249,0.8)]" />
-
                                         {/* TOP PRODUCT IMAGE SLIDER WITH GENTLE SCALE */}
                                         <ProductCardImageSlider product={product} icon={IconComp} />
 
@@ -342,9 +328,9 @@ export default function SaasProductsPage({
                                                 {/* Title */}
                                                 <Link
                                                     href={`/saas-products/${product.slug}`}
-                                                    className="block group-hover:bg-gradient-to-r group-hover:from-purple-300 group-hover:via-fuchsia-300 group-hover:to-pink-300 group-hover:bg-clip-text group-hover:text-transparent transition-all duration-300"
+                                                    className="block group-hover:text-cyan-400 transition-all duration-300"
                                                 >
-                                                    <h3 className="text-xl font-black tracking-tight text-slate-900 dark:text-white leading-snug group-hover:text-white">
+                                                    <h3 className="text-xl font-black tracking-tight text-slate-900 dark:text-white leading-snug">
                                                         {product.name}
                                                     </h3>
                                                 </Link>
@@ -358,44 +344,44 @@ export default function SaasProductsPage({
 
                                                 {/* Package Tier Badges: Basic, Standard, Premium */}
                                                 <div className="pt-1 flex flex-wrap items-center gap-1.5">
-                                                    <span className="text-[10px] font-bold text-slate-400 group-hover:text-pink-400 uppercase tracking-wider mr-1 transition-colors">
+                                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mr-1">
                                                         Tiers:
                                                     </span>
-                                                    <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 group-hover:bg-slate-800/90 group-hover:text-slate-200 group-hover:border-slate-700 text-[10px] font-bold border border-slate-200/60 dark:border-slate-700 transition-all duration-300">
+                                                    <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[10px] font-bold border border-slate-200/60 dark:border-slate-700 transition-all duration-300">
                                                         Basic
                                                     </span>
-                                                    <span className="px-2 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-300 group-hover:bg-purple-950/90 group-hover:text-purple-300 group-hover:border-purple-600/60 group-hover:shadow-[0_0_10px_rgba(168,85,247,0.25)] text-[10px] font-black border border-indigo-200/60 dark:border-indigo-800 transition-all duration-300">
+                                                    <span className="px-2 py-0.5 rounded-md bg-cyan-50 dark:bg-cyan-950/60 text-cyan-700 dark:text-cyan-300 text-[10px] font-black border border-cyan-200/60 dark:border-cyan-800 transition-all duration-300">
                                                         Standard
                                                     </span>
-                                                    <span className="px-2 py-0.5 rounded-md bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-300 group-hover:bg-pink-950/90 group-hover:text-pink-300 group-hover:border-pink-600/60 group-hover:shadow-[0_0_10px_rgba(236,72,153,0.25)] text-[10px] font-bold border border-purple-200/60 dark:border-purple-800 transition-all duration-300">
+                                                    <span className="px-2 py-0.5 rounded-md bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 text-[10px] font-bold border border-blue-200/60 dark:border-blue-800 transition-all duration-300">
                                                         Premium
                                                     </span>
                                                 </div>
 
                                                 {/* Starting Price Banner */}
-                                                <div className="dark:border-slate-800 p-3 -mx-3 rounded-2xl group-hover:bg-slate-900/70 group-hover:border group-hover:border-purple-500/30 group-hover:shadow-[inset_0_0_15px_rgba(217,70,239,0.08)] transition-all duration-300">
-                                                    <div className="text-[10px] uppercase font-bold text-slate-400 group-hover:text-pink-400 tracking-wider transition-colors">
+                                                <div className="p-3 -mx-3 rounded-2xl bg-slate-50/70 dark:bg-[#01121e]/80 border border-slate-200/60 dark:border-cyan-500/15 transition-all duration-300">
+                                                    <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
                                                         Starting from
                                                     </div>
                                                     <div className="flex items-baseline space-x-1.5 mt-0.5">
-                                                        <span className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 dark:text-white group-hover:text-white transition-colors">
+                                                        <span className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 dark:text-white transition-colors">
                                                             {formatCurrency(priceInfo.amount, product.currency || currency, 0)}
                                                         </span>
-                                                        <span className="text-xs font-bold text-slate-500 group-hover:text-slate-300 transition-colors">
+                                                        <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
                                                             {priceInfo.periodLabel}
                                                         </span>
                                                     </div>
-                                                    <div className="text-[11px] text-indigo-600 dark:text-cyan-400 group-hover:text-pink-400 font-medium group-hover:font-semibold mt-0.5 transition-colors">
+                                                    <div className="text-[11px] text-cyan-600 dark:text-cyan-400 font-bold mt-0.5">
                                                         {priceInfo.subtext}
                                                     </div>
                                                 </div>
                                             </div>
 
                                             {/* ACTION CTA BUTTONS */}
-                                            <div className="pt-4 border-t border-slate-100 dark:border-slate-800 group-hover:border-slate-800 space-y-2 transition-colors">
+                                            <div className="pt-4 border-t border-slate-100 dark:border-cyan-500/10 space-y-2">
                                                 <Link
                                                     href={`/saas-products/${product.slug}`}
-                                                    className="w-full py-3.5 px-4 rounded-2xl bg-indigo-600 group-hover:bg-gradient-to-r group-hover:from-purple-600 group-hover:via-fuchsia-600 group-hover:to-pink-600 hover:brightness-110 text-white font-bold text-xs flex items-center justify-center space-x-2 transition-all duration-300 shadow-md shadow-indigo-500/20 group-hover:shadow-lg group-hover:shadow-pink-500/30 group/btn"
+                                                    className="w-full cv-btn-primary justify-center text-xs py-3.5 shadow-md group/btn"
                                                 >
                                                     <span>View Product & Packages</span>
                                                     <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover/btn:translate-x-1" />
@@ -403,7 +389,7 @@ export default function SaasProductsPage({
 
                                                 <Link
                                                     href={`/checkout/${product.slug}?tier=standard&billing_cycle=${billingCycle}`}
-                                                    className="w-full py-2 px-3 rounded-xl text-center text-slate-500 hover:text-indigo-600 dark:hover:text-cyan-400 group-hover:text-pink-400 dark:group-hover:text-pink-400 text-[11px] font-semibold block transition-colors"
+                                                    className="w-full py-2 px-3 rounded-xl text-center text-slate-500 hover:text-cyan-600 dark:hover:text-cyan-400 text-[11px] font-semibold block transition-colors"
                                                 >
                                                     Direct Checkout (Standard Plan) →
                                                 </Link>
@@ -418,10 +404,10 @@ export default function SaasProductsPage({
             </section>
 
             {/* PAYMENT TRUST & METHOD HIGHLIGHTS */}
-            <section className="py-16 bg-white dark:bg-slate-900">
+            <section className="py-16 border-y border-slate-200/60 dark:border-cyan-500/10 bg-slate-50/50 dark:bg-[#010e16]/60">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        <div className="flex items-start space-x-4 p-6 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/60 dark:border-slate-800">
+                        <div className="cv-card flex items-start space-x-4 p-6 rounded-2xl">
                             <div className="h-10 w-10 rounded-xl bg-pink-500/10 text-pink-500 flex items-center justify-center shrink-0">
                                 <Zap className="h-5 w-5" />
                             </div>
@@ -433,8 +419,8 @@ export default function SaasProductsPage({
                             </div>
                         </div>
 
-                        <div className="flex items-start space-x-4 p-6 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/60 dark:border-slate-800">
-                            <div className="h-10 w-10 rounded-xl bg-indigo-500/10 text-indigo-500 flex items-center justify-center shrink-0">
+                        <div className="cv-card flex items-start space-x-4 p-6 rounded-2xl">
+                            <div className="h-10 w-10 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center shrink-0">
                                 <Globe className="h-5 w-5" />
                             </div>
                             <div>
@@ -445,8 +431,8 @@ export default function SaasProductsPage({
                             </div>
                         </div>
 
-                        <div className="flex items-start space-x-4 p-6 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/60 dark:border-slate-800">
-                            <div className="h-10 w-10 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0">
+                        <div className="cv-card flex items-start space-x-4 p-6 rounded-2xl">
+                            <div className="h-10 w-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center shrink-0">
                                 <Headphones className="h-5 w-5" />
                             </div>
                             <div>
@@ -462,17 +448,17 @@ export default function SaasProductsPage({
 
             {/* FREQUENTLY ASKED QUESTIONS */}
             {faqs.length > 0 && (
-                <section id="faq" className="py-24 bg-slate-50/50 dark:bg-slate-950/30">
-                    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                <section id="faq" className="py-24 relative overflow-hidden">
+                    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                         <div className="text-center max-w-2xl mx-auto mb-16" data-aos="fade-up">
-                            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-cyan-400 text-xs font-bold mb-3">
-                                <HelpCircle className="h-3.5 w-3.5" />
+                            <div className="cv-badge mb-3.5">
+                                <HelpCircle className="h-3.5 w-3.5 text-cyan-400" />
                                 <span>Transparent Answers</span>
                             </div>
-                            <h2 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white">
+                            <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-slate-900 dark:text-white">
                                 Frequently Asked Questions
                             </h2>
-                            <p className="mt-3 text-sm text-slate-600 dark:text-slate-400">
+                            <p className="mt-3.5 text-sm text-slate-600 dark:text-slate-400">
                                 Common questions about our SaaS packages, custom domains, bKash & Nagad billing, and cloud deployment.
                             </p>
                         </div>
@@ -485,9 +471,9 @@ export default function SaasProductsPage({
                                         key={idx}
                                         data-aos="fade-up"
                                         data-aos-delay={`${(idx % 5) * 60}`}
-                                        className={`rounded-2xl transition-all duration-200 overflow-hidden border ${isOpen
-                                            ? 'bg-white dark:bg-slate-900 border-indigo-500/50 shadow-lg shadow-indigo-500/5'
-                                            : 'bg-white/70 dark:bg-slate-900/60 border-slate-200/80 dark:border-slate-800/80 hover:border-slate-300 dark:hover:border-slate-700'
+                                        className={`cv-card rounded-2xl transition-all duration-300 overflow-hidden ${isOpen
+                                            ? 'border-cyan-500/50 shadow-lg'
+                                            : ''
                                             }`}
                                     >
                                         <button
@@ -498,13 +484,13 @@ export default function SaasProductsPage({
                                             <span className="font-bold text-sm sm:text-base text-slate-900 dark:text-white">
                                                 {faq.q}
                                             </span>
-                                            <div className={`p-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 transition-transform duration-200 flex-shrink-0 ${isOpen ? 'rotate-180 bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-cyan-400' : ''}`}>
+                                            <div className={`p-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 transition-transform duration-300 flex-shrink-0 ${isOpen ? 'rotate-180 bg-cyan-50 dark:bg-cyan-950/60 text-cyan-600 dark:text-cyan-400' : ''}`}>
                                                 <ChevronDown className="h-4 w-4" />
                                             </div>
                                         </button>
 
                                         {isOpen && (
-                                            <div className="px-6 pb-6 pt-1 text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed border-t border-slate-100 dark:border-slate-800/60 animate-in fade-in">
+                                            <div className="px-6 pb-6 pt-1 text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed border-t border-slate-100 dark:border-cyan-500/10 animate-in fade-in">
                                                 {faq.a}
                                             </div>
                                         )}

@@ -509,18 +509,15 @@ export default function SaasProductShowPage({
             description={product.tagline || product.description || `Explore ${product.name} features and package pricing across Basic, Standard, and Premium tiers.`}
         >
             {/* HERO SECTION */}
-            <section className="relative pt-12 pb-16 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-white overflow-hidden">
-                {/* Ambient Glows */}
-                <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[700px] h-[300px] bg-indigo-600/15 blur-[120px] rounded-full pointer-events-none" />
-
+            <section className="relative pt-12 pb-16 overflow-hidden border-b border-slate-200/60 dark:border-cyan-500/10">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-6">
                     {/* Breadcrumbs */}
-                    <div className="flex items-center space-x-2 text-xs text-slate-400">
-                        <Link href="/" className="hover:text-white transition-colors">Home</Link>
+                    <div className="flex items-center space-x-2 text-xs text-slate-500 dark:text-slate-400">
+                        <Link href="/" className="hover:text-slate-900 dark:hover:text-white transition-colors">Home</Link>
                         <span>/</span>
-                        <Link href="/saas-products" className="hover:text-white transition-colors">SaaS Products</Link>
+                        <Link href="/saas-products" className="hover:text-slate-900 dark:hover:text-white transition-colors">SaaS Products</Link>
                         <span>/</span>
-                        <span className="text-indigo-400 font-bold truncate max-w-xs">{product.name}</span>
+                        <span className="text-cyan-600 dark:text-cyan-400 font-bold truncate max-w-xs">{product.name}</span>
                     </div>
 
                     <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8 pt-2">
@@ -528,25 +525,25 @@ export default function SaasProductShowPage({
                             {/* Badges */}
                             <div className="flex flex-wrap items-center gap-2">
                                 {product.badge && (
-                                    <span className="px-3 py-1 rounded-full bg-indigo-500/20 border border-indigo-500/40 text-cyan-300 font-bold text-xs flex items-center space-x-1.5">
-                                        <Sparkles className="h-3.5 w-3.5" />
+                                    <div className="cv-badge">
+                                        <Sparkles className="h-3.5 w-3.5 text-cyan-400" />
                                         <span>{product.badge}</span>
-                                    </span>
+                                    </div>
                                 )}
-                                <span className="px-3 py-1 rounded-full bg-slate-800 text-slate-300 text-xs font-semibold">
+                                <span className="px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 text-xs font-semibold border border-slate-200/60 dark:border-slate-700">
                                     Turnkey Cloud Platform
                                 </span>
-                                <span className="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-bold">
+                                <span className="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-xs font-bold">
                                     Instant bKash/Nagad Activation
                                 </span>
                             </div>
 
-                            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-white leading-tight">
+                            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-slate-900 dark:text-white leading-tight">
                                 {product.name}
                             </h1>
 
                             {product.tagline && (
-                                <p className="text-base sm:text-lg text-slate-300 leading-relaxed max-w-2xl">
+                                <p className="text-base sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed max-w-2xl">
                                     {product.tagline}
                                 </p>
                             )}
@@ -556,7 +553,7 @@ export default function SaasProductShowPage({
                         <div className="flex sm:flex-row lg:flex-col gap-3 shrink-0">
                             <a
                                 href="#package-plans"
-                                className="px-7 py-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs flex items-center justify-center space-x-2 transition-all shadow-xl shadow-indigo-500/25 hover:scale-105"
+                                className="cv-btn-primary justify-center text-xs py-3.5 px-7"
                             >
                                 <span>View Pricing Packages</span>
                                 <ArrowRight className="h-4 w-4" />
@@ -564,7 +561,7 @@ export default function SaasProductShowPage({
 
                             <Link
                                 href="/saas-products"
-                                className="px-5 py-3.5 rounded-2xl border border-slate-800 hover:bg-slate-800/80 text-slate-300 font-bold text-xs flex items-center justify-center space-x-2 transition-colors"
+                                className="cv-btn-secondary justify-center text-xs py-3.5 px-5"
                             >
                                 <ArrowLeft className="h-4 w-4" />
                                 <span>All Products</span>
@@ -574,7 +571,7 @@ export default function SaasProductShowPage({
                 </div>
             </section>
 
-            <section className="py-16 bg-white dark:bg-slate-900">
+            <section className="py-16 relative">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
                         <div className="lg:col-span-8">
@@ -582,15 +579,15 @@ export default function SaasProductShowPage({
                         </div>
 
                         <div className="lg:col-span-4 space-y-6">
-                            <div className="p-7 rounded-3xl bg-slate-50 dark:bg-slate-950/80 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-6">
+                            <div className="cv-card p-7 rounded-3xl space-y-6">
                                 <div>
-                                    <span className="text-[10px] font-bold text-indigo-600 dark:text-cyan-400 uppercase tracking-wider">Infrastructure</span>
+                                    <span className="text-[10px] font-bold text-cyan-600 dark:text-cyan-400 uppercase tracking-wider">Infrastructure</span>
                                     <h3 className="text-lg font-black text-slate-900 dark:text-white">Enterprise Architecture</h3>
                                 </div>
 
                                 <div className="space-y-4">
                                     <div className="flex items-start space-x-3">
-                                        <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-cyan-400 shrink-0">
+                                        <div className="p-2 rounded-xl bg-cyan-500/10 text-cyan-500 dark:text-cyan-400 shrink-0">
                                             <Shield className="h-4 w-4" />
                                         </div>
                                         <div>
@@ -610,7 +607,7 @@ export default function SaasProductShowPage({
                                     </div>
 
                                     <div className="flex items-start space-x-3">
-                                        <div className="p-2 rounded-xl bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 shrink-0">
+                                        <div className="p-2 rounded-xl bg-blue-500/10 text-blue-500 dark:text-blue-400 shrink-0">
                                             <Lock className="h-4 w-4" />
                                         </div>
                                         <div>
@@ -620,7 +617,7 @@ export default function SaasProductShowPage({
                                     </div>
 
                                     <div className="flex items-start space-x-3">
-                                        <div className="p-2 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 shrink-0">
+                                        <div className="p-2 rounded-xl bg-cyan-500/10 text-cyan-500 dark:text-cyan-400 shrink-0">
                                             <Zap className="h-4 w-4" />
                                         </div>
                                         <div>
@@ -636,43 +633,43 @@ export default function SaasProductShowPage({
             </section>
 
             {product.description && (
-                <section className="py-16 bg-slate-50/50 dark:bg-slate-950/40">
+                <section className="py-16 border-t border-slate-200/60 dark:border-cyan-500/10 bg-slate-50/50 dark:bg-[#010e16]/60">
                     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
                         <div className="space-y-1">
-                            <span className="text-xs font-bold text-indigo-600 uppercase tracking-wider">Overview</span>
+                            <span className="text-xs font-bold text-cyan-600 dark:text-cyan-400 uppercase tracking-wider">Overview</span>
                             <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">What is {product.name}?</h2>
                         </div>
-                        <div className="p-8 rounded-3xl bg-white dark:bg-slate-900 text-sm leading-relaxed whitespace-pre-line text-slate-700 dark:text-slate-300">
+                        <div className="cv-card p-8 rounded-3xl text-sm leading-relaxed whitespace-pre-line text-slate-700 dark:text-slate-300">
                             <p>{product.description}</p>
                         </div>
                     </div>
                 </section>
             )}
 
-            <section id="package-plans" className="py-24 bg-slate-50/80 dark:bg-slate-950 relative">
+            <section id="package-plans" className="py-24 relative border-t border-slate-200/60 dark:border-cyan-500/10">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
                     <div>
                         <div className="text-center max-w-2xl mx-auto mb-16">
-                            <div className="inline-flex items-center space-x-2 px-3 py-1.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-cyan-400 border border-indigo-500/20 text-xs font-bold mb-3">
-                                <Sparkles className="h-3.5 w-3.5" />
+                            <div className="cv-badge mb-3.5">
+                                <Sparkles className="h-3.5 w-3.5 text-cyan-400" />
                                 <span>Tiered Package Selection</span>
                             </div>
                             <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-slate-900 dark:text-white">
                                 Choose the Perfect Plan for {product.name}
                             </h2>
-                            <p className="mt-3 text-sm text-slate-600 dark:text-slate-400">
+                            <p className="mt-3.5 text-sm text-slate-600 dark:text-slate-400">
                                 Flexible packages tailored for your operational scale with instant cloud provisioning.
                             </p>
 
                             {/* Billing Cycle Switcher */}
                             <div className="mt-8 inline-flex items-center justify-center">
-                                <div className="inline-flex p-1.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-md">
+                                <div className="inline-flex p-1.5 rounded-2xl cv-card shadow-md">
                                     <button
                                         type="button"
                                         onClick={() => setBillingCycle('monthly')}
                                         className={`px-6 py-2.5 rounded-xl text-xs font-black transition-all ${
                                             billingCycle === 'monthly'
-                                                ? 'bg-indigo-600 text-white shadow-sm'
+                                                ? 'bg-cyan-500 text-slate-950 shadow-sm'
                                                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                                         }`}
                                     >
@@ -683,18 +680,18 @@ export default function SaasProductShowPage({
                                         onClick={() => setBillingCycle('yearly')}
                                         className={`px-6 py-2.5 rounded-xl text-xs font-black transition-all flex items-center space-x-1.5 ${
                                             billingCycle === 'yearly'
-                                                ? 'bg-indigo-600 text-white shadow-sm'
+                                                ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 font-black shadow-sm'
                                                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                                         }`}
                                     >
                                         <span>Annual Billing</span>
-                                        <span className="px-1.5 py-0.5 rounded-full bg-emerald-500 text-white text-[9px] font-bold">Save ~20%</span>
+                                        <span className="px-1.5 py-0.5 rounded-full bg-[#010a10] text-cyan-400 text-[9px] font-bold">Save ~20%</span>
                                     </button>
                                 </div>
                             </div>
                         </div>
 
-                        {/* 3 Package Cards with 3D Flip */}
+                        {/* 3 Package Cards */}
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
                             {(['basic', 'standard', 'premium'] as const).map((tierKey) => {
                                 const tier = packages[tierKey];
@@ -706,20 +703,16 @@ export default function SaasProductShowPage({
                                         className="group [perspective:1000px] min-h-[580px] w-full"
                                     >
                                         {/* 3D Flipping Container */}
-                                        <div className={`relative h-full w-full rounded-3xl transition-transform duration-700 [transform-style:preserve-3d] group-hover:[transform:rotateY(180deg)] shadow-md hover:shadow-2xl ${
-                                            tier.is_popular
-                                                ? 'shadow-indigo-500/10 hover:shadow-indigo-500/30'
-                                                : 'shadow-slate-200/50 dark:shadow-none hover:shadow-cyan-500/20'
-                                        }`}>
+                                        <div className={`relative h-full w-full rounded-3xl transition-transform duration-700 [transform-style:preserve-3d] group-hover:[transform:rotateY(180deg)] shadow-md hover:shadow-2xl`}>
 
                                             {/* FRONT SIDE OF CARD */}
-                                            <div className={`absolute inset-0 h-full w-full rounded-3xl p-7 sm:p-8 flex flex-col justify-between [backface-visibility:hidden] ${
+                                            <div className={`cv-card absolute inset-0 h-full w-full rounded-3xl p-7 sm:p-8 flex flex-col justify-between [backface-visibility:hidden] ${
                                                 tier.is_popular
-                                                    ? 'bg-gradient-to-b from-indigo-50/80 via-white to-indigo-50/30 dark:from-slate-900 dark:via-slate-950 dark:to-slate-900 text-slate-900 dark:text-white border-2 border-indigo-600 dark:border-indigo-400 shadow-xl shadow-indigo-100 dark:shadow-indigo-500/15'
-                                                    : 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white border border-slate-200/90 dark:border-slate-800 shadow-lg shadow-slate-100/80 dark:shadow-none hover:border-indigo-300 dark:hover:border-slate-700'
+                                                    ? 'border-2 border-cyan-500/70 dark:border-cyan-400 shadow-xl'
+                                                    : ''
                                             }`}>
                                                 {tier.is_popular && (
-                                                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-gradient-to-r from-indigo-600 via-indigo-700 to-cyan-500 text-white text-[10px] font-black uppercase tracking-wider shadow-md">
+                                                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-cyan-500 text-slate-950 text-[10px] font-black uppercase tracking-wider shadow-md">
                                                         {tier.badge || 'Most Popular'}
                                                     </div>
                                                 )}
@@ -728,7 +721,7 @@ export default function SaasProductShowPage({
                                                     <div className="flex items-center justify-between mb-2">
                                                         <h3 className="text-xl font-black text-slate-900 dark:text-white">{tier.name}</h3>
                                                         {!tier.is_popular && tier.badge && (
-                                                            <span className="px-2.5 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-cyan-400 border border-indigo-200/70 dark:border-indigo-800/60 font-bold text-[10px]">
+                                                            <span className="cv-badge text-[10px]">
                                                                 {tier.badge}
                                                             </span>
                                                         )}
@@ -738,33 +731,33 @@ export default function SaasProductShowPage({
                                                         {tier.tagline}
                                                     </p>
 
-                                                    <div className={`mb-6 pb-6 border-b ${tier.is_popular ? 'border-indigo-100 dark:border-slate-800' : 'border-slate-100 dark:border-slate-800/80'}`}>
+                                                    <div className="mb-6 pb-6 border-b border-slate-200/60 dark:border-cyan-500/10">
                                                         <div className="flex items-baseline space-x-1.5">
                                                             <span className="text-3xl sm:text-4xl font-black tracking-tight flex items-baseline text-slate-900 dark:text-white">
-                                                                <span className="text-2xl sm:text-3xl font-bold mr-1.5 text-indigo-600 dark:text-cyan-400">{currency}</span>
+                                                                <span className="text-2xl sm:text-3xl font-bold mr-1.5 text-cyan-600 dark:text-cyan-400">{currency}</span>
                                                                 <span>{pricing.amount.toLocaleString('en-US')}</span>
                                                             </span>
-                                                            <span className={`text-xs font-semibold ${tier.is_popular ? 'text-slate-500 dark:text-slate-400' : 'text-slate-500 dark:text-slate-400'}`}>
+                                                            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
                                                                 {pricing.period}
                                                             </span>
                                                         </div>
-                                                        <p className={`text-[11px] mt-1.5 ${tier.is_popular ? 'text-indigo-600 dark:text-cyan-400 font-bold' : 'text-indigo-600 dark:text-cyan-400 font-semibold'}`}>
+                                                        <p className="text-[11px] mt-1.5 text-cyan-600 dark:text-cyan-400 font-bold">
                                                             {pricing.subtext}
                                                         </p>
                                                     </div>
 
                                                     <div className="space-y-3 mb-6">
-                                                        <div className={`text-[11px] font-bold uppercase tracking-wider ${tier.is_popular ? 'text-slate-500 dark:text-slate-400' : 'text-slate-400 dark:text-slate-500'}`}>
+                                                        <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
                                                             Included Capabilities:
                                                         </div>
                                                         {tier.features.slice(0, 5).map((feat: string, fIdx: number) => (
                                                             <div key={fIdx} className="flex items-start space-x-2.5 text-xs">
                                                                 <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
-                                                                <span className={tier.is_popular ? 'text-slate-700 dark:text-slate-200' : 'text-slate-700 dark:text-slate-300'}>{feat}</span>
+                                                                <span className={tier.is_popular ? 'text-slate-800 dark:text-slate-200' : 'text-slate-700 dark:text-slate-300'}>{feat}</span>
                                                             </div>
                                                         ))}
                                                         {tier.features.length > 5 && (
-                                                            <div className={`text-[11px] font-semibold italic pl-6 ${tier.is_popular ? 'text-indigo-600 dark:text-cyan-300' : 'text-indigo-600 dark:text-cyan-400'}`}>
+                                                            <div className="text-[11px] font-semibold italic pl-6 text-cyan-600 dark:text-cyan-400">
                                                                 + {tier.features.length - 5} more enterprise features
                                                             </div>
                                                         )}
@@ -773,11 +766,7 @@ export default function SaasProductShowPage({
 
                                                 {/* Hint / Flip indicator on Front */}
                                                 <div className="pt-2">
-                                                    <div className={`w-full py-3 px-4 rounded-2xl font-bold text-xs flex items-center justify-center space-x-2 transition-all ${
-                                                        tier.is_popular
-                                                            ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-200 dark:shadow-none'
-                                                            : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200/80 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200 dark:border-slate-700'
-                                                    }`}>
+                                                    <div className="w-full py-3 px-4 rounded-2xl font-bold text-xs flex items-center justify-center space-x-2 bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200/80 dark:bg-[#01121e] dark:hover:bg-[#011a2b] dark:text-cyan-300 dark:border-cyan-500/20 transition-all">
                                                         <span>Hover to Flip & Order</span>
                                                         <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
                                                     </div>
@@ -785,61 +774,35 @@ export default function SaasProductShowPage({
                                             </div>
 
                                             {/* BACK SIDE OF CARD (3D Flipped 180deg) */}
-                                            <div className={`absolute inset-0 h-full w-full rounded-3xl p-7 sm:p-8 flex flex-col justify-between [transform:rotateY(180deg)] [backface-visibility:hidden] overflow-hidden ${
-                                                tier.is_popular
-                                                    ? 'bg-gradient-to-br from-indigo-600 via-indigo-700 to-indigo-900 dark:from-indigo-950 dark:via-slate-950 dark:to-indigo-900 text-white border-2 border-indigo-400 dark:border-cyan-400 shadow-2xl shadow-indigo-500/30 dark:shadow-indigo-500/40'
-                                                    : 'bg-gradient-to-br from-slate-50 via-white to-indigo-50/70 dark:from-slate-900 dark:via-slate-950 dark:to-indigo-950 text-slate-900 dark:text-white border-2 border-indigo-200 dark:border-indigo-500/40 shadow-xl shadow-slate-200/70 dark:shadow-2xl'
-                                            }`}>
+                                            <div className="absolute inset-0 h-full w-full rounded-3xl p-7 sm:p-8 flex flex-col justify-between [transform:rotateY(180deg)] [backface-visibility:hidden] overflow-hidden bg-gradient-to-br from-[#01121e] via-[#010e16] to-[#010a10] text-white border-2 border-cyan-500/40 shadow-2xl">
                                                 {/* Ambient Back Glow */}
-                                                <div className={`absolute top-0 right-0 w-36 h-36 rounded-full blur-2xl pointer-events-none ${
-                                                    tier.is_popular ? 'bg-cyan-400/20' : 'bg-indigo-500/10 dark:bg-cyan-400/10'
-                                                }`} />
+                                                <div className="absolute top-0 right-0 w-36 h-36 bg-cyan-400/15 rounded-full blur-2xl pointer-events-none" />
 
                                                 <div>
                                                     {/* Header on Back */}
-                                                    <div className={`flex items-center justify-between pb-3.5 border-b mb-4 ${
-                                                        tier.is_popular ? 'border-white/20' : 'border-slate-200 dark:border-white/10'
-                                                    }`}>
+                                                    <div className="flex items-center justify-between pb-3.5 border-b border-cyan-500/15 mb-4">
                                                         <div>
-                                                            <span className={`text-[10px] uppercase tracking-wider font-bold ${
-                                                                tier.is_popular ? 'text-cyan-300 dark:text-cyan-400' : 'text-indigo-600 dark:text-cyan-400'
-                                                            }`}>Package Spec</span>
-                                                            <h4 className={`text-lg font-black ${
-                                                                tier.is_popular ? 'text-white' : 'text-slate-900 dark:text-white'
-                                                            }`}>{tier.name}</h4>
+                                                            <span className="text-[10px] uppercase tracking-wider font-bold text-cyan-300">Package Spec</span>
+                                                            <h4 className="text-lg font-black text-white">{tier.name}</h4>
                                                         </div>
                                                         <div className="text-right">
-                                                            <div className={`text-base font-black flex items-baseline justify-end ${
-                                                                tier.is_popular ? 'text-white' : 'text-slate-900 dark:text-white'
-                                                            }`}>
-                                                                <span className={`text-sm font-bold mr-1 ${
-                                                                    tier.is_popular ? 'text-cyan-300 dark:text-cyan-400' : 'text-indigo-600 dark:text-cyan-400'
-                                                                }`}>{currency}</span>
+                                                            <div className="text-base font-black flex items-baseline justify-end text-white">
+                                                                <span className="text-sm font-bold mr-1 text-cyan-400">{currency}</span>
                                                                 <span>{pricing.amount.toLocaleString('en-US')}</span>
-                                                                <span className={`text-[10px] ml-1 ${
-                                                                    tier.is_popular ? 'text-indigo-200 dark:text-slate-400' : 'text-slate-500 dark:text-slate-400'
-                                                                }`}>{pricing.period}</span>
+                                                                <span className="text-[10px] ml-1 text-slate-400">{pricing.period}</span>
                                                             </div>
-                                                            <div className={`text-[10px] font-bold ${
-                                                                tier.is_popular ? 'text-emerald-300 dark:text-emerald-400' : 'text-emerald-600 dark:text-emerald-400'
-                                                            }`}>Instant Setup</div>
+                                                            <div className="text-[10px] font-bold text-emerald-400">Instant Setup</div>
                                                         </div>
                                                     </div>
 
                                                     {/* All Features on Back */}
                                                     <div className="space-y-2.5 mb-4 max-h-[280px] overflow-y-auto pr-1">
-                                                        <div className={`text-[11px] font-bold uppercase tracking-wider ${
-                                                            tier.is_popular ? 'text-indigo-200 dark:text-slate-400' : 'text-slate-500 dark:text-slate-400'
-                                                        }`}>
+                                                        <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
                                                             All Included Features:
                                                         </div>
                                                         {tier.features.map((feat: string, fIdx: number) => (
-                                                            <div key={fIdx} className={`flex items-start space-x-2.5 text-xs ${
-                                                                tier.is_popular ? 'text-indigo-50 dark:text-slate-200' : 'text-slate-700 dark:text-slate-200'
-                                                            }`}>
-                                                                <Check className={`h-3.5 w-3.5 shrink-0 mt-0.5 ${
-                                                                    tier.is_popular ? 'text-cyan-300 dark:text-cyan-400' : 'text-indigo-600 dark:text-cyan-400'
-                                                                }`} />
+                                                            <div key={fIdx} className="flex items-start space-x-2.5 text-xs text-slate-200">
+                                                                <Check className="h-3.5 w-3.5 shrink-0 mt-0.5 text-cyan-400" />
                                                                 <span>{feat}</span>
                                                             </div>
                                                         ))}
@@ -847,24 +810,16 @@ export default function SaasProductShowPage({
                                                 </div>
 
                                                 {/* Call to action on Back */}
-                                                <div className={`space-y-2 pt-3 border-t ${
-                                                    tier.is_popular ? 'border-white/20' : 'border-slate-200 dark:border-white/10'
-                                                }`}>
+                                                <div className="space-y-2 pt-3 border-t border-cyan-500/15">
                                                     <Link
                                                         href={`/contact?product=${encodeURIComponent(product.name)}&tier=${tierKey}&cycle=${billingCycle}`}
-                                                        className={`w-full py-3.5 px-4 rounded-2xl font-black text-xs flex items-center justify-center space-x-2 transition-all hover:scale-[1.02] ${
-                                                            tier.is_popular
-                                                                ? 'bg-white hover:bg-cyan-50 text-indigo-700 shadow-xl shadow-indigo-900/30 dark:bg-gradient-to-r dark:from-indigo-500 dark:via-indigo-600 dark:to-cyan-400 dark:hover:from-indigo-600 dark:hover:to-cyan-500 dark:text-white'
-                                                                : 'bg-slate-900 hover:bg-indigo-600 text-white shadow-lg dark:bg-gradient-to-r dark:from-indigo-500 dark:via-indigo-600 dark:to-cyan-400 dark:hover:from-indigo-600 dark:hover:to-cyan-500 dark:text-white'
-                                                        }`}
+                                                        className="w-full cv-btn-primary justify-center text-xs py-3.5"
                                                         onClick={(e) => e.stopPropagation()}
                                                     >
                                                         <span>Get Started with {tier.name}</span>
                                                         <ArrowRight className="h-4 w-4" />
                                                     </Link>
-                                                    <div className={`text-center text-[10px] ${
-                                                        tier.is_popular ? 'text-indigo-200 dark:text-slate-400' : 'text-slate-500 dark:text-slate-400'
-                                                    }`}>
+                                                    <div className="text-center text-[10px] text-slate-400">
                                                         ⚡ Instant billing with bKash, Nagad & Cards
                                                     </div>
                                                 </div>
@@ -876,8 +831,8 @@ export default function SaasProductShowPage({
                         </div>
                     </div>
 
-                    <div className="p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-6">
-                        <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
+                    <div className="cv-card p-8 rounded-3xl shadow-sm space-y-6">
+                        <div className="flex items-center justify-between pb-4 border-b border-slate-200/60 dark:border-cyan-500/10">
                             <div>
                                 <h3 className="text-lg font-black text-slate-900 dark:text-white">Feature Comparison Matrix</h3>
                                 <p className="text-xs text-slate-500">Detailed breakdown of infrastructure capabilities across all tiers.</p>
@@ -887,36 +842,36 @@ export default function SaasProductShowPage({
                         <div className="overflow-x-auto">
                             <table className="w-full text-left text-xs">
                                 <thead>
-                                    <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-400 font-bold uppercase text-[10px]">
+                                    <tr className="border-b border-slate-200 dark:border-cyan-500/15 text-slate-400 font-bold uppercase text-[10px]">
                                         <th className="py-3 px-4 w-1/3">Platform Capability</th>
                                         <th className="py-3 px-4 text-center">Basic Tier</th>
-                                        <th className="py-3 px-4 text-center text-indigo-600 dark:text-cyan-400">Standard Tier (Most Popular)</th>
+                                        <th className="py-3 px-4 text-center text-cyan-600 dark:text-cyan-400 font-black">Standard Tier (Most Popular)</th>
                                         <th className="py-3 px-4 text-center">Premium Tier</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
+                                <tbody className="divide-y divide-slate-100 dark:divide-cyan-500/10 text-slate-700 dark:text-slate-300">
                                     <tr>
                                         <td className="py-3.5 px-4 font-semibold">Cloud Infrastructure & Backup</td>
                                         <td className="py-3.5 px-4 text-center">Weekly Automated</td>
-                                        <td className="py-3.5 px-4 text-center font-bold text-indigo-600 dark:text-cyan-400">Daily Automated (99.99% SLA)</td>
+                                        <td className="py-3.5 px-4 text-center font-bold text-cyan-600 dark:text-cyan-400">Daily Automated (99.99% SLA)</td>
                                         <td className="py-3.5 px-4 text-center font-bold">Real-time Redundant Cluster</td>
                                     </tr>
                                     <tr>
                                         <td className="py-3.5 px-4 font-semibold">Custom Domain & SSL</td>
                                         <td className="py-3.5 px-4 text-center">Subdomain Only</td>
-                                        <td className="py-3.5 px-4 text-center font-bold text-indigo-600 dark:text-cyan-400">Custom Domain + Free SSL</td>
+                                        <td className="py-3.5 px-4 text-center font-bold text-cyan-600 dark:text-cyan-400">Custom Domain + Free SSL</td>
                                         <td className="py-3.5 px-4 text-center font-bold">Multi-Domain + Wildcard SSL</td>
                                     </tr>
                                     <tr>
                                         <td className="py-3.5 px-4 font-semibold">bKash & Nagad Automated Billing</td>
                                         <td className="py-3.5 px-4 text-center">Manual TrxID</td>
-                                        <td className="py-3.5 px-4 text-center font-bold text-indigo-600 dark:text-cyan-400">Automated Direct Gateway</td>
+                                        <td className="py-3.5 px-4 text-center font-bold text-cyan-600 dark:text-cyan-400">Automated Direct Gateway</td>
                                         <td className="py-3.5 px-4 text-center font-bold">Full Multi-Gateway Suite</td>
                                     </tr>
                                     <tr>
                                         <td className="py-3.5 px-4 font-semibold">Technical Support SLA</td>
                                         <td className="py-3.5 px-4 text-center">24h Email Support</td>
-                                        <td className="py-3.5 px-4 text-center font-bold text-indigo-600 dark:text-cyan-400">1h Priority SLA Support</td>
+                                        <td className="py-3.5 px-4 text-center font-bold text-cyan-600 dark:text-cyan-400">1h Priority SLA Support</td>
                                         <td className="py-3.5 px-4 text-center font-bold">Dedicated Senior Engineer</td>
                                     </tr>
                                 </tbody>
@@ -928,7 +883,7 @@ export default function SaasProductShowPage({
 
             {/* RELATED PRODUCTS */}
             {relatedProducts && relatedProducts.length > 0 && (
-                <section className="py-16 bg-white dark:bg-slate-900">
+                <section className="py-16 border-t border-slate-200/60 dark:border-cyan-500/10">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
                         <div className="flex items-center justify-between">
                             <div>
@@ -937,7 +892,7 @@ export default function SaasProductShowPage({
                                 </h3>
                                 <p className="text-xs text-slate-500">Explore complementary software built by CodeVenture Tech.</p>
                             </div>
-                            <Link href="/saas-products" className="text-xs font-bold text-indigo-600 dark:text-cyan-400 hover:underline">
+                            <Link href="/saas-products" className="text-xs font-bold text-cyan-600 dark:text-cyan-400 hover:underline">
                                 View All Products →
                             </Link>
                         </div>
@@ -947,14 +902,14 @@ export default function SaasProductShowPage({
                                 <Link
                                     key={rel.id}
                                     href={`/saas-products/${rel.slug}`}
-                                    className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200/80 dark:border-slate-800 hover:border-indigo-500/50 transition-all group"
+                                    className="cv-card p-5 rounded-2xl group"
                                 >
                                     {rel.thumbnail && (
                                         <div className="aspect-video w-full rounded-xl overflow-hidden mb-3 bg-slate-900">
                                             <img src={rel.thumbnail} alt={rel.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
                                         </div>
                                     )}
-                                    <h4 className="font-bold text-sm text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-cyan-400 transition-colors">
+                                    <h4 className="font-bold text-sm text-slate-900 dark:text-white group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">
                                         {rel.name}
                                     </h4>
                                     <p className="text-xs text-slate-500 line-clamp-2 mt-1">{rel.tagline}</p>
