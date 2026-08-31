@@ -118,6 +118,13 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('reviews/{review}/toggle-featured', [ReviewController::class, 'toggleFeatured'])->name('reviews.toggle-featured');
         Route::resource('reviews', ReviewController::class)->except(['show']);
 
+        // Admin Notifications Center
+        Route::get('notifications', [\App\Http\Controllers\Admin\NotificationController::class, 'index'])->name('notifications.index');
+        Route::post('notifications/mark-all-read', [\App\Http\Controllers\Admin\NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
+        Route::post('notifications/{id}/read', [\App\Http\Controllers\Admin\NotificationController::class, 'markAsRead'])->name('notifications.read');
+        Route::delete('notifications/clear-read', [\App\Http\Controllers\Admin\NotificationController::class, 'clearAllRead'])->name('notifications.clear-read');
+        Route::delete('notifications/{id}', [\App\Http\Controllers\Admin\NotificationController::class, 'destroy'])->name('notifications.destroy');
+
         // Admin Profile & OTP Security
         Route::get('profile', [ProfileController::class, 'index'])->name('profile.index');
         Route::post('profile/basic', [ProfileController::class, 'updateBasic'])->name('profile.basic');
@@ -127,3 +134,4 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('profile/password/confirm', [ProfileController::class, 'confirmPasswordChange'])->name('profile.password.confirm');
     });
 });
+

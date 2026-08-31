@@ -154,14 +154,20 @@ class CustomOrderRequestController extends Controller
             Log::error('Failed sending CustomOrderRequestedMail to admin: ' . $e->getMessage());
         }
 
-        // Send confirmation email to Customer
-        try {
-            if (!empty($user->email)) {
-                Mail::to($user->email)->send(new CustomOrderReceivedMail($order));
-            }
-        } catch (\Throwable $e) {
-            Log::error('Failed sending CustomOrderReceivedMail to user: ' . $e->getMessage());
-        }
+        // Send In-App Notifications to Admin and Customer
+        \App\Services\NotificationService::sendBoth(
+            $user,
+            "New Custom Order Request: #{$order->order_number}",
+            "Client '{$user->name}' requested a custom project: '{$order->title}'. Estimated budget: " . ($order->estimated_budget ? "{$order->currency} " . number_format($order->estimated_budget, 2) : "Custom Scope"),
+            $order->admin_show_url,
+            "Custom Order Request Received: #{$order->order_number}",
+            "We received your request for '{$order->title}'. Our team is reviewing requirements and will formulate a quote.",
+            $order->customer_show_url,
+            'order',
+            'order',
+            'New Request',
+            ['order_id' => $order->id, 'order_number' => $order->order_number]
+        );
 
         return redirect()->route('customer.custom-orders.show', $order->id)
             ->with('success', "Your custom project request (#{$order->order_number}) has been submitted successfully! Our engineering team will review it and get back to you shortly.");

@@ -23,9 +23,11 @@ import {
     PanelLeftClose,
     PanelLeftOpen,
     ChevronLeft,
-    TrendingUp
+    TrendingUp,
+    Bell
 } from 'lucide-react';
 import { ThemeToggle } from '@/components/surface/theme-toggle';
+import { NotificationsDropdown } from '@/components/notifications-dropdown';
 import { showToast, showSuccessAlert, showErrorAlert } from '@/lib/swal';
 
 interface AdminLayoutProps {
@@ -39,7 +41,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
     title = 'Admin Panel',
     breadcrumbs = [],
 }) => {
-    const { auth, app_settings, flash, pending_subscriptions_count, pending_custom_orders_count } = usePage<SharedData>().props;
+    const { auth, app_settings, flash, pending_subscriptions_count, pending_custom_orders_count, unread_notifications_count } = usePage<SharedData>().props;
     const { url } = usePage();
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(() => {
@@ -153,6 +155,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
                     </span>
                 </Link>
                 <div className="flex items-center space-x-2 flex-shrink-0">
+                    <NotificationsDropdown isAdmin={true} />
                     <ThemeToggle />
                     <button
                         onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -400,6 +403,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
 
                     {/* Actions */}
                     <div className="flex items-center space-x-3">
+                        <NotificationsDropdown isAdmin={true} />
                         <ThemeToggle />
                         <Link
                             href="/admin/portfolios/create"

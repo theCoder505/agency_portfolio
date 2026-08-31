@@ -238,6 +238,17 @@ class CustomOrderController extends Controller
 
         $order->update($validated);
 
+        \App\Services\NotificationService::sendToUser(
+            $order->user_id,
+            "Deliverables Updated: Custom Order #{$order->order_number}",
+            "Project repositories and deliverable links have been updated for '{$order->title}'.",
+            $order->customer_show_url,
+            'order',
+            'order',
+            'Deliverables Ready',
+            ['order_id' => $order->id, 'order_number' => $order->order_number]
+        );
+
         return redirect($order->admin_show_url)
             ->with('success', 'Source code & deliverable links updated successfully!');
     }
@@ -262,6 +273,20 @@ class CustomOrderController extends Controller
             'status' => 'completed',
             'completed_at' => $order->completed_at ?: Carbon::now(),
         ]);
+
+        \App\Services\NotificationService::sendBoth(
+            $order->user_id,
+            "Order Completed: #{$order->order_number}",
+            "Custom project '{$order->title}' has been marked as Completed & Delivered.",
+            $order->admin_show_url,
+            "Project Delivered: Custom Order #{$order->order_number}",
+            "Congratulations! Your custom project '{$order->title}' is completed and delivered. You can now leave a client review.",
+            $order->customer_show_url,
+            'order',
+            'check',
+            'Completed',
+            ['order_id' => $order->id, 'order_number' => $order->order_number]
+        );
 
         return redirect($order->admin_show_url)
             ->with('success', "Order #{$order->order_number} marked as Completed & Delivered.");
@@ -296,6 +321,17 @@ class CustomOrderController extends Controller
             'requirements' => $order->requirements . $note,
         ]);
 
+        \App\Services\NotificationService::sendToUser(
+            $order->user_id,
+            "Budget Revision Approved: Custom Order #{$order->order_number}",
+            "Your proposed budget revision of {$newCurrency} " . number_format($newBudget, 2) . " for '{$order->title}' was approved.",
+            $order->customer_show_url,
+            'order',
+            'check',
+            'Budget Approved',
+            ['order_id' => $order->id, 'order_number' => $order->order_number]
+        );
+
         return redirect($order->admin_show_url)
             ->with('success', "Client proposed budget of {$newCurrency} " . number_format($newBudget, 2) . " has been verified and approved!");
     }
@@ -323,6 +359,17 @@ class CustomOrderController extends Controller
             'budget_update_status' => 'rejected',
             'requirements' => $order->requirements . $note,
         ]);
+
+        \App\Services\NotificationService::sendToUser(
+            $order->user_id,
+            "Budget Revision Declined: Custom Order #{$order->order_number}",
+            "Your proposed budget revision for '{$order->title}' was declined: {$reason}",
+            $order->customer_show_url,
+            'order',
+            'alert',
+            'Budget Declined',
+            ['order_id' => $order->id, 'order_number' => $order->order_number]
+        );
 
         return redirect($order->admin_show_url)
             ->with('warning', 'Client budget request was declined.');
@@ -365,6 +412,20 @@ class CustomOrderController extends Controller
                 throw $e;
             }
         }
+
+        \App\Services\NotificationService::sendBoth(
+            $order->user_id,
+            "Milestone Refund Issued: #{$order->order_number}",
+            "Milestone '{$milestone->title}' ({$order->currency} {$validated['refund_amount']}) refunded. TrxID: {$validated['refund_trx_id']}",
+            $order->admin_show_url,
+            "Milestone Payment Refunded: #{$order->order_number}",
+            "A refund of {$order->currency} {$validated['refund_amount']} has been issued for milestone '{$milestone->title}'.",
+            $order->customer_show_url,
+            'payment',
+            'payment',
+            'Refunded',
+            ['order_id' => $order->id, 'order_number' => $order->order_number, 'milestone_id' => $milestone->id]
+        );
 
         return redirect($order->admin_show_url)
             ->with('success', "Milestone '{$milestone->title}' has been marked as Payment Returned / Refunded ({$order->currency} {$validated['refund_amount']}).");
@@ -522,6 +583,20 @@ class CustomOrderController extends Controller
             Log::error('Failed sending CustomOrderAcceptedMail: ' . $e->getMessage());
         }
 
+        \App\Services\NotificationService::sendBoth(
+            $order->user_id,
+            "Custom Order Accepted: #{$order->order_number}",
+            "Order '{$order->title}' accepted with agreed price of {$order->currency} " . number_format($order->agreed_price, 2),
+            $order->admin_show_url,
+            "Custom Order Accepted: #{$order->order_number}!",
+            "Great news! Your custom project request '{$order->title}' has been accepted with an agreed price of {$order->currency} " . number_format($order->agreed_price, 2) . ".",
+            $order->customer_show_url,
+            'order',
+            'check',
+            'Accepted',
+            ['order_id' => $order->id, 'order_number' => $order->order_number]
+        );
+
         return redirect($order->admin_show_url)
             ->with('success', "Order #{$order->order_number} has been Accepted! Acceptance notification email sent to client.");
     }
@@ -556,6 +631,17 @@ class CustomOrderController extends Controller
         } catch (\Throwable $e) {
             Log::error('Failed sending CustomOrderDeniedMail: ' . $e->getMessage());
         }
+
+        \App\Services\NotificationService::sendToUser(
+            $order->user_id,
+            "Custom Order Proposal Declined: #{$order->order_number}",
+            "Your custom project request '{$order->title}' was declined. Reason: {$reason}",
+            $order->customer_show_url,
+            'order',
+            'alert',
+            'Declined',
+            ['order_id' => $order->id, 'order_number' => $order->order_number]
+        );
 
         return redirect($order->admin_show_url)
             ->with('warning', "Order #{$order->order_number} marked as Denied. Reason sent to client.");

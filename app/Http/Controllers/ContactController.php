@@ -156,7 +156,7 @@ class ContactController extends Controller
         }
 
         // Save Contact Inquiry
-        Contact::create([
+        $contact = Contact::create([
             'name' => $request->name,
             'email' => $email,
             'phone' => $request->phone,
@@ -170,6 +170,29 @@ class ContactController extends Controller
 
         // Consume OTP record
         $otpRecord->delete();
+
+        // Send In-App Notification to Admin
+        \App\Services\NotificationService::sendToAdmin(
+            "New Contact Inquiry: {$request->name}",
+            "Subject: '{$request->subject}' | Email: {$email} | Phone: " . ($request->phone ?: 'N/A'),
+            route('admin.contacts.index'),
+            'contact',
+            'contact',
+            'New Inquiry',
+            ['contact_id' => $contact->id, 'email' => $email]
+        );
+
+        // If a customer account exists with this email, send confirmation notice
+        \App\Services\NotificationService::sendToUser(
+            $email,
+            "Inquiry Received: {$request->subject}",
+            "Thank you for contacting CodeVenture Tech. We received your message regarding '{$request->subject}' and will reach out shortly.",
+            route('customer.dashboard'),
+            'contact',
+            'contact',
+            'Received',
+            ['contact_id' => $contact->id]
+        );
 
         return back()->with('success', 'Thank you! Your message has been sent successfully. Our team will contact you shortly.');
     }

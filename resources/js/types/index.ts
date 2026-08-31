@@ -440,6 +440,21 @@ export interface CustomOrder {
     updated_at?: string;
 }
 
+export interface AppNotification {
+    id: string;
+    title: string;
+    message: string;
+    link: string;
+    type: 'order' | 'subscription' | 'payment' | 'contact' | 'review' | 'system' | string;
+    icon: string;
+    badge?: string | null;
+    metadata?: Record<string, any>;
+    read_at?: string | null;
+    is_read: boolean;
+    time_ago?: string;
+    created_at_formatted?: string;
+}
+
 export interface SharedData {
     name: string;
     app_settings: AppSettings;
@@ -448,6 +463,8 @@ export interface SharedData {
     pending_custom_orders_count?: number;
     customer_active_subscriptions_count?: number;
     customer_custom_orders_count?: number;
+    unread_notifications_count?: number;
+    recent_notifications?: AppNotification[];
     flash: FlashMessages;
     [key: string]: unknown;
 }

@@ -42,21 +42,52 @@ class HandleInertiaRequests extends Middleware
         $pendingCustomOrdersCount = 0;
         $customerActiveSubscriptionsCount = 0;
         $customerCustomOrdersCount = 0;
+        $unreadNotificationsCount = 0;
+        $recentNotifications = [];
 
         try {
-            if ($request->user('admin')) {
+            if ($admin = $request->user('admin')) {
                 $pendingSubscriptionsCount = \App\Models\SaasSubscription::where('status', 'pending')
                     ->orWhereHas('invoices', fn($q) => $q->where('status', 'pending'))
                     ->count();
                 $pendingCustomOrdersCount = \App\Models\CustomOrder::where('status', 'pending')->count();
-            }
-            if ($request->user()) {
-                $customerActiveSubscriptionsCount = \App\Models\SaasSubscription::where('user_id', $request->user()->id)
+                $unreadNotificationsCount = $admin->unreadNotifications()->count();
+                $recentNotifications = $admin->notifications()->limit(8)->get()->map(function ($n) {
+                    return [
+                        'id' => $n->id,
+                        'title' => $n->data['title'] ?? 'Notification',
+                        'message' => $n->data['message'] ?? '',
+                        'link' => $n->data['link'] ?? '#',
+                        'type' => $n->data['type'] ?? 'system',
+                        'icon' => $n->data['icon'] ?? 'bell',
+                        'badge' => $n->data['badge'] ?? null,
+                        'is_read' => $n->read_at !== null,
+                        'time_ago' => $n->created_at?->diffForHumans(),
+                        'created_at_formatted' => $n->created_at?->format('M d, Y h:i A'),
+                    ];
+                })->toArray();
+            } elseif ($user = $request->user()) {
+                $customerActiveSubscriptionsCount = \App\Models\SaasSubscription::where('user_id', $user->id)
                     ->where('status', 'active')
                     ->count();
-                $customerCustomOrdersCount = \App\Models\CustomOrder::where('user_id', $request->user()->id)
+                $customerCustomOrdersCount = \App\Models\CustomOrder::where('user_id', $user->id)
                     ->whereIn('status', ['pending', 'accepted', 'in_progress'])
                     ->count();
+                $unreadNotificationsCount = $user->unreadNotifications()->count();
+                $recentNotifications = $user->notifications()->limit(8)->get()->map(function ($n) {
+                    return [
+                        'id' => $n->id,
+                        'title' => $n->data['title'] ?? 'Notification',
+                        'message' => $n->data['message'] ?? '',
+                        'link' => $n->data['link'] ?? '#',
+                        'type' => $n->data['type'] ?? 'system',
+                        'icon' => $n->data['icon'] ?? 'bell',
+                        'badge' => $n->data['badge'] ?? null,
+                        'is_read' => $n->read_at !== null,
+                        'time_ago' => $n->created_at?->diffForHumans(),
+                        'created_at_formatted' => $n->created_at?->format('M d, Y h:i A'),
+                    ];
+                })->toArray();
             }
         } catch (\Throwable $e) {
             // tables not migrated yet
@@ -73,6 +104,8 @@ class HandleInertiaRequests extends Middleware
             'pending_custom_orders_count' => $pendingCustomOrdersCount,
             'customer_active_subscriptions_count' => $customerActiveSubscriptionsCount,
             'customer_custom_orders_count' => $customerCustomOrdersCount,
+            'unread_notifications_count' => $unreadNotificationsCount,
+            'recent_notifications' => $recentNotifications,
             'flash' => [
                 'success' => session('success'),
                 'error' => session('error'),

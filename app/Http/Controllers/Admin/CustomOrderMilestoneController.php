@@ -77,6 +77,17 @@ class CustomOrderMilestoneController extends Controller
             $order->update(['status' => 'in_progress']);
         }
 
+        \App\Services\NotificationService::sendToUser(
+            $order->user_id,
+            "New Milestone Added: {$milestone->title}",
+            "A milestone of {$order->currency} " . number_format($milestone->amount, 2) . " has been added to Order #{$order->order_number}.",
+            $order->customer_show_url,
+            'payment',
+            'payment',
+            'Milestone Added',
+            ['order_id' => $order->id, 'order_number' => $order->order_number, 'milestone_id' => $milestone->id]
+        );
+
         return redirect($order->admin_show_url)
             ->with('success', "Milestone '{$milestone->title}' added successfully!");
     }
@@ -179,6 +190,20 @@ class CustomOrderMilestoneController extends Controller
             } catch (\Throwable $e) {
                 \Illuminate\Support\Facades\Log::error('Failed sending MilestoneCollectedMail: ' . $e->getMessage());
             }
+
+            \App\Services\NotificationService::sendBoth(
+                $order->user_id,
+                "Payment Collected: Milestone '{$milestone->title}'",
+                "Payment for milestone '{$milestone->title}' ({$order->currency} " . number_format($milestone->amount, 2) . ") on Order #{$order->order_number} marked as collected.",
+                $order->admin_show_url,
+                "Payment Verified & Collected: Milestone '{$milestone->title}'",
+                "Your payment of {$order->currency} " . number_format($milestone->amount, 2) . " for milestone '{$milestone->title}' on Order #{$order->order_number} has been verified and settled.",
+                $order->customer_show_url,
+                'payment',
+                'check',
+                'Collected',
+                ['order_id' => $order->id, 'order_number' => $order->order_number, 'milestone_id' => $milestone->id]
+            );
         }
 
         return redirect($order->admin_show_url)
@@ -246,6 +271,20 @@ class CustomOrderMilestoneController extends Controller
             } catch (\Throwable $e) {
                 \Illuminate\Support\Facades\Log::error('Failed sending MilestoneCollectedMail: ' . $e->getMessage());
             }
+
+            \App\Services\NotificationService::sendBoth(
+                $order->user_id,
+                "Payment Collected: Milestone '{$milestone->title}'",
+                "Payment for milestone '{$milestone->title}' ({$order->currency} " . number_format($milestone->amount, 2) . ") on Order #{$order->order_number} marked as collected.",
+                $order->admin_show_url,
+                "Payment Verified & Collected: Milestone '{$milestone->title}'",
+                "Your payment of {$order->currency} " . number_format($milestone->amount, 2) . " for milestone '{$milestone->title}' on Order #{$order->order_number} has been verified and settled.",
+                $order->customer_show_url,
+                'payment',
+                'check',
+                'Collected',
+                ['order_id' => $order->id, 'order_number' => $order->order_number, 'milestone_id' => $milestone->id]
+            );
         }
 
         return redirect($order->admin_show_url)

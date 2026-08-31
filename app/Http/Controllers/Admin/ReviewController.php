@@ -59,7 +59,17 @@ class ReviewController extends Controller
             $validated['author_avatar'] = '/storage/' . $path;
         }
 
-        Review::create($validated);
+        $createdReview = Review::create($validated);
+
+        \App\Services\NotificationService::sendToAdmin(
+            "New Review Added: {$validated['author_name']}",
+            "Added {$validated['rating']}-star review ('{$validated['review_title']}') from {$validated['source']}.",
+            route('admin.reviews.index'),
+            'review',
+            'review',
+            "⭐ {$validated['rating']}/5",
+            ['review_id' => $createdReview->id]
+        );
 
         return redirect()->route('admin.reviews.index')
             ->with('success', 'Review added successfully.');

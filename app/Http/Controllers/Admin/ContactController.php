@@ -63,9 +63,20 @@ class ContactController extends Controller
                 'reply_message' => $validated['reply_message'],
             ]);
 
+            \App\Services\NotificationService::sendToUser(
+                $contact->email,
+                "Support Reply: {$validated['reply_subject']}",
+                "Our team has replied to your inquiry: '{$validated['reply_subject']}'. Please check your email inbox.",
+                route('customer.dashboard'),
+                'contact',
+                'contact',
+                'Replied',
+                ['contact_id' => $contact->id]
+            );
+
             return back()->with('success', 'Reply email sent successfully to ' . $contact->email);
         } catch (\Exception $e) {
-            Log::error('Failed to send reply email: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::error('Failed to send reply email: ' . $e->getMessage());
 
             // Still save reply record even if mailer logs in development
             $contact->update([
@@ -74,6 +85,17 @@ class ContactController extends Controller
                 'reply_subject' => $validated['reply_subject'],
                 'reply_message' => $validated['reply_message'],
             ]);
+
+            \App\Services\NotificationService::sendToUser(
+                $contact->email,
+                "Support Reply: {$validated['reply_subject']}",
+                "Our team has replied to your inquiry: '{$validated['reply_subject']}'. Please check your email inbox.",
+                route('customer.dashboard'),
+                'contact',
+                'contact',
+                'Replied',
+                ['contact_id' => $contact->id]
+            );
 
             return back()->with('warning', 'Reply saved. (Note: Check email server configuration)');
         }

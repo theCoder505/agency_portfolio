@@ -140,6 +140,20 @@ class SubscriptionController extends Controller
             'notes' => $request->notes ?? ('Renewal payment for ' . ucfirst(str_replace('_', ' ', $request->billing_cycle)) . ' cycle (' . ucfirst($tier) . ' Tier)'),
         ]);
 
+        \App\Services\NotificationService::sendBoth(
+            $user,
+            "Renewal Payment: SaaS Order #{$subscription->order_number}",
+            "Client '{$user->name}' submitted renewal payment for {$subscription->product?->name} (" . ucfirst($tier) . " Tier) via " . strtoupper($request->payment_method) . " (TrxID: {$invoice->transaction_id}).",
+            route('admin.subscriptions.show', $subscription->id),
+            "Renewal Payment Submitted: #{$subscription->order_number}",
+            "Your renewal payment (TrxID: {$invoice->transaction_id}) for {$subscription->product?->name} (" . ucfirst($tier) . " Tier) has been submitted for validation.",
+            route('customer.subscriptions.show', $subscription->order_number),
+            'subscription',
+            'payment',
+            'Renewal Submitted',
+            ['subscription_id' => $subscription->id, 'order_number' => $subscription->order_number, 'invoice_id' => $invoice->id]
+        );
+
         return redirect()->route('customer.subscriptions.show', $subscription->order_number)
             ->with('success', 'Your renewal invoice payment (TrxID: ' . $invoice->transaction_id . ') for the ' . ucfirst($tier) . ' Tier (' . ucfirst(str_replace('_', ' ', $request->billing_cycle)) . ') has been submitted for validation! The admin will verify and extend your service period.');
     }
@@ -196,6 +210,20 @@ class SubscriptionController extends Controller
             'paid_at' => Carbon::now(),
             'notes' => 'Package tier instantly updated from ' . ucfirst($oldTier) . ' to ' . ucfirst($newTier) . ' Tier (' . ucfirst(str_replace('_', ' ', $billingCycle)) . ')',
         ]);
+
+        \App\Services\NotificationService::sendBoth(
+            $user,
+            "Package Tier Changed: #{$subscription->order_number}",
+            "Client '{$user->name}' updated subscription #{$subscription->order_number} to " . ucfirst($newTier) . " Tier.",
+            route('admin.subscriptions.show', $subscription->id),
+            "Package Tier Updated: #{$subscription->order_number}",
+            "Your subscription has been updated to " . ucfirst($newTier) . " Tier with immediate effect.",
+            route('customer.subscriptions.show', $subscription->order_number),
+            'subscription',
+            'check',
+            ucfirst($newTier) . ' Tier',
+            ['subscription_id' => $subscription->id, 'order_number' => $subscription->order_number]
+        );
 
         return redirect()->route('customer.subscriptions.show', $subscription->order_number)
             ->with('success', 'Your subscription package has been successfully updated to ' . ucfirst($newTier) . ' Tier! The changes have taken effect immediately.');

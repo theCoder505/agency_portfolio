@@ -61,6 +61,13 @@ Route::middleware('auth:web')->prefix('customer')->name('customer.')->group(func
     Route::post('/custom-orders/{ref}/cancel', [\App\Http\Controllers\Customer\CustomOrderController::class, 'cancel'])->name('custom-orders.cancel');
 
     Route::get('/invoices', [\App\Http\Controllers\Customer\InvoiceController::class, 'index'])->name('invoices.index');
+    
+    // Customer Notifications Center
+    Route::get('/notifications', [\App\Http\Controllers\Customer\NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/mark-all-read', [\App\Http\Controllers\Customer\NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
+    Route::post('/notifications/{id}/read', [\App\Http\Controllers\Customer\NotificationController::class, 'markAsRead'])->name('notifications.read');
+    Route::delete('/notifications/{id}', [\App\Http\Controllers\Customer\NotificationController::class, 'destroy'])->name('notifications.destroy');
+
     Route::get('/profile', [\App\Http\Controllers\Customer\ProfileController::class, 'index'])->name('profile.index');
     Route::put('/profile', [\App\Http\Controllers\Customer\ProfileController::class, 'update'])->name('profile.update');
     Route::post('/profile/email/request-otp', [\App\Http\Controllers\Customer\ProfileController::class, 'requestEmailOtp'])->name('profile.email.request-otp');

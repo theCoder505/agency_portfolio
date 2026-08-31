@@ -147,6 +147,21 @@ class CustomOrderController extends Controller
             Log::error('Failed sending MilestonePaymentSubmittedMail: ' . $e->getMessage());
         }
 
+        // Send in-app notification to Admin & User
+        \App\Services\NotificationService::sendBoth(
+            $user,
+            "Payment Submitted: Milestone '{$milestone->title}'",
+            "Client '{$user->name}' submitted payment for milestone '{$milestone->title}' on Order #{$order->order_number} via " . strtoupper($milestone->client_payment_method) . " (TrxID: {$milestone->client_trx_id}).",
+            $order->admin_show_url,
+            "Payment Proof Submitted: Milestone '{$milestone->title}'",
+            "We received your payment submission (TrxID: {$milestone->client_trx_id}) for milestone '{$milestone->title}'. Our financial team is verifying it.",
+            $order->customer_show_url,
+            'payment',
+            'payment',
+            'Pending Verification',
+            ['order_id' => $order->id, 'order_number' => $order->order_number, 'milestone_id' => $milestone->id]
+        );
+
         return redirect($order->customer_show_url)
             ->with('success', "Payment submitted for {$milestone->title}! Our financial department is verifying the transaction reference ({$milestone->client_trx_id}).");
     }
@@ -181,6 +196,20 @@ class CustomOrderController extends Controller
             'status' => 'completed',
             'completed_at' => $order->completed_at ?: Carbon::now(),
         ]);
+
+        \App\Services\NotificationService::sendBoth(
+            $user,
+            "Order Completed by Client: #{$order->order_number}",
+            "Client '{$user->name}' marked custom project '{$order->title}' as Completed & Delivered.",
+            $order->admin_show_url,
+            "Project Completed & Delivered: #{$order->order_number}",
+            "Your order '{$order->title}' is marked as Completed & Delivered! Thank you for partnering with us.",
+            $order->customer_show_url,
+            'order',
+            'check',
+            'Completed',
+            ['order_id' => $order->id, 'order_number' => $order->order_number]
+        );
 
         return redirect($order->customer_show_url)
             ->with('success', "Congratulations! Order #{$order->order_number} has been marked as Completed & Delivered. You can now leave a client review.");
@@ -224,6 +253,20 @@ class CustomOrderController extends Controller
             ]
         );
 
+        \App\Services\NotificationService::sendBoth(
+            $user,
+            "New ⭐ {$validated['rating']}-Star Review: #{$order->order_number}",
+            "Client '{$user->name}' left a {$validated['rating']}-star review for '{$order->title}': '{$validated['review_title']}'",
+            $order->admin_show_url,
+            "Thank you for your {$validated['rating']}-star review!",
+            "Your review for '{$order->title}' has been recorded and submitted to our client showcase.",
+            $order->customer_show_url,
+            'review',
+            'review',
+            "⭐ {$validated['rating']}/5",
+            ['order_id' => $order->id, 'order_number' => $order->order_number, 'rating' => $validated['rating']]
+        );
+
         return redirect($order->customer_show_url)
             ->with('success', 'Thank you for your feedback! Your review has been recorded.');
     }
@@ -254,6 +297,20 @@ class CustomOrderController extends Controller
             'budget_update_status' => 'pending',
         ]);
 
+        \App\Services\NotificationService::sendBoth(
+            $user,
+            "Budget Revision Request: #{$order->order_number}",
+            "Client '{$user->name}' requested budget revision to " . ($validated['currency'] ?? $order->currency) . " " . number_format($validated['estimated_budget'], 2) . " for '{$order->title}'.",
+            $order->admin_show_url,
+            "Budget Revision Submitted: #{$order->order_number}",
+            "Your proposed budget revision of " . ($validated['currency'] ?? $order->currency) . " " . number_format($validated['estimated_budget'], 2) . " has been submitted for admin verification.",
+            $order->customer_show_url,
+            'order',
+            'order',
+            'Budget Requested',
+            ['order_id' => $order->id, 'order_number' => $order->order_number]
+        );
+
         return redirect($order->customer_show_url)
             ->with('success', "Your budget revision request of " . ($validated['currency'] ?? $order->currency) . " " . number_format($validated['estimated_budget'], 2) . " has been submitted for Admin verification. It will be updated once verified by our team.");
     }
@@ -271,6 +328,16 @@ class CustomOrderController extends Controller
         }
 
         $order->update(['status' => 'cancelled']);
+
+        \App\Services\NotificationService::sendToAdmin(
+            "Custom Order Cancelled: #{$order->order_number}",
+            "Client '{$user->name}' cancelled pending custom project request '{$order->title}'.",
+            $order->admin_show_url,
+            'order',
+            'alert',
+            'Cancelled',
+            ['order_id' => $order->id, 'order_number' => $order->order_number]
+        );
 
         return redirect()->route('customer.custom-orders.index')
             ->with('info', "Custom order #{$order->order_number} has been cancelled.");

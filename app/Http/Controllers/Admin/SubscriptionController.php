@@ -321,6 +321,20 @@ class SubscriptionController extends Controller
             ]);
         }
 
+        \App\Services\NotificationService::sendBoth(
+            $subscription->user_id,
+            "Subscription Activated: #{$subscription->order_number}",
+            "Subscription for {$subscription->product?->name} (" . ucfirst($subscription->package_tier) . " Tier) has been approved and activated.",
+            route('admin.subscriptions.show', $subscription->id),
+            "Subscription Activated: #{$subscription->order_number}!",
+            "Great news! Your subscription for {$subscription->product?->name} (" . ucfirst($subscription->package_tier) . " Tier) is now active until " . $expiresAt->format('M d, Y') . ".",
+            route('customer.subscriptions.show', $subscription->order_number),
+            'subscription',
+            'check',
+            'Active',
+            ['subscription_id' => $subscription->id, 'order_number' => $subscription->order_number]
+        );
+
         return redirect()->route('admin.subscriptions.show', $subscription->order_number)
             ->with('success', 'Subscription Order #' . $subscription->order_number . ' verified and activated successfully!');
     }
@@ -383,6 +397,20 @@ class SubscriptionController extends Controller
             ]);
         }
 
+        \App\Services\NotificationService::sendBoth(
+            $subscription->user_id,
+            "Invoice #{$invoice->invoice_number} Paid & Approved",
+            "Payment for Invoice #{$invoice->invoice_number} ({$invoice->currency} " . number_format($invoice->amount, 2) . ") on subscription #{$subscription->order_number} has been approved.",
+            route('admin.subscriptions.show', $subscription->id),
+            "Invoice #{$invoice->invoice_number} Paid & Verified!",
+            "Your payment for Invoice #{$invoice->invoice_number} ({$invoice->currency} " . number_format($invoice->amount, 2) . ") on {$subscription->product?->name} has been verified and settled.",
+            route('customer.invoices.index'),
+            'payment',
+            'check',
+            'Paid',
+            ['subscription_id' => $subscription->id, 'invoice_id' => $invoice->id, 'invoice_number' => $invoice->invoice_number]
+        );
+
         return redirect()->route('admin.subscriptions.show', $subscription->order_number)
             ->with('success', 'Invoice #' . $invoice->invoice_number . ' (TrxID: ' . ($invoice->transaction_id ?: 'N/A') . ') approved and subscription extended successfully!');
     }
@@ -404,6 +432,17 @@ class SubscriptionController extends Controller
             'status' => 'rejected',
             'rejection_reason' => $request->rejection_reason,
         ]);
+
+        \App\Services\NotificationService::sendToUser(
+            $subscription->user_id,
+            "Invoice #{$invoice->invoice_number} Payment Rejected",
+            "Payment proof for invoice #{$invoice->invoice_number} ({$invoice->currency} " . number_format($invoice->amount, 2) . ") was rejected: {$request->rejection_reason}",
+            route('customer.invoices.index'),
+            'payment',
+            'alert',
+            'Rejected',
+            ['subscription_id' => $subscription->id, 'invoice_id' => $invoice->id, 'invoice_number' => $invoice->invoice_number]
+        );
 
         return redirect()->route('admin.subscriptions.show', $subscription->order_number)
             ->with('warning', 'Invoice #' . $invoice->invoice_number . ' has been marked as rejected.');
@@ -431,6 +470,17 @@ class SubscriptionController extends Controller
                 'status' => 'rejected',
                 'rejection_reason' => $request->rejection_reason,
             ]);
+
+        \App\Services\NotificationService::sendToUser(
+            $subscription->user_id,
+            "Subscription Order #{$subscription->order_number} Rejected",
+            "Your subscription order for {$subscription->product?->name} was rejected: {$request->rejection_reason}",
+            route('customer.subscriptions.show', $subscription->order_number),
+            'subscription',
+            'alert',
+            'Rejected',
+            ['subscription_id' => $subscription->id, 'order_number' => $subscription->order_number]
+        );
 
         return redirect()->route('admin.subscriptions.show', $subscription->order_number)
             ->with('warning', 'Order #' . $subscription->order_number . ' has been marked as rejected.');

@@ -3,6 +3,7 @@ import { Link, usePage } from '@inertiajs/react';
 import { Menu, X, ArrowUpRight, Sparkles, Code, ShieldCheck } from 'lucide-react';
 import { SharedData } from '@/types';
 import { ThemeToggle } from './theme-toggle';
+import { NotificationsDropdown } from '@/components/notifications-dropdown';
 
 export const SurfaceHeader: React.FC = () => {
     const { app_settings, auth } = usePage<SharedData>().props;
@@ -119,6 +120,13 @@ export const SurfaceHeader: React.FC = () => {
                     <div className="hidden md:flex items-center space-x-3">
                         <ThemeToggle isHeroMode={isHeroMode} />
 
+                        {(auth?.admin || auth?.user) && (
+                            <NotificationsDropdown
+                                isAdmin={!!auth?.admin}
+                                isHeroMode={isHeroMode}
+                            />
+                        )}
+
                         {auth?.admin ? (
                             <Link
                                 href="/admin/dashboard"
@@ -164,6 +172,12 @@ export const SurfaceHeader: React.FC = () => {
 
                     {/* Mobile Menu Button */}
                     <div className="flex md:hidden items-center space-x-2">
+                        {(auth?.admin || auth?.user) && (
+                            <NotificationsDropdown
+                                isAdmin={!!auth?.admin}
+                                isHeroMode={isHeroMode}
+                            />
+                        )}
                         <ThemeToggle isHeroMode={isHeroMode} />
                         <button
                             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}

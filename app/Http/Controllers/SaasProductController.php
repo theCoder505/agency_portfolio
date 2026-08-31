@@ -220,6 +220,21 @@ class SaasProductController extends Controller
             'notes' => 'Initial ' . ucfirst($request->package_tier) . ' tier order via ' . strtoupper($request->payment_method),
         ]);
 
+        // Send In-App Notifications to Admin and User
+        \App\Services\NotificationService::sendBoth(
+            $user,
+            "New SaaS Order #{$subscription->order_number}: {$product->name}",
+            "Client '{$user->name}' ordered {$product->name} (" . ucfirst($subscription->package_tier) . " Tier - {$subscription->currency} " . number_format($subscription->amount, 2) . ") via " . strtoupper($subscription->payment_method) . " (TrxID: {$subscription->transaction_id}).",
+            route('admin.subscriptions.show', $subscription->id),
+            "SaaS Order Placed: #{$subscription->order_number}",
+            "Your subscription order for {$product->name} (" . ucfirst($subscription->package_tier) . " Tier) has been received. Our team will verify your transaction (TrxID: {$subscription->transaction_id}) and activate your service shortly.",
+            route('customer.subscriptions.show', $subscription->order_number),
+            'subscription',
+            'subscription',
+            'Pending Approval',
+            ['subscription_id' => $subscription->id, 'order_number' => $subscription->order_number]
+        );
+
         return redirect()->route('customer.dashboard')->with('success', 'Your order (' . $subscription->order_number . ') for ' . $product->name . ' (' . ucfirst($request->package_tier) . ' Tier) has been placed successfully! Our team will verify your transaction (' . $subscription->transaction_id . ') and activate your service shortly.');
     }
 }

@@ -15,9 +15,11 @@ import {
     FolderGit2,
     PanelLeftClose,
     PanelLeftOpen,
-    ChevronLeft
+    ChevronLeft,
+    Bell
 } from 'lucide-react';
 import { ThemeToggle } from '@/components/surface/theme-toggle';
+import { NotificationsDropdown } from '@/components/notifications-dropdown';
 import { showToast, showSuccessAlert, showErrorAlert } from '@/lib/swal';
 
 interface CustomerLayoutProps {
@@ -31,7 +33,7 @@ export const CustomerLayout: React.FC<CustomerLayoutProps> = ({
     title = 'Customer Portal',
     breadcrumbs = [],
 }) => {
-    const { auth, app_settings, flash, customer_active_subscriptions_count, customer_custom_orders_count } = usePage<SharedData>().props;
+    const { auth, app_settings, flash, customer_active_subscriptions_count, customer_custom_orders_count, unread_notifications_count } = usePage<SharedData>().props;
     const { url } = usePage();
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(() => {
@@ -130,6 +132,7 @@ export const CustomerLayout: React.FC<CustomerLayoutProps> = ({
                     </div>
                 </Link>
                 <div className="flex items-center space-x-2">
+                    <NotificationsDropdown isAdmin={false} />
                     <ThemeToggle />
                     <button
                         onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -395,6 +398,7 @@ export const CustomerLayout: React.FC<CustomerLayoutProps> = ({
                     </div>
 
                     <div className="flex items-center space-x-3">
+                        <NotificationsDropdown isAdmin={false} />
                         <ThemeToggle />
                         <Link
                             href="/saas-products"
