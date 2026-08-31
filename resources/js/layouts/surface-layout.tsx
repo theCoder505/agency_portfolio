@@ -5,6 +5,7 @@ import { SurfaceHeader } from '@/components/surface/surface-header';
 import { SurfaceFooter } from '@/components/surface/surface-footer';
 import { WhatsAppWidget } from '@/components/surface/whatsapp-widget';
 import { ScrollToTop } from '@/components/surface/scroll-to-top';
+import { SurfacePreloader } from '@/components/surface/surface-preloader';
 import { showToast, showSuccessAlert, showErrorAlert } from '@/lib/swal';
 import { initAOS, refreshAOS } from '@/lib/aos';
 
@@ -61,6 +62,13 @@ export const SurfaceLayout: React.FC<SurfaceLayoutProps> = ({
                     <link rel="icon" type="image/x-icon" href={app_settings.favicon} />
                 )}
             </Head>
+
+            {/* Brand Typing 3D Glass Preloader */}
+            <SurfacePreloader
+                brandName={brandName}
+                logoLight={app_settings?.logo}
+                logoDark={app_settings?.logo_dark}
+            />
 
             {/* Ambient Background Gradient Lighting Effects */}
             <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
