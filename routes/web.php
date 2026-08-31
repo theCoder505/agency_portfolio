@@ -8,6 +8,7 @@ use App\Http\Controllers\LegalController;
 use App\Http\Controllers\WorksController;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
 
 /*
 |--------------------------------------------------------------------------
@@ -110,3 +111,55 @@ Route::get('/migrate', function () {
     Artisan::call('db:seed', ['--force' => true]);
     return "Migrations & Seeds Executed Successfully!";
 });
+
+/*
+|--------------------------------------------------------------------------
+| Error Pages & Direct Preview Routes
+|--------------------------------------------------------------------------
+*/
+Route::get('/error/{status?}', function (\Illuminate\Http\Request $request, $status = 404) {
+    $code = (int) $status;
+    if ($code < 400 || $code > 599) $code = 404;
+    return Inertia::render('error', [
+        'status' => $code,
+        'panel' => 'surface',
+    ])->toResponse($request)->setStatusCode($code);
+})->name('error.surface');
+
+Route::get('/admin/error/{status?}', function (\Illuminate\Http\Request $request, $status = 404) {
+    $code = (int) $status;
+    if ($code < 400 || $code > 599) $code = 404;
+    return Inertia::render('error', [
+        'status' => $code,
+        'panel' => 'admin',
+    ])->toResponse($request)->setStatusCode($code);
+})->name('error.admin');
+
+Route::get('/customer/error/{status?}', function (\Illuminate\Http\Request $request, $status = 404) {
+    $code = (int) $status;
+    if ($code < 400 || $code > 599) $code = 404;
+    return Inertia::render('error', [
+        'status' => $code,
+        'panel' => 'customer',
+    ])->toResponse($request)->setStatusCode($code);
+})->name('error.customer');
+
+/*
+|--------------------------------------------------------------------------
+| Universal Fallback Route (Catches all undefined routes across all panels)
+|--------------------------------------------------------------------------
+*/
+Route::fallback(function (\Illuminate\Http\Request $request) {
+    $panel = 'surface';
+    if ($request->is('admin*')) {
+        $panel = 'admin';
+    } elseif ($request->is('customer*')) {
+        $panel = 'customer';
+    }
+
+    return Inertia::render('error', [
+        'status' => 404,
+        'panel' => $panel,
+    ])->toResponse($request)->setStatusCode(404);
+});
+
