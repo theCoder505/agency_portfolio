@@ -74,7 +74,7 @@ export default function WorksIndex({ portfolios, categories }: WorksIndexProps) 
             description="Explore CodeVenture Tech's complete catalog of high performance web applications, SaaS products, and custom websites."
         >
             {/* Header Banner */}
-            <section className="pt-12 pb-16 relative overflow-hidden border-b border-slate-200/60 dark:border-cyan-500/10">
+            <section className="pt-12 pb-16 relative overflow-hidden">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center max-w-3xl relative z-10">
                     <div className="cv-badge mb-3.5" data-aos="fade-down">
                         <Layers className="h-3.5 w-3.5 text-cyan-400" />

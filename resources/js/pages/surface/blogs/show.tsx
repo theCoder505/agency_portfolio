@@ -70,7 +70,7 @@ export default function BlogShowPage({ blog, relatedBlogs }: BlogShowPageProps) 
         >
             <div className="min-h-screen transition-colors duration-300 pb-20">
                 {/* Article Header & Breadcrumbs */}
-                <header className="relative pt-8 pb-12 overflow-hidden border-b border-slate-200/60 dark:border-cyan-500/10">
+                <header className="relative pt-8 pb-12 overflow-hidden">
                     <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
                         {/* Breadcrumb Navigation */}
                         <nav

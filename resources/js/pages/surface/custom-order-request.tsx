@@ -138,7 +138,7 @@ export default function CustomOrderRequest({
             description="Submit your custom software requirements. Get structured milestone quotes with direct source code delivery."
         >
             {/* HERO BANNER */}
-            <section className="relative pt-12 pb-16 overflow-hidden border-b border-slate-200/60 dark:border-cyan-500/10">
+            <section className="relative pt-12 pb-16 overflow-hidden">
                 <div className="max-w-5xl mx-auto px-4 sm:px-6 text-center space-y-5 relative z-10">
                     <div className="cv-badge">
                         <Sparkles className="h-3.5 w-3.5 text-cyan-400" />

@@ -51,7 +51,7 @@ export default function WorkDetail({ portfolio, relatedPortfolios }: WorkDetailP
             description={portfolio.short_description || `Case study for ${portfolio.title}`}
         >
             {/* Top Back Navigation Bar */}
-            <div className="border-b border-slate-200/60 dark:border-cyan-500/10 py-4 bg-white/95 dark:bg-[#010a10]/95 backdrop-blur-md relative z-20">
+            <div className="py-4 bg-white/95 dark:bg-[#010a10]/95 backdrop-blur-md relative z-20">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
                     <Link
                         href="/works"
@@ -171,7 +171,7 @@ export default function WorkDetail({ portfolio, relatedPortfolios }: WorkDetailP
 
             {/* Embedded YouTube Video (if attached) */}
             {youtubeId && (
-                <section className="relative z-10 py-12 border-y border-slate-200/60 dark:border-cyan-500/10 bg-slate-50 dark:bg-[#010e16] shadow-xl">
+                <section className="relative z-10 py-12 bg-slate-50 dark:bg-[#010e16] shadow-xl">
                     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4 text-center">
                         <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center justify-center space-x-2">
                             <Play className="h-5 w-5 text-red-500 fill-current" />
@@ -240,7 +240,7 @@ export default function WorkDetail({ portfolio, relatedPortfolios }: WorkDetailP
 
             {/* Related Projects Carousel */}
             {relatedPortfolios && relatedPortfolios.length > 0 && (
-                <section className="relative z-10 py-16 border-t border-slate-200/60 dark:border-cyan-500/10 bg-slate-50 dark:bg-[#010e16]">
+                <section className="relative z-10 py-16 bg-slate-50 dark:bg-[#010e16]">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="flex items-center justify-between mb-8">
                             <h3 className="text-2xl font-black text-slate-900 dark:text-white">

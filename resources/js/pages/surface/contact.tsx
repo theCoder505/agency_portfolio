@@ -209,8 +209,8 @@ export default function Contact() {
             title="Contact Us & Get a Quote"
             description="Connect with CodeVenture Tech architects to discuss your web application or SaaS platform."
         >
-            {/* Thematic High-Tech Header Section */}
-            <section className="relative pt-20 pb-20 overflow-hidden border-b border-slate-200/60 dark:border-cyan-500/10">
+            {/* HERO BANNER */}
+            <section className="relative pt-20 pb-20 overflow-hidden">
                 {/* specialized ambient backlights */}
                 <div className="absolute -top-32 -left-20 w-96 h-96 bg-cyan-500/10 dark:bg-cyan-500/15 rounded-full blur-[110px] pointer-events-none animate-pulse" style={{ animationDuration: '6s' }} />
                 <div className="absolute -top-24 -right-20 w-96 h-96 bg-blue-600/10 dark:bg-blue-600/15 rounded-full blur-[110px] pointer-events-none animate-pulse" style={{ animationDuration: '8s' }} />

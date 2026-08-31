@@ -249,7 +249,7 @@ export default function SaasProductsPage({
             description="Explore ready-to-deploy enterprise SaaS products engineered by CodeVenture Tech with sub-second performance, tiered packages, and bKash/Nagad instant verification."
         >
             {/* HERO BANNER */}
-            <section className="relative pt-16 pb-20 overflow-hidden border-b border-slate-200/60 dark:border-cyan-500/10">
+            <section className="relative pt-16 pb-20 overflow-hidden">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center space-y-6">
                     <div className="cv-badge" data-aos="fade-down">
                         <Sparkles className="h-3.5 w-3.5 text-cyan-400" />
@@ -404,7 +404,7 @@ export default function SaasProductsPage({
             </section>
 
             {/* PAYMENT TRUST & METHOD HIGHLIGHTS */}
-            <section className="py-16 border-y border-slate-200/60 dark:border-cyan-500/10 bg-slate-50/50 dark:bg-[#010e16]/60">
+            <section className="py-16 bg-slate-50/50 dark:bg-[#010e16]/60">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                         <div className="cv-card flex items-start space-x-4 p-6 rounded-2xl">

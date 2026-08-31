@@ -509,7 +509,7 @@ export default function SaasProductShowPage({
             description={product.tagline || product.description || `Explore ${product.name} features and package pricing across Basic, Standard, and Premium tiers.`}
         >
             {/* HERO SECTION */}
-            <section className="relative pt-12 pb-16 overflow-hidden border-b border-slate-200/60 dark:border-cyan-500/10">
+            <section className="relative pt-12 pb-16 overflow-hidden">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-6">
                     {/* Breadcrumbs */}
                     <div className="flex items-center space-x-2 text-xs text-slate-500 dark:text-slate-400">
@@ -633,7 +633,7 @@ export default function SaasProductShowPage({
             </section>
 
             {product.description && (
-                <section className="py-16 border-t border-slate-200/60 dark:border-cyan-500/10 bg-slate-50/50 dark:bg-[#010e16]/60">
+                <section className="py-16 bg-slate-50/50 dark:bg-[#010e16]/60">
                     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
                         <div className="space-y-1">
                             <span className="text-xs font-bold text-cyan-600 dark:text-cyan-400 uppercase tracking-wider">Overview</span>
@@ -646,7 +646,7 @@ export default function SaasProductShowPage({
                 </section>
             )}
 
-            <section id="package-plans" className="py-24 relative border-t border-slate-200/60 dark:border-cyan-500/10">
+            <section id="package-plans" className="py-24 relative">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
                     <div>
                         <div className="text-center max-w-2xl mx-auto mb-16">
@@ -883,7 +883,7 @@ export default function SaasProductShowPage({
 
             {/* RELATED PRODUCTS */}
             {relatedProducts && relatedProducts.length > 0 && (
-                <section className="py-16 border-t border-slate-200/60 dark:border-cyan-500/10">
+                <section className="py-16">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
                         <div className="flex items-center justify-between">
                             <div>

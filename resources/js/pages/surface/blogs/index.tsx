@@ -103,7 +103,7 @@ export default function BlogIndexPage({
         >
             <div className="min-h-screen transition-colors duration-300">
                 {/* Hero Header Section */}
-                <section className="relative pt-12 pb-16 overflow-hidden border-b border-slate-200/60 dark:border-cyan-500/10">
+                <section className="relative pt-12 pb-16 overflow-hidden">
                     <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         {/* Eyebrow badge */}
                         <div

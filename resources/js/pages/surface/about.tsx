@@ -38,8 +38,8 @@ export default function About({ teamMembers }: AboutPageProps) {
             title="About Us & Engineering Team"
             description={`Learn about ${brandName}'s mission, engineering standards, leadership team, and global footprint.`}
         >
-            {/* Hero Header */}
-            <section className="pt-16 pb-20 relative overflow-hidden border-b border-slate-200/60 dark:border-cyan-500/10">
+            {/* HERO SECTION */}
+            <section className="pt-16 pb-20 relative overflow-hidden">
                 <div className="mx-auto px-4 sm:px-6 lg:px-8 text-center max-w-3xl relative z-10">
                     <div
                         data-aos="fade-down"
@@ -114,8 +114,8 @@ export default function About({ teamMembers }: AboutPageProps) {
                 </div>
             </section>
 
-            {/* TEAM MEMBERS GRID */}
-            <section className="py-20 bg-slate-50/60 dark:bg-[#010e16]/60 border-y border-slate-200/60 dark:border-cyan-500/10">
+            {/* LEADERSHIP & CORE ENGINEERING TEAM */}
+            <section className="py-20 bg-slate-50/60 dark:bg-[#010e16]/60">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center max-w-2xl mx-auto mb-16" data-aos="fade-up">
                         <div className="cv-badge mb-3.5">
@@ -318,8 +318,8 @@ export default function About({ teamMembers }: AboutPageProps) {
                 </div>
             </section>
 
-            {/* AGENCY LOCATION & MAP */}
-            <section className="py-20 bg-[#010e16] text-white relative border-t border-cyan-500/10">
+            {/* GLOBAL REACH / MISSION */}
+            <section className="py-20 bg-[#010e16] text-white relative">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
                         <div className="lg:col-span-5 space-y-6">

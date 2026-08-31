@@ -158,7 +158,7 @@ export default function Home({
             />
 
             {/* SIGNATURE TECH STACK MARQUEE TICKER (CodeVenture Design Signature) */}
-            <div className="relative z-20 py-6 border-y border-slate-200/60 dark:border-cyan-500/10 bg-slate-50 dark:bg-[#010e16] overflow-hidden cv-marquee-mask shadow-xl">
+            <div className="relative z-20 py-6 bg-slate-50 dark:bg-[#010e16] overflow-hidden cv-marquee-mask shadow-xl">
                 <div className="cv-marquee-track flex items-center space-x-4">
                     {[...techStackTicker, ...techStackTicker].map((item, idx) => (
                         <div
@@ -224,7 +224,7 @@ export default function Home({
 
             {/* FEATURED SAAS PRODUCTS SHOWCASE SECTION */}
             {saasProducts && saasProducts.length > 0 && (
-                <section className="py-24 bg-slate-50/60 dark:bg-[#010e16]/60 border-y border-slate-200/60 dark:border-cyan-500/10 relative">
+                <section className="py-24 bg-slate-50/60 dark:bg-[#010e16]/60 relative">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-16" data-aos="fade-up">
                             <div className="space-y-2">
@@ -339,7 +339,7 @@ export default function Home({
             />
 
             {/* WHY CHOOSE US / THE CODEVENTURE ADVANTAGE */}
-            <section className="py-24 bg-[#010e16] text-white relative overflow-hidden border-y border-cyan-500/10">
+            <section className="py-24 bg-[#010e16] text-white relative overflow-hidden">
                 {/* Background lighting */}
                 <div className="absolute top-0 right-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
                 <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
@@ -610,7 +610,7 @@ export async function bootstrapPlatform(config: AppConfig) {
             )}
 
             {/* FAST CALL TO ACTION BANNER */}
-            <section className="py-20 relative overflow-hidden bg-gradient-to-r from-[#01121e] via-[#010e16] to-[#010a10] border-t border-cyan-500/20 text-white">
+            <section className="py-20 relative overflow-hidden bg-gradient-to-r from-[#01121e] via-[#010e16] to-[#010a10] text-white">
                 <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(19,155,253,0.15),transparent_70%)] pointer-events-none" />
                 <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6 relative z-10">
                     <Rocket className="h-12 w-12 text-cyan-400 mx-auto animate-bounce" />
